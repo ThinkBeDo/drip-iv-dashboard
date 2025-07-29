@@ -67,6 +67,9 @@ CREATE TABLE IF NOT EXISTS analytics_data (
 CREATE INDEX IF NOT EXISTS idx_analytics_week_start ON analytics_data(week_start_date);
 CREATE INDEX IF NOT EXISTS idx_analytics_upload_date ON analytics_data(upload_date);
 
+-- Create unique constraint to prevent duplicate date ranges
+ALTER TABLE analytics_data ADD CONSTRAINT unique_week_range UNIQUE (week_start_date, week_end_date);
+
 -- File upload tracking
 CREATE TABLE IF NOT EXISTS file_uploads (
     id SERIAL PRIMARY KEY,

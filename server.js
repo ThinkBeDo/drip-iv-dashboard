@@ -352,77 +352,140 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
         throw new Error('Unsupported file type');
       }
 
-      // Insert analytics data
-      const insertQuery = `
-        INSERT INTO analytics_data (
-          week_start_date, week_end_date,
-          ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
-          ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
-          drip_iv_weekday_weekly, drip_iv_weekend_weekly,
-          semaglutide_consults_weekly, semaglutide_injections_weekly,
-          hormone_followup_female_weekly, hormone_initial_male_weekly,
-          ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
-          ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
-          drip_iv_weekday_monthly, drip_iv_weekend_monthly,
-          semaglutide_consults_monthly, semaglutide_injections_monthly,
-          hormone_followup_female_monthly, hormone_initial_male_monthly,
-          actual_weekly_revenue, weekly_revenue_goal,
-          actual_monthly_revenue, monthly_revenue_goal,
-          drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
-          drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
-          total_drip_iv_members, hubspot_ketamine_conversions,
-          marketing_initiatives, concierge_memberships, corporate_memberships,
-          days_left_in_month
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-          $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-          $31, $32, $33, $34, $35, $36, $37
-        ) RETURNING id
-      `;
+      // Check if data already exists for this date range
+      const existingData = await pool.query(`
+        SELECT id FROM analytics_data 
+        WHERE week_start_date = $1 AND week_end_date = $2
+      `, [extractedData.week_start_date, extractedData.week_end_date]);
 
-      const values = [
-        extractedData.week_start_date,
-        extractedData.week_end_date,
-        extractedData.ketamine_new_patient_weekly,
-        extractedData.ketamine_initial_booster_weekly,
-        extractedData.ketamine_booster_pain_weekly,
-        extractedData.ketamine_booster_bh_weekly,
-        extractedData.drip_iv_weekday_weekly,
-        extractedData.drip_iv_weekend_weekly,
-        extractedData.semaglutide_consults_weekly,
-        extractedData.semaglutide_injections_weekly,
-        extractedData.hormone_followup_female_weekly,
-        extractedData.hormone_initial_male_weekly,
-        extractedData.ketamine_new_patient_monthly || 0,
-        extractedData.ketamine_initial_booster_monthly || 0,
-        extractedData.ketamine_booster_pain_monthly || 0,
-        extractedData.ketamine_booster_bh_monthly || 0,
-        extractedData.drip_iv_weekday_monthly || 0,
-        extractedData.drip_iv_weekend_monthly || 0,
-        extractedData.semaglutide_consults_monthly || 0,
-        extractedData.semaglutide_injections_monthly || 0,
-        extractedData.hormone_followup_female_monthly || 0,
-        extractedData.hormone_initial_male_monthly || 0,
-        extractedData.actual_weekly_revenue,
-        extractedData.weekly_revenue_goal,
-        extractedData.actual_monthly_revenue,
-        extractedData.monthly_revenue_goal,
-        extractedData.drip_iv_revenue_weekly,
-        extractedData.semaglutide_revenue_weekly,
-        extractedData.ketamine_revenue_weekly,
-        extractedData.drip_iv_revenue_monthly || 0,
-        extractedData.semaglutide_revenue_monthly || 0,
-        extractedData.ketamine_revenue_monthly || 0,
-        extractedData.total_drip_iv_members,
-        extractedData.hubspot_ketamine_conversions,
-        extractedData.marketing_initiatives,
-        extractedData.concierge_memberships,
-        extractedData.corporate_memberships,
-        extractedData.days_left_in_month
-      ];
+      let analyticsId;
+      
+      if (existingData.rows.length > 0) {
+        // Update existing record
+        const updateQuery = `
+          UPDATE analytics_data SET
+            ketamine_new_patient_weekly = $3, ketamine_initial_booster_weekly = $4,
+            ketamine_booster_pain_weekly = $5, ketamine_booster_bh_weekly = $6,
+            drip_iv_weekday_weekly = $7, drip_iv_weekend_weekly = $8,
+            semaglutide_consults_weekly = $9, semaglutide_injections_weekly = $10,
+            hormone_followup_female_weekly = $11, hormone_initial_male_weekly = $12,
+            ketamine_new_patient_monthly = $13, ketamine_initial_booster_monthly = $14,
+            ketamine_booster_pain_monthly = $15, ketamine_booster_bh_monthly = $16,
+            drip_iv_weekday_monthly = $17, drip_iv_weekend_monthly = $18,
+            semaglutide_consults_monthly = $19, semaglutide_injections_monthly = $20,
+            hormone_followup_female_monthly = $21, hormone_initial_male_monthly = $22,
+            actual_weekly_revenue = $23, weekly_revenue_goal = $24,
+            actual_monthly_revenue = $25, monthly_revenue_goal = $26,
+            drip_iv_revenue_weekly = $27, semaglutide_revenue_weekly = $28, ketamine_revenue_weekly = $29,
+            drip_iv_revenue_monthly = $30, semaglutide_revenue_monthly = $31, ketamine_revenue_monthly = $32,
+            total_drip_iv_members = $33, hubspot_ketamine_conversions = $34,
+            marketing_initiatives = $35, concierge_memberships = $36, corporate_memberships = $37,
+            days_left_in_month = $38, updated_at = CURRENT_TIMESTAMP
+          WHERE week_start_date = $1 AND week_end_date = $2
+          RETURNING id
+        `;
+        
+        const updateValues = [
+          extractedData.week_start_date, extractedData.week_end_date,
+          extractedData.ketamine_new_patient_weekly, extractedData.ketamine_initial_booster_weekly,
+          extractedData.ketamine_booster_pain_weekly, extractedData.ketamine_booster_bh_weekly,
+          extractedData.drip_iv_weekday_weekly, extractedData.drip_iv_weekend_weekly,
+          extractedData.semaglutide_consults_weekly, extractedData.semaglutide_injections_weekly,
+          extractedData.hormone_followup_female_weekly, extractedData.hormone_initial_male_weekly,
+          extractedData.ketamine_new_patient_monthly || 0, extractedData.ketamine_initial_booster_monthly || 0,
+          extractedData.ketamine_booster_pain_monthly || 0, extractedData.ketamine_booster_bh_monthly || 0,
+          extractedData.drip_iv_weekday_monthly || 0, extractedData.drip_iv_weekend_monthly || 0,
+          extractedData.semaglutide_consults_monthly || 0, extractedData.semaglutide_injections_monthly || 0,
+          extractedData.hormone_followup_female_monthly || 0, extractedData.hormone_initial_male_monthly || 0,
+          extractedData.actual_weekly_revenue, extractedData.weekly_revenue_goal,
+          extractedData.actual_monthly_revenue, extractedData.monthly_revenue_goal,
+          extractedData.drip_iv_revenue_weekly, extractedData.semaglutide_revenue_weekly,
+          extractedData.ketamine_revenue_weekly, extractedData.drip_iv_revenue_monthly || 0,
+          extractedData.semaglutide_revenue_monthly || 0, extractedData.ketamine_revenue_monthly || 0,
+          extractedData.total_drip_iv_members, extractedData.hubspot_ketamine_conversions,
+          extractedData.marketing_initiatives, extractedData.concierge_memberships,
+          extractedData.corporate_memberships, extractedData.days_left_in_month
+        ];
 
-      const result = await pool.query(insertQuery, values);
-      const analyticsId = result.rows[0].id;
+        const result = await pool.query(updateQuery, updateValues);
+        analyticsId = result.rows[0].id;
+        
+        console.log(`Updated existing data for ${extractedData.week_start_date} to ${extractedData.week_end_date}`);
+      } else {
+        // Insert new record
+        const insertQuery = `
+          INSERT INTO analytics_data (
+            week_start_date, week_end_date,
+            ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
+            ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
+            drip_iv_weekday_weekly, drip_iv_weekend_weekly,
+            semaglutide_consults_weekly, semaglutide_injections_weekly,
+            hormone_followup_female_weekly, hormone_initial_male_weekly,
+            ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
+            ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
+            drip_iv_weekday_monthly, drip_iv_weekend_monthly,
+            semaglutide_consults_monthly, semaglutide_injections_monthly,
+            hormone_followup_female_monthly, hormone_initial_male_monthly,
+            actual_weekly_revenue, weekly_revenue_goal,
+            actual_monthly_revenue, monthly_revenue_goal,
+            drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
+            drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
+            total_drip_iv_members, hubspot_ketamine_conversions,
+            marketing_initiatives, concierge_memberships, corporate_memberships,
+            days_left_in_month
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
+            $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+            $31, $32, $33, $34, $35, $36, $37
+          ) RETURNING id
+        `;
+
+        const values = [
+          extractedData.week_start_date,
+          extractedData.week_end_date,
+          extractedData.ketamine_new_patient_weekly,
+          extractedData.ketamine_initial_booster_weekly,
+          extractedData.ketamine_booster_pain_weekly,
+          extractedData.ketamine_booster_bh_weekly,
+          extractedData.drip_iv_weekday_weekly,
+          extractedData.drip_iv_weekend_weekly,
+          extractedData.semaglutide_consults_weekly,
+          extractedData.semaglutide_injections_weekly,
+          extractedData.hormone_followup_female_weekly,
+          extractedData.hormone_initial_male_weekly,
+          extractedData.ketamine_new_patient_monthly || 0,
+          extractedData.ketamine_initial_booster_monthly || 0,
+          extractedData.ketamine_booster_pain_monthly || 0,
+          extractedData.ketamine_booster_bh_monthly || 0,
+          extractedData.drip_iv_weekday_monthly || 0,
+          extractedData.drip_iv_weekend_monthly || 0,
+          extractedData.semaglutide_consults_monthly || 0,
+          extractedData.semaglutide_injections_monthly || 0,
+          extractedData.hormone_followup_female_monthly || 0,
+          extractedData.hormone_initial_male_monthly || 0,
+          extractedData.actual_weekly_revenue,
+          extractedData.weekly_revenue_goal,
+          extractedData.actual_monthly_revenue,
+          extractedData.monthly_revenue_goal,
+          extractedData.drip_iv_revenue_weekly,
+          extractedData.semaglutide_revenue_weekly,
+          extractedData.ketamine_revenue_weekly,
+          extractedData.drip_iv_revenue_monthly || 0,
+          extractedData.semaglutide_revenue_monthly || 0,
+          extractedData.ketamine_revenue_monthly || 0,
+          extractedData.total_drip_iv_members,
+          extractedData.hubspot_ketamine_conversions,
+          extractedData.marketing_initiatives,
+          extractedData.concierge_memberships,
+          extractedData.corporate_memberships,
+          extractedData.days_left_in_month
+        ];
+
+        const result = await pool.query(insertQuery, values);
+        analyticsId = result.rows[0].id;
+        
+        console.log(`Inserted new data for ${extractedData.week_start_date} to ${extractedData.week_end_date}`);
+      }
 
       // Update file record as processed
       await pool.query(`
@@ -438,7 +501,7 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
 
       res.json({
         success: true,
-        message: 'File processed successfully',
+        message: existingData.rows.length > 0 ? 'Data updated successfully' : 'File processed successfully',
         analyticsId,
         data: extractedData
       });
@@ -466,6 +529,64 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
 
     res.status(500).json({ 
       error: 'Failed to process file',
+      details: error.message 
+    });
+  }
+});
+
+// Add July data endpoint (for initialization)
+app.post('/api/add-july-data', async (req, res) => {
+  try {
+    const insertQuery = `
+      INSERT INTO analytics_data (
+        week_start_date, week_end_date,
+        ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
+        ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
+        drip_iv_weekday_weekly, drip_iv_weekend_weekly,
+        semaglutide_consults_weekly, semaglutide_injections_weekly,
+        hormone_followup_female_weekly, hormone_initial_male_weekly,
+        ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
+        ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
+        drip_iv_weekday_monthly, drip_iv_weekend_monthly,
+        semaglutide_consults_monthly, semaglutide_injections_monthly,
+        hormone_followup_female_monthly, hormone_initial_male_monthly,
+        actual_weekly_revenue, weekly_revenue_goal,
+        actual_monthly_revenue, monthly_revenue_goal,
+        drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
+        drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
+        total_drip_iv_members, hubspot_ketamine_conversions,
+        marketing_initiatives, concierge_memberships, corporate_memberships,
+        days_left_in_month
+      ) VALUES (
+        '2025-07-07', '2025-07-13',
+        0, 1, 0, 2, 171, 47, 3, 39, 1, 1,
+        0, 6, 1, 12, 977, 232, 17, 208, 4, 3,
+        29934.65, 32125, 50223.9, 128500,
+        18337.4, 10422.25, 2000,
+        31090.15, 17143.75, 2000,
+        126, 0, 1, 21, 1, 18
+      ) ON CONFLICT (week_start_date, week_end_date) DO NOTHING
+      RETURNING id
+    `;
+
+    const result = await pool.query(insertQuery);
+    
+    if (result.rows.length > 0) {
+      res.json({
+        success: true,
+        message: 'July data added successfully',
+        analyticsId: result.rows[0].id
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'July data already exists'
+      });
+    }
+  } catch (error) {
+    console.error('Error adding July data:', error);
+    res.status(500).json({ 
+      error: 'Failed to add July data',
       details: error.message 
     });
   }
