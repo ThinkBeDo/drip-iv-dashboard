@@ -14,10 +14,66 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+let pool;
+let inMemoryData = null; // Store for development
+
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) {
+  // For development with SQLite - we'll use a simpler in-memory approach
+  console.log('⚠️  Using in-memory data store for development');
+  pool = null;
+  
+  // Initialize with sample July data
+  inMemoryData = {
+    id: 1,
+    upload_date: "2025-07-29T19:34:55.944Z",
+    week_start_date: "2025-07-07T00:00:00.000Z",
+    week_end_date: "2025-07-13T00:00:00.000Z",
+    ketamine_new_patient_weekly: 0,
+    ketamine_initial_booster_weekly: 1,
+    ketamine_booster_pain_weekly: 0,
+    ketamine_booster_bh_weekly: 2,
+    drip_iv_weekday_weekly: 171,
+    drip_iv_weekend_weekly: 47,
+    semaglutide_consults_weekly: 3,
+    semaglutide_injections_weekly: 39,
+    hormone_followup_female_weekly: 1,
+    hormone_initial_male_weekly: 1,
+    ketamine_new_patient_monthly: 0,
+    ketamine_initial_booster_monthly: 6,
+    ketamine_booster_pain_monthly: 1,
+    ketamine_booster_bh_monthly: 12,
+    drip_iv_weekday_monthly: 977,
+    drip_iv_weekend_monthly: 232,
+    semaglutide_consults_monthly: 17,
+    semaglutide_injections_monthly: 208,
+    hormone_followup_female_monthly: 4,
+    hormone_initial_male_monthly: 3,
+    actual_weekly_revenue: "29934.65",
+    weekly_revenue_goal: "32125.00",
+    actual_monthly_revenue: "50223.90",
+    monthly_revenue_goal: "128500.00",
+    drip_iv_revenue_weekly: "18337.40",
+    semaglutide_revenue_weekly: "10422.25",
+    ketamine_revenue_weekly: "2000.00",
+    drip_iv_revenue_monthly: "31090.15",
+    semaglutide_revenue_monthly: "17143.75",
+    ketamine_revenue_monthly: "2000.00",
+    total_drip_iv_members: 126,
+    hubspot_ketamine_conversions: 0,
+    marketing_initiatives: 1,
+    concierge_memberships: 21,
+    corporate_memberships: 1,
+    days_left_in_month: 18,
+    created_at: "2025-07-29T19:34:55.944Z",
+    updated_at: "2025-07-29T19:34:55.944Z"
+  };
+} else {
+  // PostgreSQL for production
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
+}
 
 // Middleware
 app.use(helmet({
@@ -278,6 +334,22 @@ app.get('/', (req, res) => {
 // Get dashboard data
 app.get('/api/dashboard', async (req, res) => {
   try {
+    if (!pool) {
+      // Use in-memory data for development
+      if (inMemoryData) {
+        return res.json({
+          success: true,
+          data: inMemoryData
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: 'No data available. Please upload analytics data.',
+          data: null
+        });
+      }
+    }
+
     const result = await pool.query(`
       SELECT * FROM analytics_data 
       ORDER BY upload_date DESC 
@@ -286,6 +358,7 @@ app.get('/api/dashboard', async (req, res) => {
     
     if (result.rows.length === 0) {
       return res.json({
+        success: false,
         message: 'No data available. Please upload analytics data.',
         data: null
       });
@@ -684,6 +757,11 @@ app.get('/health', async (req, res) => {
 // Initialize database tables
 async function initializeDatabase() {
   try {
+    if (!pool) {
+      console.log('🚀 Skipping database initialization (using in-memory store)');
+      return;
+    }
+    
     const schemaPath = path.join(__dirname, 'database', 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');

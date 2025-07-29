@@ -1,212 +1,850 @@
-                                <div class="progress-fill" data-width="${calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal)}%"></div>
-                            </div>
-                            <div class="goal-comparison">${calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal)}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Wellness Membership Types -->
-                <div class="section">
-                    <div class="wellness-section">
-                        <div class="wellness-content">
-                            <h2 style="margin: 0 0 15px 0; font-size: 2rem; font-weight: 600;">Drip IV Wellness Memberships</h2>
-                            <p style="margin-bottom: 0; opacity: 0.9; font-size: 1.1rem;">Comprehensive wellness solutions for optimal health and vitality</p>
-                            <div class="membership-grid">
-                                <div class="membership-card">
-                                    <h4>Individual</h4>
-                                    <div class="membership-count">${data.total_drip_iv_members || 0}</div>
-                                </div>
-                                <div class="membership-card">
-                                    <h4>Family</h4>
-                                    <div class="membership-count">--</div>
-                                </div>
-                                <div class="membership-card">
-                                    <h4>Concierge</h4>
-                                    <div class="membership-count">${data.concierge_memberships || 0}</div>
-                                </div>
-                                <div class="membership-card">
-                                    <h4>Corporate</h4>
-                                    <div class="membership-count">${data.corporate_memberships || 0}</div>
-                                </div>
-                                <div class="membership-card">
-                                    <h4>Family & Concierge</h4>
-                                    <div class="membership-count">--</div>
-                                </div>
-                                <div class="membership-card">
-                                    <h4>Drip & Concierge</h4>
-                                    <div class="membership-count">--</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Service Volume Analytics -->
-                <div class="section">
-                    <h2 class="section-title">Service Volume Analytics</h2>
-                    <div class="services-grid">
-                        <div class="service-card">
-                            <h4>
-                                <div class="service-icon ketamine-icon">🧠</div>
-                                Ketamine Therapy
-                            </h4>
-                            <div class="service-item">
-                                <span class="service-label">New Patient Consultations</span>
-                                <span class="service-count">${data.ketamine_new_patient_weekly || 0} weekly (${data.ketamine_new_patient_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Initial Booster Series 6</span>
-                                <span class="service-count">${data.ketamine_initial_booster_weekly || 0} weekly (${data.ketamine_initial_booster_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Pain Management Boosters</span>
-                                <span class="service-count">${data.ketamine_booster_pain_weekly || 0} weekly (${data.ketamine_booster_pain_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Mental Health Boosters</span>
-                                <span class="service-count">${data.ketamine_booster_bh_weekly || 0} weekly (${data.ketamine_booster_bh_monthly || 0} monthly)</span>
-                            </div>
-                        </div>
-                        
-                        <div class="service-card">
-                            <h4>
-                                <div class="service-icon iv-icon">💧</div>
-                                IV Therapy
-                            </h4>
-                            <div class="service-item">
-                                <span class="service-label">Weekday Sessions</span>
-                                <span class="service-count">${data.drip_iv_weekday_weekly || 0} weekly (${data.drip_iv_weekday_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Weekend Sessions</span>
-                                <span class="service-count">${data.drip_iv_weekend_weekly || 0} weekly (${data.drip_iv_weekend_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Total Sessions</span>
-                                <span class="service-count">${(data.drip_iv_weekday_weekly || 0) + (data.drip_iv_weekend_weekly || 0)} weekly (${(data.drip_iv_weekday_monthly || 0) + (data.drip_iv_weekend_monthly || 0)} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Popular: NAD+, Energy, Hydration</span>
-                                <span class="service-count">Active</span>
-                            </div>
-                        </div>
-                        
-                        <div class="service-card">
-                            <h4>
-                                <div class="service-icon weight-icon">⚖️</div>
-                                Weight Management
-                            </h4>
-                            <div class="service-item">
-                                <span class="service-label">Semaglutide/Tirzepatide Consultations</span>
-                                <span class="service-count">${data.semaglutide_consults_weekly || 0} weekly (${data.semaglutide_consults_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Weight Loss Injections</span>
-                                <span class="service-count">${data.semaglutide_injections_weekly || 0} weekly (${data.semaglutide_injections_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Appetite Suppressant Program</span>
-                                <span class="service-count">Active</span>
-                            </div>
-                        </div>
-                        
-                        <div class="service-card">
-                            <h4>
-                                <div class="service-icon hormone-icon">🔬</div>
-                                Hormone & Aesthetics
-                            </h4>
-                            <div class="service-item">
-                                <span class="service-label">Female Hormone Follow-ups</span>
-                                <span class="service-count">${data.hormone_followup_female_weekly || 0} weekly (${data.hormone_followup_female_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Male Initial Consultations</span>
-                                <span class="service-count">${data.hormone_initial_male_weekly || 0} weekly (${data.hormone_initial_male_monthly || 0} monthly)</span>
-                            </div>
-                            <div class="service-item">
-                                <span class="service-label">Botox & Aesthetic Services</span>
-                                <span class="service-count">Available</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Animate progress bars
-            setTimeout(() => {
-                document.querySelectorAll('.progress-fill').forEach(bar => {
-                    const width = bar.getAttribute('data-width');
-                    bar.style.width = width;
-                });
-            }, 500);
-            
-            // Add hover effects
-            addInteractiveEffects();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drip IV - Weekly Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        // Render no data state
-        function renderNoDashboard() {
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = `
-                <div class="no-data">
-                    <h3>Welcome to Your Drip IV Analytics Dashboard</h3>
-                    <p>Upload your weekly analytics report (CSV or PDF) to see your performance metrics, revenue tracking, and service analytics.</p>
-                    <p>Once uploaded, you'll see:</p>
-                    <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
-                        <li>📊 Key performance metrics</li>
-                        <li>💰 Revenue performance vs goals</li>
-                        <li>👥 Membership analytics</li>
-                        <li>🏥 Service volume breakdowns</li>
-                        <li>📈 Historical trend analysis</li>
-                    </ul>
-                </div>
-            `;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
         
-        // Setup file upload handling
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="drip" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23drip)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+        
+        .logo-icon::before {
+            content: '💧';
+            font-size: 24px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin: 0;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin: 10px 0 20px 0;
+            font-weight: 300;
+        }
+        
+        .date-range {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+        
+        .upload-section {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            padding: 15px 30px;
+            border-radius: 25px;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,212,255,0.3);
+        }
+        
+        .upload-section:hover {
+            background: linear-gradient(135deg, #0099cc 0%, #007aa3 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,212,255,0.4);
+        }
+        
+        .upload-section input {
+            display: none;
+        }
+        
+        .upload-text {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .main-content {
+            padding: 40px 30px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #e8f0ff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(30,60,114,0.15);
+            border-color: #00d4ff;
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #00d4ff, #1e3c72);
+        }
+        
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+        
+        .metric-label {
+            color: #2a5298;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            color: #1e3c72;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #00d4ff;
+            display: inline-block;
+        }
+        
+        .revenue-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 35px;
+            margin-bottom: 50px;
+        }
+        
+        .revenue-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+            padding: 35px;
+            border-radius: 20px;
+            border: 2px solid #e8f0ff;
+            box-shadow: 0 10px 30px rgba(30,60,114,0.08);
+        }
+        
+        .revenue-card h3 {
+            color: #1e3c72;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .revenue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid #e8f0ff;
+        }
+        
+        .revenue-item:last-child {
+            border-bottom: none;
+        }
+        
+        .revenue-label {
+            font-weight: 600;
+            color: #2a5298;
+        }
+        
+        .revenue-amount {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .revenue-amount.actual {
+            color: #27ae60;
+        }
+        
+        .revenue-amount.goal {
+            color: #e74c3c;
+        }
+        
+        .wellness-section {
+            background: linear-gradient(135deg, #00d4ff 0%, #1e3c72 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .wellness-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="wellness" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="5" cy="25" r="2" fill="rgba(255,255,255,0.05)"/><circle cx="25" cy="5" r="2" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23wellness)"/></svg>');
+        }
+        
+        .wellness-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .membership-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+        }
+        
+        .membership-card {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .membership-card:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-5px);
+        }
+        
+        .membership-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .membership-count {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+        }
+        
+        .service-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+            border: 2px solid #e8f0ff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(30,60,114,0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(30,60,114,0.15);
+        }
+        
+        .service-card h4 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .service-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .ketamine-icon {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+        
+        .iv-icon {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+        }
+        
+        .weight-icon {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+        
+        .hormone-icon {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+        
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #e8f0ff;
+            align-items: center;
+            min-height: 50px;
+        }
+        
+        .service-item:last-child {
+            border-bottom: none;
+        }
+        
+        .service-label {
+            font-weight: 500;
+            color: #2a5298;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 15px;
+        }
+        
+        .service-count {
+            font-weight: 700;
+            color: #1e3c72;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e8f0ff;
+            border-radius: 5px;
+            margin-top: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #1e3c72);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .goal-comparison {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            color: #2a5298;
+            font-weight: 500;
+        }
+        
+        .locations-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert.error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+        
+        .alert.success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            color: white;
+        }
+        
+        .alert.info {
+            background: linear-gradient(135deg, #74c0fc 0%, #339af0 100%);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .revenue-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-value {
+                font-size: 2.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .main-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon"></div>
+                    <div>
+                        <h1>Drip IV</h1>
+                        <div class="tagline">Boost Your Energy • Burn Fat • Feel Energized</div>
+                    </div>
+                </div>
+                <div class="date-range">Weekly Dashboard: July 14 - July 20, 2025</div>
+                <div class="locations-badge">📍 Baton Rouge & Lafayette, LA</div>
+                <div style="margin-top: 25px;">
+                    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" multiple>
+                        <div class="upload-text">
+                            <span>📊</span>
+                            <span>Upload Weekly Analytics Reports</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Key Performance Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value total-members">--</div>
+                    <div class="metric-label">Total Drip IV Members</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value hubspot-conversions">--</div>
+                    <div class="metric-label">HubSpot Ketamine Conversions</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value marketing-initiatives">--</div>
+                    <div class="metric-label">Marketing Initiatives</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value concierge-memberships">--</div>
+                    <div class="metric-label">Concierge Memberships</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value corporate-memberships">--</div>
+                    <div class="metric-label">Corporate Membership</div>
+                </div>
+            </div>
+            
+            <!-- Revenue Performance -->
+            <div class="section">
+                <h2 class="section-title">Revenue Performance</h2>
+                <div class="revenue-section">
+                    <div class="revenue-card">
+                        <h3>Weekly Revenue Status</h3>
+                        <div class="revenue-item">
+                            <span class="revenue-label">IV Therapy</span>
+                            <span class="revenue-amount actual iv-revenue-weekly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label">Semaglutide Weight Loss</span>
+                            <span class="revenue-amount actual sema-revenue-weekly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label">Ketamine Therapy</span>
+                            <span class="revenue-amount actual ketamine-revenue-weekly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label"><strong>Total Weekly Actual</strong></span>
+                            <span class="revenue-amount actual weekly-actual"><strong>--</strong></span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label"><strong>Weekly Goal</strong></span>
+                            <span class="revenue-amount goal weekly-goal"><strong>--</strong></span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill weekly-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="goal-comparison weekly-progress-text">Loading...</div>
+                    </div>
+                    
+                    <div class="revenue-card">
+                        <h3>Monthly Revenue Status</h3>
+                        <div class="revenue-item">
+                            <span class="revenue-label">IV Therapy</span>
+                            <span class="revenue-amount actual iv-revenue-monthly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label">Semaglutide Weight Loss</span>
+                            <span class="revenue-amount actual sema-revenue-monthly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label">Ketamine Therapy</span>
+                            <span class="revenue-amount actual ketamine-revenue-monthly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label"><strong>Total Monthly Actual</strong></span>
+                            <span class="revenue-amount actual monthly-actual"><strong>--</strong></span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label"><strong>Monthly Goal</strong></span>
+                            <span class="revenue-amount goal monthly-goal"><strong>--</strong></span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill monthly-progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="goal-comparison monthly-progress-text">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wellness Membership Types -->
+            <div class="section">
+                <div class="wellness-section">
+                    <div class="wellness-content">
+                        <h2 style="margin: 0 0 15px 0; font-size: 2rem; font-weight: 600;">Drip IV Wellness Memberships</h2>
+                        <p style="margin-bottom: 0; opacity: 0.9; font-size: 1.1rem;">Comprehensive wellness solutions for optimal health and vitality</p>
+                        <div class="membership-grid">
+                            <div class="membership-card">
+                                <h4>Individual</h4>
+                                <div class="membership-count individual-members">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Family</h4>
+                                <div class="membership-count">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Concierge</h4>
+                                <div class="membership-count concierge-member-count">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Corporate</h4>
+                                <div class="membership-count corporate-member-count">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Family & Concierge</h4>
+                                <div class="membership-count">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Drip & Concierge</h4>
+                                <div class="membership-count">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Service Volume Analytics -->
+            <div class="section">
+                <h2 class="section-title">Service Volume Analytics</h2>
+                <div class="services-grid">
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon ketamine-icon">🧠</div>
+                            Ketamine Therapy
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">New Patient Consultations</span>
+                            <span class="service-count"><span class="ketamine-new-weekly">--</span> weekly (<span class="ketamine-new-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Initial Booster Series 6</span>
+                            <span class="service-count"><span class="ketamine-booster-weekly">--</span> weekly (<span class="ketamine-booster-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Pain Management Boosters</span>
+                            <span class="service-count"><span class="ketamine-pain-weekly">--</span> weekly (<span class="ketamine-pain-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Mental Health Boosters</span>
+                            <span class="service-count"><span class="ketamine-bh-weekly">--</span> weekly (<span class="ketamine-bh-monthly">--</span> monthly)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon iv-icon">💧</div>
+                            IV Therapy
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">Weekday Sessions</span>
+                            <span class="service-count"><span class="iv-weekday-weekly">--</span> weekly (<span class="iv-weekday-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Weekend Sessions</span>
+                            <span class="service-count"><span class="iv-weekend-weekly">--</span> weekly (<span class="iv-weekend-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Total Sessions</span>
+                            <span class="service-count"><span class="iv-total-weekly">--</span> weekly (<span class="iv-total-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Popular: NAD+, Energy, Hydration</span>
+                            <span class="service-count">Active</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon weight-icon">⚖️</div>
+                            Weight Management
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">Semaglutide/Tirzepatide Consultations</span>
+                            <span class="service-count"><span class="sema-consults-weekly">--</span> weekly (<span class="sema-consults-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Weight Loss Injections</span>
+                            <span class="service-count"><span class="sema-injections-weekly">--</span> weekly (<span class="sema-injections-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Appetite Suppressant Program</span>
+                            <span class="service-count">Active</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon hormone-icon">🔬</div>
+                            Hormone & Aesthetics
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">Female Hormone Follow-ups</span>
+                            <span class="service-count"><span class="hormone-female-weekly">--</span> weekly (<span class="hormone-female-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Male Initial Consultations</span>
+                            <span class="service-count"><span class="hormone-male-weekly">--</span> weekly (<span class="hormone-male-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Botox & Aesthetic Services</span>
+                            <span class="service-count">Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load dashboard data and update UI
+        async function loadDashboardData() {
+            try {
+                console.log('Loading dashboard data...');
+                const response = await fetch('/api/dashboard');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    console.log('Data loaded successfully:', result.data);
+                    updateDashboard(result.data);
+                } else {
+                    console.log('No data available:', result.message);
+                    showNoDataState();
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                showAlert('Failed to load dashboard data. Please try again.', 'error');
+            }
+        }
+        
+        // Update dashboard with data
+        function updateDashboard(data) {
+            // Update metric cards
+            updateElement('.total-members', data.total_drip_iv_members || 0);
+            updateElement('.hubspot-conversions', data.hubspot_ketamine_conversions || 0);
+            updateElement('.marketing-initiatives', data.marketing_initiatives || 0);
+            updateElement('.concierge-memberships', data.concierge_memberships || 0);
+            updateElement('.corporate-memberships', data.corporate_memberships || 0);
+            
+            // Update revenue information
+            updateElement('.weekly-actual', `$${formatCurrency(data.actual_weekly_revenue || 0)}`);
+            updateElement('.weekly-goal', `$${formatCurrency(data.weekly_revenue_goal || 0)}`);
+            updateElement('.monthly-actual', `$${formatCurrency(data.actual_monthly_revenue || 0)}`);
+            updateElement('.monthly-goal', `$${formatCurrency(data.monthly_revenue_goal || 0)}`);
+            
+            updateElement('.iv-revenue-weekly', `$${formatCurrency(data.drip_iv_revenue_weekly || 0)}`);
+            updateElement('.sema-revenue-weekly', `$${formatCurrency(data.semaglutide_revenue_weekly || 0)}`);
+            updateElement('.ketamine-revenue-weekly', `$${formatCurrency(data.ketamine_revenue_weekly || 0)}`);
+            updateElement('.iv-revenue-monthly', `$${formatCurrency(data.drip_iv_revenue_monthly || 0)}`);
+            updateElement('.sema-revenue-monthly', `$${formatCurrency(data.semaglutide_revenue_monthly || 0)}`);
+            updateElement('.ketamine-revenue-monthly', `$${formatCurrency(data.ketamine_revenue_monthly || 0)}`);
+            
+            // Update progress bars
+            const weeklyPercent = calculatePercentage(data.actual_weekly_revenue, data.weekly_revenue_goal);
+            const monthlyPercent = calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal);
+            
+            const weeklyProgressBar = document.querySelector('.weekly-progress-fill');
+            const monthlyProgressBar = document.querySelector('.monthly-progress-fill');
+            
+            if (weeklyProgressBar) {
+                weeklyProgressBar.style.width = `${weeklyPercent}%`;
+            }
+            if (monthlyProgressBar) {
+                monthlyProgressBar.style.width = `${monthlyPercent}%`;
+            }
+            
+            // Update progress text
+            updateElement('.weekly-progress-text', `${weeklyPercent}% of weekly goal achieved`);
+            updateElement('.monthly-progress-text', `${monthlyPercent}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)`);
+            
+            // Update membership counts
+            updateElement('.individual-members', data.total_drip_iv_members || 0);
+            updateElement('.concierge-member-count', data.concierge_memberships || 0);
+            updateElement('.corporate-member-count', data.corporate_memberships || 0);
+            
+            // Update service volume data
+            updateElement('.ketamine-new-weekly', data.ketamine_new_patient_weekly || 0);
+            updateElement('.ketamine-new-monthly', data.ketamine_new_patient_monthly || 0);
+            updateElement('.ketamine-booster-weekly', data.ketamine_initial_booster_weekly || 0);
+            updateElement('.ketamine-booster-monthly', data.ketamine_initial_booster_monthly || 0);
+            updateElement('.ketamine-pain-weekly', data.ketamine_booster_pain_weekly || 0);
+            updateElement('.ketamine-pain-monthly', data.ketamine_booster_pain_monthly || 0);
+            updateElement('.ketamine-bh-weekly', data.ketamine_booster_bh_weekly || 0);
+            updateElement('.ketamine-bh-monthly', data.ketamine_booster_bh_monthly || 0);
+            
+            updateElement('.iv-weekday-weekly', data.drip_iv_weekday_weekly || 0);
+            updateElement('.iv-weekday-monthly', data.drip_iv_weekday_monthly || 0);
+            updateElement('.iv-weekend-weekly', data.drip_iv_weekend_weekly || 0);
+            updateElement('.iv-weekend-monthly', data.drip_iv_weekend_monthly || 0);
+            updateElement('.iv-total-weekly', (data.drip_iv_weekday_weekly || 0) + (data.drip_iv_weekend_weekly || 0));
+            updateElement('.iv-total-monthly', (data.drip_iv_weekday_monthly || 0) + (data.drip_iv_weekend_monthly || 0));
+            
+            updateElement('.sema-consults-weekly', data.semaglutide_consults_weekly || 0);
+            updateElement('.sema-consults-monthly', data.semaglutide_consults_monthly || 0);
+            updateElement('.sema-injections-weekly', data.semaglutide_injections_weekly || 0);
+            updateElement('.sema-injections-monthly', data.semaglutide_injections_monthly || 0);
+            
+            updateElement('.hormone-female-weekly', data.hormone_followup_female_weekly || 0);
+            updateElement('.hormone-female-monthly', data.hormone_followup_female_monthly || 0);
+            updateElement('.hormone-male-weekly', data.hormone_initial_male_weekly || 0);
+            updateElement('.hormone-male-monthly', data.hormone_initial_male_monthly || 0);
+            
+            console.log('Dashboard updated successfully');
+        }
+        
+        // Helper function to update element content
+        function updateElement(selector, value) {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+        
+        // Show no data state
+        function showNoDataState() {
+            showAlert('No data available. Please upload analytics data using the upload section above.', 'info');
+        }
+        
+        // File upload handling
         function setupFileUpload() {
             const fileInput = document.getElementById('fileInput');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (!fileInput) return;
             
             fileInput.addEventListener('change', async function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
+                const files = Array.from(e.target.files);
+                if (files.length === 0) return;
                 
-                // Validate file type
-                if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.pdf')) {
-                    showAlert('Please upload a CSV or PDF file only.', 'error');
-                    return;
-                }
+                showAlert('Processing files...', 'info');
                 
-                // Show loading
-                loadingIndicator.style.display = 'flex';
-                
-                // Create form data
-                const formData = new FormData();
-                formData.append('analyticsFile', file);
-                
-                try {
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        showAlert('Analytics data uploaded and processed successfully!', 'success');
-                        // Reload dashboard data
-                        await loadDashboardData();
-                    } else {
-                        throw new Error(result.error || 'Upload failed');
+                for (const file of files) {
+                    try {
+                        const formData = new FormData();
+                        formData.append('analyticsFile', file);
+                        
+                        const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showAlert(`${file.name} processed successfully!`, 'success');
+                            await loadDashboardData(); // Reload dashboard
+                        } else {
+                            throw new Error(result.error || 'Upload failed');
+                        }
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        showAlert(`Failed to process ${file.name}: ${error.message}`, 'error');
                     }
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showAlert(`Upload failed: ${error.message}`, 'error');
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                    fileInput.value = ''; // Reset file input
                 }
+                
+                fileInput.value = ''; // Reset file input
             });
         }
         
@@ -270,6 +908,14 @@
                 });
             });
         }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌟 Drip IV Dashboard initializing...');
+            setupFileUpload();
+            addInteractiveEffects();
+            loadDashboardData();
+        });
         
         // Auto-refresh data every 5 minutes
         setInterval(loadDashboardData, 5 * 60 * 1000);
