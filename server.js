@@ -534,8 +534,65 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
   }
 });
 
-// Add July data endpoint (for initialization)
-app.post('/api/add-july-data', async (req, res) => {
+// Add July data endpoint (for initialization) - both GET and POST
+app.route('/api/add-july-data')
+.get(async (req, res) => {
+  try {
+    const insertQuery = `
+      INSERT INTO analytics_data (
+        week_start_date, week_end_date,
+        ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
+        ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
+        drip_iv_weekday_weekly, drip_iv_weekend_weekly,
+        semaglutide_consults_weekly, semaglutide_injections_weekly,
+        hormone_followup_female_weekly, hormone_initial_male_weekly,
+        ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
+        ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
+        drip_iv_weekday_monthly, drip_iv_weekend_monthly,
+        semaglutide_consults_monthly, semaglutide_injections_monthly,
+        hormone_followup_female_monthly, hormone_initial_male_monthly,
+        actual_weekly_revenue, weekly_revenue_goal,
+        actual_monthly_revenue, monthly_revenue_goal,
+        drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
+        drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
+        total_drip_iv_members, hubspot_ketamine_conversions,
+        marketing_initiatives, concierge_memberships, corporate_memberships,
+        days_left_in_month
+      ) VALUES (
+        '2025-07-07', '2025-07-13',
+        0, 1, 0, 2, 171, 47, 3, 39, 1, 1,
+        0, 6, 1, 12, 977, 232, 17, 208, 4, 3,
+        29934.65, 32125, 50223.9, 128500,
+        18337.4, 10422.25, 2000,
+        31090.15, 17143.75, 2000,
+        126, 0, 1, 21, 1, 18
+      ) ON CONFLICT (week_start_date, week_end_date) DO NOTHING
+      RETURNING id
+    `;
+
+    const result = await pool.query(insertQuery);
+    
+    if (result.rows.length > 0) {
+      res.json({
+        success: true,
+        message: 'July data added successfully',
+        analyticsId: result.rows[0].id
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'July data already exists'
+      });
+    }
+  } catch (error) {
+    console.error('Error adding July data:', error);
+    res.status(500).json({ 
+      error: 'Failed to add July data',
+      details: error.message 
+    });
+  }
+})
+.post(async (req, res) => {
   try {
     const insertQuery = `
       INSERT INTO analytics_data (
