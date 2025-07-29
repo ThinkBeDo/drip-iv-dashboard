@@ -538,6 +538,21 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
 app.route('/api/add-july-data')
 .get(async (req, res) => {
   try {
+    // First check if data already exists
+    const existingData = await pool.query(`
+      SELECT id FROM analytics_data 
+      WHERE week_start_date = '2025-07-07' AND week_end_date = '2025-07-13'
+    `);
+
+    if (existingData.rows.length > 0) {
+      return res.json({
+        success: true,
+        message: 'July data already exists',
+        analyticsId: existingData.rows[0].id
+      });
+    }
+
+    // Insert new data without ON CONFLICT clause
     const insertQuery = `
       INSERT INTO analytics_data (
         week_start_date, week_end_date,
@@ -566,8 +581,7 @@ app.route('/api/add-july-data')
         18337.4, 10422.25, 2000,
         31090.15, 17143.75, 2000,
         126, 0, 1, 21, 1, 18
-      ) ON CONFLICT (week_start_date, week_end_date) DO NOTHING
-      RETURNING id
+      ) RETURNING id
     `;
 
     const result = await pool.query(insertQuery);
@@ -594,6 +608,21 @@ app.route('/api/add-july-data')
 })
 .post(async (req, res) => {
   try {
+    // First check if data already exists
+    const existingData = await pool.query(`
+      SELECT id FROM analytics_data 
+      WHERE week_start_date = '2025-07-07' AND week_end_date = '2025-07-13'
+    `);
+
+    if (existingData.rows.length > 0) {
+      return res.json({
+        success: true,
+        message: 'July data already exists',
+        analyticsId: existingData.rows[0].id
+      });
+    }
+
+    // Insert new data without ON CONFLICT clause
     const insertQuery = `
       INSERT INTO analytics_data (
         week_start_date, week_end_date,
@@ -622,24 +651,17 @@ app.route('/api/add-july-data')
         18337.4, 10422.25, 2000,
         31090.15, 17143.75, 2000,
         126, 0, 1, 21, 1, 18
-      ) ON CONFLICT (week_start_date, week_end_date) DO NOTHING
-      RETURNING id
+      ) RETURNING id
     `;
 
     const result = await pool.query(insertQuery);
     
-    if (result.rows.length > 0) {
-      res.json({
-        success: true,
-        message: 'July data added successfully',
-        analyticsId: result.rows[0].id
-      });
-    } else {
-      res.json({
-        success: true,
-        message: 'July data already exists'
-      });
-    }
+    res.json({
+      success: true,
+      message: 'July data added successfully',
+      analyticsId: result.rows[0].id
+    });
+    
   } catch (error) {
     console.error('Error adding July data:', error);
     res.status(500).json({ 
