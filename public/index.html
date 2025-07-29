@@ -1,0 +1,280 @@
+                                <div class="progress-fill" data-width="${calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal)}%"></div>
+                            </div>
+                            <div class="goal-comparison">${calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal)}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wellness Membership Types -->
+                <div class="section">
+                    <div class="wellness-section">
+                        <div class="wellness-content">
+                            <h2 style="margin: 0 0 15px 0; font-size: 2rem; font-weight: 600;">Drip IV Wellness Memberships</h2>
+                            <p style="margin-bottom: 0; opacity: 0.9; font-size: 1.1rem;">Comprehensive wellness solutions for optimal health and vitality</p>
+                            <div class="membership-grid">
+                                <div class="membership-card">
+                                    <h4>Individual</h4>
+                                    <div class="membership-count">${data.total_drip_iv_members || 0}</div>
+                                </div>
+                                <div class="membership-card">
+                                    <h4>Family</h4>
+                                    <div class="membership-count">--</div>
+                                </div>
+                                <div class="membership-card">
+                                    <h4>Concierge</h4>
+                                    <div class="membership-count">${data.concierge_memberships || 0}</div>
+                                </div>
+                                <div class="membership-card">
+                                    <h4>Corporate</h4>
+                                    <div class="membership-count">${data.corporate_memberships || 0}</div>
+                                </div>
+                                <div class="membership-card">
+                                    <h4>Family & Concierge</h4>
+                                    <div class="membership-count">--</div>
+                                </div>
+                                <div class="membership-card">
+                                    <h4>Drip & Concierge</h4>
+                                    <div class="membership-count">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Volume Analytics -->
+                <div class="section">
+                    <h2 class="section-title">Service Volume Analytics</h2>
+                    <div class="services-grid">
+                        <div class="service-card">
+                            <h4>
+                                <div class="service-icon ketamine-icon">🧠</div>
+                                Ketamine Therapy
+                            </h4>
+                            <div class="service-item">
+                                <span class="service-label">New Patient Consultations</span>
+                                <span class="service-count">${data.ketamine_new_patient_weekly || 0} weekly (${data.ketamine_new_patient_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Initial Booster Series 6</span>
+                                <span class="service-count">${data.ketamine_initial_booster_weekly || 0} weekly (${data.ketamine_initial_booster_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Pain Management Boosters</span>
+                                <span class="service-count">${data.ketamine_booster_pain_weekly || 0} weekly (${data.ketamine_booster_pain_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Mental Health Boosters</span>
+                                <span class="service-count">${data.ketamine_booster_bh_weekly || 0} weekly (${data.ketamine_booster_bh_monthly || 0} monthly)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card">
+                            <h4>
+                                <div class="service-icon iv-icon">💧</div>
+                                IV Therapy
+                            </h4>
+                            <div class="service-item">
+                                <span class="service-label">Weekday Sessions</span>
+                                <span class="service-count">${data.drip_iv_weekday_weekly || 0} weekly (${data.drip_iv_weekday_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Weekend Sessions</span>
+                                <span class="service-count">${data.drip_iv_weekend_weekly || 0} weekly (${data.drip_iv_weekend_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Total Sessions</span>
+                                <span class="service-count">${(data.drip_iv_weekday_weekly || 0) + (data.drip_iv_weekend_weekly || 0)} weekly (${(data.drip_iv_weekday_monthly || 0) + (data.drip_iv_weekend_monthly || 0)} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Popular: NAD+, Energy, Hydration</span>
+                                <span class="service-count">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card">
+                            <h4>
+                                <div class="service-icon weight-icon">⚖️</div>
+                                Weight Management
+                            </h4>
+                            <div class="service-item">
+                                <span class="service-label">Semaglutide/Tirzepatide Consultations</span>
+                                <span class="service-count">${data.semaglutide_consults_weekly || 0} weekly (${data.semaglutide_consults_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Weight Loss Injections</span>
+                                <span class="service-count">${data.semaglutide_injections_weekly || 0} weekly (${data.semaglutide_injections_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Appetite Suppressant Program</span>
+                                <span class="service-count">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card">
+                            <h4>
+                                <div class="service-icon hormone-icon">🔬</div>
+                                Hormone & Aesthetics
+                            </h4>
+                            <div class="service-item">
+                                <span class="service-label">Female Hormone Follow-ups</span>
+                                <span class="service-count">${data.hormone_followup_female_weekly || 0} weekly (${data.hormone_followup_female_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Male Initial Consultations</span>
+                                <span class="service-count">${data.hormone_initial_male_weekly || 0} weekly (${data.hormone_initial_male_monthly || 0} monthly)</span>
+                            </div>
+                            <div class="service-item">
+                                <span class="service-label">Botox & Aesthetic Services</span>
+                                <span class="service-count">Available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Animate progress bars
+            setTimeout(() => {
+                document.querySelectorAll('.progress-fill').forEach(bar => {
+                    const width = bar.getAttribute('data-width');
+                    bar.style.width = width;
+                });
+            }, 500);
+            
+            // Add hover effects
+            addInteractiveEffects();
+        }
+        
+        // Render no data state
+        function renderNoDashboard() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div class="no-data">
+                    <h3>Welcome to Your Drip IV Analytics Dashboard</h3>
+                    <p>Upload your weekly analytics report (CSV or PDF) to see your performance metrics, revenue tracking, and service analytics.</p>
+                    <p>Once uploaded, you'll see:</p>
+                    <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
+                        <li>📊 Key performance metrics</li>
+                        <li>💰 Revenue performance vs goals</li>
+                        <li>👥 Membership analytics</li>
+                        <li>🏥 Service volume breakdowns</li>
+                        <li>📈 Historical trend analysis</li>
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // Setup file upload handling
+        function setupFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            fileInput.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                // Validate file type
+                if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.pdf')) {
+                    showAlert('Please upload a CSV or PDF file only.', 'error');
+                    return;
+                }
+                
+                // Show loading
+                loadingIndicator.style.display = 'flex';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('analyticsFile', file);
+                
+                try {
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('Analytics data uploaded and processed successfully!', 'success');
+                        // Reload dashboard data
+                        await loadDashboardData();
+                    } else {
+                        throw new Error(result.error || 'Upload failed');
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showAlert(`Upload failed: ${error.message}`, 'error');
+                } finally {
+                    loadingIndicator.style.display = 'none';
+                    fileInput.value = ''; // Reset file input
+                }
+            });
+        }
+        
+        // Utility functions
+        function formatCurrency(amount) {
+            return Number(amount || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function calculatePercentage(actual, goal) {
+            if (!goal || goal === 0) return 0;
+            return Math.round((actual / goal) * 100 * 10) / 10; // Round to 1 decimal
+        }
+        
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            
+            // Insert after header
+            const header = document.querySelector('.header');
+            header.insertAdjacentElement('afterend', alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+        
+        function addInteractiveEffects() {
+            // Enhanced hover effects for metric cards
+            document.querySelectorAll('.metric-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.03)';
+                    this.style.boxShadow = '0 20px 50px rgba(30,60,114,0.2)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                    this.style.boxShadow = '0 10px 30px rgba(30,60,114,0.08)';
+                });
+            });
+            
+            // Service card hover effects
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderColor = '#00d4ff';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.borderColor = '#e8f0ff';
+                });
+            });
+        }
+        
+        // Auto-refresh data every 5 minutes
+        setInterval(loadDashboardData, 5 * 60 * 1000);
+        
+        console.log('🌟 Drip IV Dashboard ready - Boost Your Energy, Burn Fat, Feel Energized!');
+    </script>
+</body>
+</html>
