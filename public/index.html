@@ -441,6 +441,13 @@
             color: white;
         }
         
+        .period-label {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #2a5298;
+            opacity: 0.8;
+        }
+        
         @media (max-width: 768px) {
             .revenue-section {
                 grid-template-columns: 1fr;
@@ -471,7 +478,7 @@
                         <div class="tagline">Boost Your Energy • Burn Fat • Feel Energized</div>
                     </div>
                 </div>
-                <div class="date-range">Weekly Dashboard: July 14 - July 20, 2025</div>
+                <div class="date-range">Weekly Dashboard: <span class="week-date-range">Loading...</span></div>
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
                     <div class="upload-section" onclick="document.getElementById('fileInput').click()">
@@ -515,7 +522,7 @@
                 <h2 class="section-title">Revenue Performance</h2>
                 <div class="revenue-section">
                     <div class="revenue-card">
-                        <h3>Weekly Revenue Status</h3>
+                        <h3>Weekly Revenue Status <span class="period-label weekly-period"></span></h3>
                         <div class="revenue-item">
                             <span class="revenue-label">IV Therapy</span>
                             <span class="revenue-amount actual iv-revenue-weekly">--</span>
@@ -543,7 +550,7 @@
                     </div>
                     
                     <div class="revenue-card">
-                        <h3>Monthly Revenue Status</h3>
+                        <h3>Monthly Revenue Status <span class="period-label monthly-period"></span></h3>
                         <div class="revenue-item">
                             <span class="revenue-label">IV Therapy</span>
                             <span class="revenue-amount actual iv-revenue-monthly">--</span>
@@ -723,6 +730,24 @@
         
         // Update dashboard with data
         function updateDashboard(data) {
+            // Update date ranges
+            if (data.week_start_date && data.week_end_date) {
+                const weekStart = new Date(data.week_start_date);
+                const weekEnd = new Date(data.week_end_date);
+                const monthName = weekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                
+                // Format week range
+                const weekRangeText = `${weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+                updateElement('.week-date-range', weekRangeText);
+                
+                // Format week period for revenue card
+                const weekPeriodText = `(${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
+                updateElement('.weekly-period', weekPeriodText);
+                
+                // Format month period for revenue card
+                updateElement('.monthly-period', `(${monthName})`);
+            }
+            
             // Update metric cards
             updateElement('.total-members', data.total_drip_iv_members || 0);
             updateElement('.hubspot-conversions', data.hubspot_ketamine_conversions || 0);
