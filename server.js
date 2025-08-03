@@ -218,34 +218,64 @@ function extractAnalyticsData(content, isCSV = false) {
 
 // Service categorization functions
 function isInfusionService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Exclude non-medical services first
+  const exclusions = ['membership', 'lab', 'cbc', 'cmp', 'draw fee', 'office visit', 'consultation'];
+  if (exclusions.some(excl => lowerDesc.includes(excl))) {
+    return false;
+  }
+  
   const infusionServices = [
     'saline', 'nad', 'energy', 'performance', 'recovery', 'alleviate', 'immunity',
     'all inclusive', 'lux beauty', 'glutathione infusion', 'methylene blue infusion',
-    'vitamin c', 'hydration', 'myers', 'tri-immune', 'iv', 'drip'
+    'vitamin c', 'hydration', 'myers', 'tri-immune', 'drip'
   ];
   
-  const lowerDesc = chargeDesc.toLowerCase();
+  // More specific IV matching - require word boundaries or specific contexts  
+  const hasIVService = lowerDesc.includes(' iv ') || lowerDesc.startsWith('iv ') || lowerDesc.endsWith(' iv') ||
+                      lowerDesc.includes('iv drip') || lowerDesc.includes('iv infusion') || lowerDesc.includes('iv therapy');
+  
   return infusionServices.some(service => 
     lowerDesc.includes(service) && 
     !lowerDesc.includes('injection') && 
     !lowerDesc.includes('weekly') &&
     !lowerDesc.includes('monthly')
-  );
+  ) || hasIVService;
 }
 
 function isInjectionService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Exclude non-medical services first
+  const exclusions = ['membership', 'lab', 'cbc', 'cmp', 'draw fee', 'office visit', 'consultation'];
+  if (exclusions.some(excl => lowerDesc.includes(excl))) {
+    return false;
+  }
+  
   const injectionServices = [
     'injection', 'weekly', 'monthly', 'tirzepatide', 'semaglutide', 
     'b12', 'vitamin b12', 'vitamin d3', 'metabolism boost', 'toradol',
     'glutathione injection'
   ];
   
-  const lowerDesc = chargeDesc.toLowerCase();
   return injectionServices.some(service => lowerDesc.includes(service)) ||
          (lowerDesc.includes('weekly') || lowerDesc.includes('monthly'));
 }
 
+function isMembershipOrAdminService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  const adminServices = [
+    'membership', 'lab', 'cbc', 'cmp', 'draw fee', 'office visit', 'consultation',
+    'blood work', 'panel', 'test', 'screening', 'concierge membership'
+  ];
+  
+  return adminServices.some(service => lowerDesc.includes(service));
+}
+
 function getServiceCategory(chargeDesc) {
+  if (isMembershipOrAdminService(chargeDesc)) return 'admin';
   if (isInjectionService(chargeDesc)) return 'injection';
   if (isInfusionService(chargeDesc)) return 'infusion';
   return 'other';
@@ -441,13 +471,20 @@ function extractFromCSV(csvData) {
     hormone_followup_female_monthly: 0,
     hormone_initial_male_monthly: 0,
     actual_weekly_revenue: 0,
-    weekly_revenue_goal: 0,
+    weekly_revenue_goal: 32125.00, // Default goal, can be overridden
     actual_monthly_revenue: 0,
-    monthly_revenue_goal: 0,
+    monthly_revenue_goal: 128500.00, // Default goal, can be overridden
     drip_iv_revenue_weekly: 0,
     semaglutide_revenue_weekly: 0,
     drip_iv_revenue_monthly: 0,
     semaglutide_revenue_monthly: 0,
+    // New service-specific revenue fields
+    infusion_revenue_weekly: 0,
+    infusion_revenue_monthly: 0,
+    injection_revenue_weekly: 0,
+    injection_revenue_monthly: 0,
+    membership_revenue_weekly: 0,
+    membership_revenue_monthly: 0,
     total_drip_iv_members: 0,
     individual_memberships: 0,
     family_memberships: 0,
@@ -566,12 +603,25 @@ function extractFromCSV(csvData) {
   const infusionServices = {};
   const injectionServices = {};
   
+  // Revenue tracking by service category
+  let totalWeeklyRevenue = 0;
+  let totalMonthlyRevenue = 0;
+  let infusionWeeklyRevenue = 0;
+  let infusionMonthlyRevenue = 0;
+  let injectionWeeklyRevenue = 0;  
+  let injectionMonthlyRevenue = 0;
+  let membershipWeeklyRevenue = 0;
+  let membershipMonthlyRevenue = 0;
+  
   csvData.forEach(row => {
     const chargeType = row['Charge Type'] || '';
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row['Patient'] || '';
     const date = new Date(row['Date'] || '');
     const isMember = chargeDesc.toLowerCase().includes('member') && !chargeDesc.toLowerCase().includes('non-member');
+    
+    // Parse payment amount from "Calculated Payment (Line)" column
+    const paymentAmount = parseFloat((row['Calculated Payment (Line)'] || '0').replace(/[\$,]/g, '')) || 0;
     
     // Skip non-procedure rows
     if (chargeType !== 'PROCEDURE' && chargeType !== 'OFFICE_VISIT') return;
@@ -593,6 +643,10 @@ function extractFromCSV(csvData) {
     const category = getServiceCategory(chargeDesc);
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     
+    // Add to total revenue
+    totalWeeklyRevenue += paymentAmount;
+    totalMonthlyRevenue += paymentAmount;
+    
     if (category === 'infusion') {
       // Count infusions
       if (isWeekend) {
@@ -602,6 +656,10 @@ function extractFromCSV(csvData) {
         data.iv_infusions_weekday_weekly++;
         data.iv_infusions_weekday_monthly++;
       }
+      
+      // Track revenue for infusions
+      infusionWeeklyRevenue += paymentAmount;
+      infusionMonthlyRevenue += paymentAmount;
       
       // Track popular infusions
       const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
@@ -617,9 +675,18 @@ function extractFromCSV(csvData) {
         data.injections_weekday_monthly++;
       }
       
+      // Track revenue for injections  
+      injectionWeeklyRevenue += paymentAmount;
+      injectionMonthlyRevenue += paymentAmount;
+      
       // Track popular injections
       const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
       injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
+      
+    } else if (category === 'admin') {
+      // Track membership/admin revenue
+      membershipWeeklyRevenue += paymentAmount;
+      membershipMonthlyRevenue += paymentAmount;
     }
   });
   
@@ -634,6 +701,23 @@ function extractFromCSV(csvData) {
   data.drip_iv_weekend_weekly = data.iv_infusions_weekend_weekly + data.injections_weekend_weekly;
   data.drip_iv_weekday_monthly = data.iv_infusions_weekday_monthly + data.injections_weekday_monthly;
   data.drip_iv_weekend_monthly = data.iv_infusions_weekend_monthly + data.injections_weekend_monthly;
+  
+  // Assign calculated revenue values
+  data.actual_weekly_revenue = totalWeeklyRevenue;
+  data.actual_monthly_revenue = totalMonthlyRevenue;
+  data.infusion_revenue_weekly = infusionWeeklyRevenue;
+  data.infusion_revenue_monthly = infusionMonthlyRevenue;
+  data.injection_revenue_weekly = injectionWeeklyRevenue;
+  data.injection_revenue_monthly = injectionMonthlyRevenue;
+  data.membership_revenue_weekly = membershipWeeklyRevenue;
+  data.membership_revenue_monthly = membershipMonthlyRevenue;
+  
+  // For legacy compatibility, use infusion revenue as "drip IV" revenue
+  // and injection revenue as "semaglutide" revenue (approximate mapping)
+  data.drip_iv_revenue_weekly = infusionWeeklyRevenue;
+  data.drip_iv_revenue_monthly = infusionMonthlyRevenue;
+  data.semaglutide_revenue_weekly = injectionWeeklyRevenue;
+  data.semaglutide_revenue_monthly = injectionMonthlyRevenue;
   
   // Calculate popular services (top 3)
   const topInfusions = Object.entries(infusionServices)
