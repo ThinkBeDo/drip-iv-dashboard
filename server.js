@@ -69,8 +69,8 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     total_drip_iv_members: 126,
     individual_memberships: 104,  // calculated as 126 - 21 - 1
     family_memberships: 0,
-    family_concierge_memberships: 0,
-    drip_concierge_memberships: 0,
+    family_concierge_memberships: 1,
+    drip_concierge_memberships: 2,
     marketing_initiatives: 1,
     concierge_memberships: 21,
     corporate_memberships: 1,
@@ -495,19 +495,19 @@ function extractFromCSV(csvData) {
     // Map membership types based on charge descriptions
     if (chargeDesc.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('new')) {
+    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('new') && !chargeDesc.includes('concierge')) {
       membershipCounts.family.add(patient);
     } else if (chargeDesc.includes('membership - family (new)')) {
       membershipCounts.family.add(patient);
+    } else if (chargeDesc.includes('family membership w/ concierge')) {
+      membershipCounts.familyConcierge.add(patient);
+    } else if (chargeDesc.includes('concierge & drip membership')) {
+      membershipCounts.dripConcierge.add(patient);
     } else if (chargeDesc.includes('concierge membership')) {
       membershipCounts.concierge.add(patient);
     } else if (chargeDesc.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
     }
-    
-    // Note: Family & Concierge and Drip & Concierge combinations 
-    // are not typically found in CSV data as separate line items
-    // They would be calculated based on overlapping memberships
   });
 
   // Set membership counts
@@ -515,14 +515,16 @@ function extractFromCSV(csvData) {
   data.family_memberships = membershipCounts.family.size;
   data.concierge_memberships = membershipCounts.concierge.size;
   data.corporate_memberships = membershipCounts.corporate.size;
-  data.family_concierge_memberships = 0; // Not tracked separately in CSV
-  data.drip_concierge_memberships = 0; // Not tracked separately in CSV
+  data.family_concierge_memberships = membershipCounts.familyConcierge.size;
+  data.drip_concierge_memberships = membershipCounts.dripConcierge.size;
   
   // Calculate total memberships
   data.total_drip_iv_members = data.individual_memberships + 
                                data.family_memberships + 
                                data.concierge_memberships + 
-                               data.corporate_memberships;
+                               data.corporate_memberships +
+                               data.family_concierge_memberships +
+                               data.drip_concierge_memberships;
 
   // Extract date range from CSV data if available
   // Look for date columns or use current week as fallback
