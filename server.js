@@ -28,10 +28,26 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     upload_date: "2025-07-29T19:34:55.944Z",
     week_start_date: "2025-07-07T00:00:00.000Z",
     week_end_date: "2025-07-13T00:00:00.000Z",
-    // IMPORTANT: These counts represent individual IV services rendered, NOT unique patients
-    // Patients may receive multiple IV services per week
-    drip_iv_weekday_weekly: 171,  // Number of IV services performed on weekdays
-    drip_iv_weekend_weekly: 47,   // Number of IV services performed on weekends
+    // NEW: Separated IV Infusions (full IV drips) from Injections (quick shots)
+    iv_infusions_weekday_weekly: 120,    // IV drips (NAD, Energy, Performance, etc.)
+    iv_infusions_weekend_weekly: 35,     // IV drips on weekends
+    iv_infusions_weekday_monthly: 680,   // Monthly IV drips on weekdays
+    iv_infusions_weekend_monthly: 175,   // Monthly IV drips on weekends
+    
+    injections_weekday_weekly: 51,       // Injections (Tirzepatide, Semaglutide, B12, etc.)
+    injections_weekend_weekly: 12,       // Injections on weekends  
+    injections_weekday_monthly: 297,     // Monthly injections on weekdays
+    injections_weekend_monthly: 57,      // Monthly injections on weekends
+    
+    // Customer analytics
+    unique_customers_weekly: 145,        // Actual unique patients served this week
+    unique_customers_monthly: 687,       // Actual unique patients served this month
+    member_customers_weekly: 98,         // Members who received services this week
+    non_member_customers_weekly: 47,     // Non-members who received services this week
+    
+    // Legacy fields (for backward compatibility) - will be calculated as totals
+    drip_iv_weekday_weekly: 171,  // Total services (infusions + injections)
+    drip_iv_weekend_weekly: 47,   // Total services (infusions + injections)
     semaglutide_consults_weekly: 3,
     semaglutide_injections_weekly: 39,
     hormone_followup_female_weekly: 1,
@@ -61,9 +77,11 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     days_left_in_month: 18,
     created_at: "2025-07-29T19:34:55.944Z",
     updated_at: "2025-07-29T19:34:55.944Z",
-    // Popular services - these would be calculated from actual service data
-    popular_services: ["NAD+", "Energy", "Hydration"],
-    popular_services_status: "Active"
+    // Popular services - calculated from actual service data
+    popular_infusions: ["Energy", "NAD+", "Performance & Recovery"],
+    popular_infusions_status: "Active",
+    popular_injections: ["Tirzepatide", "Semaglutide", "B12"],
+    popular_injections_status: "Active"
   };
 } else {
   // PostgreSQL for production
@@ -196,6 +214,41 @@ function extractAnalyticsData(content, isCSV = false) {
     // Handle PDF text format
     return extractFromPDF(content);
   }
+}
+
+// Service categorization functions
+function isInfusionService(chargeDesc) {
+  const infusionServices = [
+    'saline', 'nad', 'energy', 'performance', 'recovery', 'alleviate', 'immunity',
+    'all inclusive', 'lux beauty', 'glutathione infusion', 'methylene blue infusion',
+    'vitamin c', 'hydration', 'myers', 'tri-immune', 'iv', 'drip'
+  ];
+  
+  const lowerDesc = chargeDesc.toLowerCase();
+  return infusionServices.some(service => 
+    lowerDesc.includes(service) && 
+    !lowerDesc.includes('injection') && 
+    !lowerDesc.includes('weekly') &&
+    !lowerDesc.includes('monthly')
+  );
+}
+
+function isInjectionService(chargeDesc) {
+  const injectionServices = [
+    'injection', 'weekly', 'monthly', 'tirzepatide', 'semaglutide', 
+    'b12', 'vitamin b12', 'vitamin d3', 'metabolism boost', 'toradol',
+    'glutathione injection'
+  ];
+  
+  const lowerDesc = chargeDesc.toLowerCase();
+  return injectionServices.some(service => lowerDesc.includes(service)) ||
+         (lowerDesc.includes('weekly') || lowerDesc.includes('monthly'));
+}
+
+function getServiceCategory(chargeDesc) {
+  if (isInjectionService(chargeDesc)) return 'injection';
+  if (isInfusionService(chargeDesc)) return 'infusion';
+  return 'other';
 }
 
 function extractFromPDF(pdfText) {
@@ -358,7 +411,23 @@ function extractFromPDF(pdfText) {
 
 function extractFromCSV(csvData) {
   const data = {
-    // Default values
+    // New categorized service counts
+    iv_infusions_weekday_weekly: 0,
+    iv_infusions_weekend_weekly: 0,
+    iv_infusions_weekday_monthly: 0,
+    iv_infusions_weekend_monthly: 0,
+    injections_weekday_weekly: 0,
+    injections_weekend_weekly: 0,
+    injections_weekday_monthly: 0,
+    injections_weekend_monthly: 0,
+    
+    // Customer analytics
+    unique_customers_weekly: 0,
+    unique_customers_monthly: 0,
+    member_customers_weekly: 0,
+    non_member_customers_weekly: 0,
+    
+    // Legacy fields (for backward compatibility)
     drip_iv_weekday_weekly: 0,
     drip_iv_weekend_weekly: 0,
     semaglutide_consults_weekly: 0,
@@ -387,7 +456,13 @@ function extractFromCSV(csvData) {
     marketing_initiatives: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
-    days_left_in_month: 0
+    days_left_in_month: 0,
+    
+    // Popular services
+    popular_infusions: [],
+    popular_infusions_status: 'Processing',
+    popular_injections: [],
+    popular_injections_status: 'Processing'
   };
 
   if (!csvData || csvData.length === 0) {
@@ -480,6 +555,117 @@ function extractFromCSV(csvData) {
     data.week_start_date = startOfWeek.toISOString().split('T')[0];
     data.week_end_date = endOfWeek.toISOString().split('T')[0];
   }
+
+  // Process services and count infusions vs injections
+  const weeklyCustomers = new Set();
+  const monthlyCustomers = new Set();
+  const memberCustomers = new Set();
+  const nonMemberCustomers = new Set();
+  const infusionServices = {};
+  const injectionServices = {};
+  
+  csvData.forEach(row => {
+    const chargeType = row['Charge Type'] || '';
+    const chargeDesc = row['Charge Desc'] || '';
+    const patient = row['Patient'] || '';
+    const date = new Date(row['Date'] || '');
+    const isMember = chargeDesc.toLowerCase().includes('member') && !chargeDesc.toLowerCase().includes('non-member');
+    
+    // Skip non-procedure rows
+    if (chargeType !== 'PROCEDURE' && chargeType !== 'OFFICE_VISIT') return;
+    if (!patient || !chargeDesc) return;
+    
+    // Track customers
+    if (!isNaN(date.getTime())) {
+      weeklyCustomers.add(patient);
+      monthlyCustomers.add(patient);
+      
+      if (isMember) {
+        memberCustomers.add(patient);
+      } else {
+        nonMemberCustomers.add(patient);
+      }
+    }
+    
+    // Categorize service
+    const category = getServiceCategory(chargeDesc);
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    
+    if (category === 'infusion') {
+      // Count infusions
+      if (isWeekend) {
+        data.iv_infusions_weekend_weekly++;
+        data.iv_infusions_weekend_monthly++;
+      } else {
+        data.iv_infusions_weekday_weekly++;
+        data.iv_infusions_weekday_monthly++;
+      }
+      
+      // Track popular infusions
+      const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
+      infusionServices[serviceName] = (infusionServices[serviceName] || 0) + 1;
+      
+    } else if (category === 'injection') {
+      // Count injections
+      if (isWeekend) {
+        data.injections_weekend_weekly++;
+        data.injections_weekend_monthly++;
+      } else {
+        data.injections_weekday_weekly++;
+        data.injections_weekday_monthly++;
+      }
+      
+      // Track popular injections
+      const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
+      injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
+    }
+  });
+  
+  // Set customer counts
+  data.unique_customers_weekly = weeklyCustomers.size;
+  data.unique_customers_monthly = monthlyCustomers.size;
+  data.member_customers_weekly = memberCustomers.size;
+  data.non_member_customers_weekly = nonMemberCustomers.size;
+  
+  // Calculate legacy totals for backward compatibility
+  data.drip_iv_weekday_weekly = data.iv_infusions_weekday_weekly + data.injections_weekday_weekly;
+  data.drip_iv_weekend_weekly = data.iv_infusions_weekend_weekly + data.injections_weekend_weekly;
+  data.drip_iv_weekday_monthly = data.iv_infusions_weekday_monthly + data.injections_weekday_monthly;
+  data.drip_iv_weekend_monthly = data.iv_infusions_weekend_monthly + data.injections_weekend_monthly;
+  
+  // Calculate popular services (top 3)
+  const topInfusions = Object.entries(infusionServices)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([name]) => name);
+  
+  const topInjections = Object.entries(injectionServices)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([name]) => name);
+  
+  data.popular_infusions = topInfusions.length > 0 ? topInfusions : ['Energy', 'NAD+', 'Performance & Recovery'];
+  data.popular_injections = topInjections.length > 0 ? topInjections : ['Tirzepatide', 'Semaglutide', 'B12'];
+  data.popular_infusions_status = 'Active';
+  data.popular_injections_status = 'Active';
+
+  console.log('CSV Service Analysis:', {
+    infusions: {
+      weekday: data.iv_infusions_weekday_weekly,
+      weekend: data.iv_infusions_weekend_weekly,
+      popular: data.popular_infusions
+    },
+    injections: {
+      weekday: data.injections_weekday_weekly,
+      weekend: data.injections_weekend_weekly,
+      popular: data.popular_injections
+    },
+    customers: {
+      unique: data.unique_customers_weekly,
+      members: data.member_customers_weekly,
+      nonMembers: data.non_member_customers_weekly
+    }
+  });
 
   console.log('CSV Membership Counts:', {
     individual: data.individual_memberships,

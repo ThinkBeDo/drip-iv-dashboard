@@ -11,21 +11,37 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     week_start_date DATE NOT NULL,
     week_end_date DATE NOT NULL,
     
-    -- Volume metrics
+    -- IV Infusion metrics (full IV drips with bags)
+    iv_infusions_weekday_weekly INTEGER DEFAULT 0,
+    iv_infusions_weekend_weekly INTEGER DEFAULT 0,
+    iv_infusions_weekday_monthly INTEGER DEFAULT 0,
+    iv_infusions_weekend_monthly INTEGER DEFAULT 0,
+    
+    -- Injection metrics (quick shots, no IV bag)
+    injections_weekday_weekly INTEGER DEFAULT 0,
+    injections_weekend_weekly INTEGER DEFAULT 0,
+    injections_weekday_monthly INTEGER DEFAULT 0,
+    injections_weekend_monthly INTEGER DEFAULT 0,
+    
+    -- Legacy fields (for backward compatibility)
     drip_iv_weekday_weekly INTEGER DEFAULT 0,
     drip_iv_weekend_weekly INTEGER DEFAULT 0,
     semaglutide_consults_weekly INTEGER DEFAULT 0,
     semaglutide_injections_weekly INTEGER DEFAULT 0,
     hormone_followup_female_weekly INTEGER DEFAULT 0,
     hormone_initial_male_weekly INTEGER DEFAULT 0,
-    
-    -- Monthly cumulative data
     drip_iv_weekday_monthly INTEGER DEFAULT 0,
     drip_iv_weekend_monthly INTEGER DEFAULT 0,
     semaglutide_consults_monthly INTEGER DEFAULT 0,
     semaglutide_injections_monthly INTEGER DEFAULT 0,
     hormone_followup_female_monthly INTEGER DEFAULT 0,
     hormone_initial_male_monthly INTEGER DEFAULT 0,
+    
+    -- Customer analytics
+    unique_customers_weekly INTEGER DEFAULT 0,
+    unique_customers_monthly INTEGER DEFAULT 0,
+    member_customers_weekly INTEGER DEFAULT 0,
+    non_member_customers_weekly INTEGER DEFAULT 0,
     
     -- Revenue data
     actual_weekly_revenue DECIMAL(10,2) DEFAULT 0,
@@ -53,8 +69,10 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     days_left_in_month INTEGER DEFAULT 0,
     
     -- Popular services tracking
-    popular_services TEXT[] DEFAULT ARRAY['NAD+', 'Energy', 'Hydration'],
-    popular_services_status VARCHAR(50) DEFAULT 'Active',
+    popular_infusions TEXT[] DEFAULT ARRAY['Energy', 'NAD+', 'Performance & Recovery'],
+    popular_infusions_status VARCHAR(50) DEFAULT 'Active',
+    popular_injections TEXT[] DEFAULT ARRAY['Tirzepatide', 'Semaglutide', 'B12'],
+    popular_injections_status VARCHAR(50) DEFAULT 'Active',
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

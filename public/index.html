@@ -606,26 +606,78 @@
                     <div class="service-card">
                         <h4>
                             <div class="service-icon iv-icon">💧</div>
-                            IV Therapy
+                            IV Infusions
                         </h4>
                         <div class="service-item">
-                            <span class="service-label">Weekday IV Services</span>
-                            <span class="service-count"><span class="iv-weekday-weekly">--</span> weekly (<span class="iv-weekday-monthly">--</span> monthly)</span>
+                            <span class="service-label">Weekday Infusions</span>
+                            <span class="service-count"><span class="infusions-weekday-weekly">--</span> weekly (<span class="infusions-weekday-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Weekend IV Services</span>
-                            <span class="service-count"><span class="iv-weekend-weekly">--</span> weekly (<span class="iv-weekend-monthly">--</span> monthly)</span>
+                            <span class="service-label">Weekend Infusions</span>
+                            <span class="service-count"><span class="infusions-weekend-weekly">--</span> weekly (<span class="infusions-weekend-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Total IV Services</span>
-                            <span class="service-count"><span class="iv-total-weekly">--</span> weekly (<span class="iv-total-monthly">--</span> monthly)</span>
+                            <span class="service-label">Total Infusions</span>
+                            <span class="service-count"><span class="infusions-total-weekly">--</span> weekly (<span class="infusions-total-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Popular: <span class="popular-services">NAD+, Energy, Hydration</span></span>
-                            <span class="service-count popular-status">Active</span>
+                            <span class="service-label">Popular: <span class="popular-infusions">Energy, NAD+, Performance & Recovery</span></span>
+                            <span class="service-count popular-infusions-status">Active</span>
                         </div>
                         <div class="service-item" style="font-size: 0.85em; color: #666; margin-top: -5px;">
-                            <span style="font-style: italic;">*Services rendered, not unique patients</span>
+                            <span style="font-style: italic;">*Full IV drips with bags</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon injection-icon">💉</div>
+                            Injections
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">Weekday Injections</span>
+                            <span class="service-count"><span class="injections-weekday-weekly">--</span> weekly (<span class="injections-weekday-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Weekend Injections</span>
+                            <span class="service-count"><span class="injections-weekend-weekly">--</span> weekly (<span class="injections-weekend-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Total Injections</span>
+                            <span class="service-count"><span class="injections-total-weekly">--</span> weekly (<span class="injections-total-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Popular: <span class="popular-injections">Tirzepatide, Semaglutide, B12</span></span>
+                            <span class="service-count popular-injections-status">Active</span>
+                        </div>
+                        <div class="service-item" style="font-size: 0.85em; color: #666; margin-top: -5px;">
+                            <span style="font-style: italic;">*Quick shots, no IV bag</span>
+                        </div>
+                    </div>
+                    
+                    <div class="service-card">
+                        <h4>
+                            <div class="service-icon customer-icon">👥</div>
+                            Customer Analytics
+                        </h4>
+                        <div class="service-item">
+                            <span class="service-label">Unique Customers</span>
+                            <span class="service-count"><span class="unique-customers-weekly">--</span> weekly (<span class="unique-customers-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Member Customers</span>
+                            <span class="service-count"><span class="member-customers-weekly">--</span> weekly</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Non-Member Customers</span>
+                            <span class="service-count"><span class="non-member-customers-weekly">--</span> weekly</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Avg Services Per Customer</span>
+                            <span class="service-count"><span class="avg-services-per-customer">--</span></span>
+                        </div>
+                        <div class="service-item" style="font-size: 0.85em; color: #666; margin-top: -5px;">
+                            <span style="font-style: italic;">*Unique individuals served</span>
                         </div>
                     </div>
                     
@@ -753,19 +805,43 @@
             updateElement('.family-concierge-members', data.family_concierge_memberships > 0 ? data.family_concierge_memberships : '--');
             updateElement('.drip-concierge-members', data.drip_concierge_memberships > 0 ? data.drip_concierge_memberships : '--');
             
-            // Update service volume data
+            // Update IV Infusions data
+            updateElement('.infusions-weekday-weekly', data.iv_infusions_weekday_weekly || 0);
+            updateElement('.infusions-weekday-monthly', data.iv_infusions_weekday_monthly || 0);
+            updateElement('.infusions-weekend-weekly', data.iv_infusions_weekend_weekly || 0);
+            updateElement('.infusions-weekend-monthly', data.iv_infusions_weekend_monthly || 0);
+            updateElement('.infusions-total-weekly', (data.iv_infusions_weekday_weekly || 0) + (data.iv_infusions_weekend_weekly || 0));
+            updateElement('.infusions-total-monthly', (data.iv_infusions_weekday_monthly || 0) + (data.iv_infusions_weekend_monthly || 0));
             
-            updateElement('.iv-weekday-weekly', data.drip_iv_weekday_weekly || 0);
-            updateElement('.iv-weekday-monthly', data.drip_iv_weekday_monthly || 0);
-            updateElement('.iv-weekend-weekly', data.drip_iv_weekend_weekly || 0);
-            updateElement('.iv-weekend-monthly', data.drip_iv_weekend_monthly || 0);
-            updateElement('.iv-total-weekly', (data.drip_iv_weekday_weekly || 0) + (data.drip_iv_weekend_weekly || 0));
-            updateElement('.iv-total-monthly', (data.drip_iv_weekday_monthly || 0) + (data.drip_iv_weekend_monthly || 0));
+            // Update Injections data
+            updateElement('.injections-weekday-weekly', data.injections_weekday_weekly || 0);
+            updateElement('.injections-weekday-monthly', data.injections_weekday_monthly || 0);
+            updateElement('.injections-weekend-weekly', data.injections_weekend_weekly || 0);
+            updateElement('.injections-weekend-monthly', data.injections_weekend_monthly || 0);
+            updateElement('.injections-total-weekly', (data.injections_weekday_weekly || 0) + (data.injections_weekend_weekly || 0));
+            updateElement('.injections-total-monthly', (data.injections_weekday_monthly || 0) + (data.injections_weekend_monthly || 0));
+            
+            // Update Customer Analytics
+            updateElement('.unique-customers-weekly', data.unique_customers_weekly || 0);
+            updateElement('.unique-customers-monthly', data.unique_customers_monthly || 0);
+            updateElement('.member-customers-weekly', data.member_customers_weekly || 0);
+            updateElement('.non-member-customers-weekly', data.non_member_customers_weekly || 0);
+            
+            // Calculate average services per customer
+            const totalServices = (data.iv_infusions_weekday_weekly || 0) + (data.iv_infusions_weekend_weekly || 0) + 
+                                (data.injections_weekday_weekly || 0) + (data.injections_weekend_weekly || 0);
+            const avgServices = data.unique_customers_weekly > 0 ? (totalServices / data.unique_customers_weekly).toFixed(1) : 0;
+            updateElement('.avg-services-per-customer', avgServices);
             
             // Update popular services dynamically
-            if (data.popular_services && data.popular_services.length > 0) {
-                updateElement('.popular-services', data.popular_services.join(', '));
-                updateElement('.popular-status', data.popular_services_status || 'Active');
+            if (data.popular_infusions && data.popular_infusions.length > 0) {
+                updateElement('.popular-infusions', data.popular_infusions.join(', '));
+                updateElement('.popular-infusions-status', data.popular_infusions_status || 'Active');
+            }
+            
+            if (data.popular_injections && data.popular_injections.length > 0) {
+                updateElement('.popular-injections', data.popular_injections.join(', '));
+                updateElement('.popular-injections-status', data.popular_injections_status || 'Active');
             }
             
             updateElement('.sema-consults-weekly', data.semaglutide_consults_weekly || 0);
