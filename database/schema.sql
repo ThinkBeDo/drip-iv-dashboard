@@ -52,6 +52,10 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     -- Additional metrics
     days_left_in_month INTEGER DEFAULT 0,
     
+    -- Popular services tracking
+    popular_services TEXT[] DEFAULT ARRAY['NAD+', 'Energy', 'Hydration'],
+    popular_services_status VARCHAR(50) DEFAULT 'Active',
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -609,20 +609,23 @@
                             IV Therapy
                         </h4>
                         <div class="service-item">
-                            <span class="service-label">Weekday Infusions</span>
+                            <span class="service-label">Weekday IV Services</span>
                             <span class="service-count"><span class="iv-weekday-weekly">--</span> weekly (<span class="iv-weekday-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Weekend Infusions</span>
+                            <span class="service-label">Weekend IV Services</span>
                             <span class="service-count"><span class="iv-weekend-weekly">--</span> weekly (<span class="iv-weekend-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Total Infusions</span>
+                            <span class="service-label">Total IV Services</span>
                             <span class="service-count"><span class="iv-total-weekly">--</span> weekly (<span class="iv-total-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Popular: NAD+, Energy, Hydration</span>
-                            <span class="service-count">Active</span>
+                            <span class="service-label">Popular: <span class="popular-services">NAD+, Energy, Hydration</span></span>
+                            <span class="service-count popular-status">Active</span>
+                        </div>
+                        <div class="service-item" style="font-size: 0.85em; color: #666; margin-top: -5px;">
+                            <span style="font-style: italic;">*Services rendered, not unique patients</span>
                         </div>
                     </div>
                     
@@ -758,6 +761,12 @@
             updateElement('.iv-weekend-monthly', data.drip_iv_weekend_monthly || 0);
             updateElement('.iv-total-weekly', (data.drip_iv_weekday_weekly || 0) + (data.drip_iv_weekend_weekly || 0));
             updateElement('.iv-total-monthly', (data.drip_iv_weekday_monthly || 0) + (data.drip_iv_weekend_monthly || 0));
+            
+            // Update popular services dynamically
+            if (data.popular_services && data.popular_services.length > 0) {
+                updateElement('.popular-services', data.popular_services.join(', '));
+                updateElement('.popular-status', data.popular_services_status || 'Active');
+            }
             
             updateElement('.sema-consults-weekly', data.semaglutide_consults_weekly || 0);
             updateElement('.sema-consults-monthly', data.semaglutide_consults_monthly || 0);

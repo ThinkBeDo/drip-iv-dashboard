@@ -28,8 +28,10 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     upload_date: "2025-07-29T19:34:55.944Z",
     week_start_date: "2025-07-07T00:00:00.000Z",
     week_end_date: "2025-07-13T00:00:00.000Z",
-    drip_iv_weekday_weekly: 171,
-    drip_iv_weekend_weekly: 47,
+    // IMPORTANT: These counts represent individual IV services rendered, NOT unique patients
+    // Patients may receive multiple IV services per week
+    drip_iv_weekday_weekly: 171,  // Number of IV services performed on weekdays
+    drip_iv_weekend_weekly: 47,   // Number of IV services performed on weekends
     semaglutide_consults_weekly: 3,
     semaglutide_injections_weekly: 39,
     hormone_followup_female_weekly: 1,
@@ -58,7 +60,10 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     corporate_memberships: 1,
     days_left_in_month: 18,
     created_at: "2025-07-29T19:34:55.944Z",
-    updated_at: "2025-07-29T19:34:55.944Z"
+    updated_at: "2025-07-29T19:34:55.944Z",
+    // Popular services - these would be calculated from actual service data
+    popular_services: ["NAD+", "Energy", "Hydration"],
+    popular_services_status: "Active"
   };
 } else {
   // PostgreSQL for production
@@ -222,9 +227,11 @@ function extractFromPDF(pdfText) {
   };
 
   // Extract data using regex patterns
+  // NOTE: The Drip IV counts represent individual services/appointments, not unique patients
+  // A single patient may have multiple IV services in a week
   const patterns = {
-    'drip_iv_weekday': /Drip IV-Weekday\s+(\d+)\s+(\d+)/,
-    'drip_iv_weekend': /Drip IV-Weekend\s+(\d+)\s+(\d+)/,
+    'drip_iv_weekday': /Drip IV-Weekday\s+(\d+)\s+(\d+)/,  // Captures weekly and monthly service counts
+    'drip_iv_weekend': /Drip IV-Weekend\s+(\d+)\s+(\d+)/,  // Captures weekly and monthly service counts
     'semaglutide_consults': /Semaglutide\/Tirzepitide Consults\s+(\d+)\s+(\d+)/,
     'semaglutide_injections': /Semaglutide\/Tirzepitide Injections\s+(\d+)\s+(\d+)/,
     'hormone_followup_female': /Hormones-Follow Up \(Females\)\s+(\d+)\s+(\d+)/,
