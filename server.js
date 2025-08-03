@@ -28,20 +28,12 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     upload_date: "2025-07-29T19:34:55.944Z",
     week_start_date: "2025-07-07T00:00:00.000Z",
     week_end_date: "2025-07-13T00:00:00.000Z",
-    ketamine_new_patient_weekly: 0,
-    ketamine_initial_booster_weekly: 1,
-    ketamine_booster_pain_weekly: 0,
-    ketamine_booster_bh_weekly: 2,
     drip_iv_weekday_weekly: 171,
     drip_iv_weekend_weekly: 47,
     semaglutide_consults_weekly: 3,
     semaglutide_injections_weekly: 39,
     hormone_followup_female_weekly: 1,
     hormone_initial_male_weekly: 1,
-    ketamine_new_patient_monthly: 0,
-    ketamine_initial_booster_monthly: 6,
-    ketamine_booster_pain_monthly: 1,
-    ketamine_booster_bh_monthly: 12,
     drip_iv_weekday_monthly: 977,
     drip_iv_weekend_monthly: 232,
     semaglutide_consults_monthly: 17,
@@ -54,12 +46,9 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     monthly_revenue_goal: "128500.00",
     drip_iv_revenue_weekly: "18337.40",
     semaglutide_revenue_weekly: "10422.25",
-    ketamine_revenue_weekly: "2000.00",
     drip_iv_revenue_monthly: "31090.15",
     semaglutide_revenue_monthly: "17143.75",
-    ketamine_revenue_monthly: "2000.00",
     total_drip_iv_members: 126,
-    hubspot_ketamine_conversions: 0,
     marketing_initiatives: 1,
     concierge_memberships: 21,
     corporate_memberships: 1,
@@ -149,10 +138,6 @@ function extractAnalyticsData(content, isCSV = false) {
 function extractFromPDF(pdfText) {
   const data = {
     // Default values
-    ketamine_new_patient_weekly: 0,
-    ketamine_initial_booster_weekly: 0,
-    ketamine_booster_pain_weekly: 0,
-    ketamine_booster_bh_weekly: 0,
     drip_iv_weekday_weekly: 0,
     drip_iv_weekend_weekly: 0,
     semaglutide_consults_weekly: 0,
@@ -165,12 +150,9 @@ function extractFromPDF(pdfText) {
     monthly_revenue_goal: 0,
     drip_iv_revenue_weekly: 0,
     semaglutide_revenue_weekly: 0,
-    ketamine_revenue_weekly: 0,
     drip_iv_revenue_monthly: 0,
     semaglutide_revenue_monthly: 0,
-    ketamine_revenue_monthly: 0,
     total_drip_iv_members: 0,
-    hubspot_ketamine_conversions: 0,
     marketing_initiatives: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
@@ -179,10 +161,6 @@ function extractFromPDF(pdfText) {
 
   // Extract data using regex patterns
   const patterns = {
-    'ketamine_new_patient': /Ketamine \(New Patient\)\s+(\d+)\s+(\d+)/,
-    'ketamine_initial_booster': /Ketamine \(Initial Booster-Series 6\)\s+(\d+)\s+(\d+)/,
-    'ketamine_booster_pain': /Ketamine Booster \(Pain\)\s+(\d+)\s+(\d+)/,
-    'ketamine_booster_bh': /Ketamine Booster \(BH\)\s+(\d+)\s+(\d+)/,
     'drip_iv_weekday': /Drip IV-Weekday\s+(\d+)\s+(\d+)/,
     'drip_iv_weekend': /Drip IV-Weekend\s+(\d+)\s+(\d+)/,
     'semaglutide_consults': /Semaglutide\/Tirzepitide Consults\s+(\d+)\s+(\d+)/,
@@ -194,7 +172,6 @@ function extractFromPDF(pdfText) {
     'monthly_revenue': /ACTUAL MONTHLY REVENUE\s+\$([0-9,]+\.?\d*)/,
     'monthly_goal': /MONTHLY REVENUE GOAL\s+\$([0-9,]+)/,
     'total_members': /Total Drip IV Members.*?(\d+)/,
-    'hubspot_conversions': /Hubspot Ketamine Conversions.*?(\d+)/,
     'marketing_initiatives': /Marketing Initiatives.*?(\d+)/,
     'concierge_memberships': /Concierge Memberships.*?(\d+)/,
     'corporate_membership': /Corporate Membership.*?(\d+)/,
@@ -206,22 +183,6 @@ function extractFromPDF(pdfText) {
     const match = pdfText.match(patterns[key]);
     if (match) {
       switch(key) {
-        case 'ketamine_new_patient':
-          data.ketamine_new_patient_weekly = parseInt(match[1]) || 0;
-          data.ketamine_new_patient_monthly = parseInt(match[2]) || 0;
-          break;
-        case 'ketamine_initial_booster':
-          data.ketamine_initial_booster_weekly = parseInt(match[1]) || 0;
-          data.ketamine_initial_booster_monthly = parseInt(match[2]) || 0;
-          break;
-        case 'ketamine_booster_pain':
-          data.ketamine_booster_pain_weekly = parseInt(match[1]) || 0;
-          data.ketamine_booster_pain_monthly = parseInt(match[2]) || 0;
-          break;
-        case 'ketamine_booster_bh':
-          data.ketamine_booster_bh_weekly = parseInt(match[1]) || 0;
-          data.ketamine_booster_bh_monthly = parseInt(match[2]) || 0;
-          break;
         case 'drip_iv_weekday':
           data.drip_iv_weekday_weekly = parseInt(match[1]) || 0;
           data.drip_iv_weekday_monthly = parseInt(match[2]) || 0;
@@ -261,9 +222,6 @@ function extractFromPDF(pdfText) {
         case 'total_members':
           data.total_drip_iv_members = parseInt(match[1]) || 0;
           break;
-        case 'hubspot_conversions':
-          data.hubspot_ketamine_conversions = parseInt(match[1]) || 0;
-          break;
         case 'marketing_initiatives':
           data.marketing_initiatives = parseInt(match[1]) || 0;
           break;
@@ -283,16 +241,12 @@ function extractFromPDF(pdfText) {
   // Extract revenue breakdown from the visual data
   const dripIVRevenue = pdfText.match(/\$([0-9,]+\.?\d*)\s*D\s*R\s*I\s*P\s*I\s*V/);
   const semaglutideRevenue = pdfText.match(/\$([0-9,]+\.?\d*)\s*S\s*E\s*M\s*A\s*G\s*L\s*U\s*T\s*I\s*D\s*E/);
-  const ketamineRevenue = pdfText.match(/\$([0-9,]+\.?\d*)\s*K\s*E\s*T\s*A\s*M\s*I\s*N\s*E/);
 
   if (dripIVRevenue) {
     data.drip_iv_revenue_weekly = parseFloat(dripIVRevenue[1].replace(/,/g, '')) || 0;
   }
   if (semaglutideRevenue) {
     data.semaglutide_revenue_weekly = parseFloat(semaglutideRevenue[1].replace(/,/g, '')) || 0;
-  }
-  if (ketamineRevenue) {
-    data.ketamine_revenue_weekly = parseFloat(ketamineRevenue[1].replace(/,/g, '')) || 0;
   }
 
   // Set date range (extracted from PDF or default to current week)
@@ -437,47 +391,38 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
         // Update existing record
         const updateQuery = `
           UPDATE analytics_data SET
-            ketamine_new_patient_weekly = $3, ketamine_initial_booster_weekly = $4,
-            ketamine_booster_pain_weekly = $5, ketamine_booster_bh_weekly = $6,
-            drip_iv_weekday_weekly = $7, drip_iv_weekend_weekly = $8,
-            semaglutide_consults_weekly = $9, semaglutide_injections_weekly = $10,
-            hormone_followup_female_weekly = $11, hormone_initial_male_weekly = $12,
-            ketamine_new_patient_monthly = $13, ketamine_initial_booster_monthly = $14,
-            ketamine_booster_pain_monthly = $15, ketamine_booster_bh_monthly = $16,
-            drip_iv_weekday_monthly = $17, drip_iv_weekend_monthly = $18,
-            semaglutide_consults_monthly = $19, semaglutide_injections_monthly = $20,
-            hormone_followup_female_monthly = $21, hormone_initial_male_monthly = $22,
-            actual_weekly_revenue = $23, weekly_revenue_goal = $24,
-            actual_monthly_revenue = $25, monthly_revenue_goal = $26,
-            drip_iv_revenue_weekly = $27, semaglutide_revenue_weekly = $28, ketamine_revenue_weekly = $29,
-            drip_iv_revenue_monthly = $30, semaglutide_revenue_monthly = $31, ketamine_revenue_monthly = $32,
-            total_drip_iv_members = $33, hubspot_ketamine_conversions = $34,
-            marketing_initiatives = $35, concierge_memberships = $36, corporate_memberships = $37,
-            days_left_in_month = $38, updated_at = CURRENT_TIMESTAMP
+            drip_iv_weekday_weekly = $3, drip_iv_weekend_weekly = $4,
+            semaglutide_consults_weekly = $5, semaglutide_injections_weekly = $6,
+            hormone_followup_female_weekly = $7, hormone_initial_male_weekly = $8,
+            drip_iv_weekday_monthly = $9, drip_iv_weekend_monthly = $10,
+            semaglutide_consults_monthly = $11, semaglutide_injections_monthly = $12,
+            hormone_followup_female_monthly = $13, hormone_initial_male_monthly = $14,
+            actual_weekly_revenue = $15, weekly_revenue_goal = $16,
+            actual_monthly_revenue = $17, monthly_revenue_goal = $18,
+            drip_iv_revenue_weekly = $19, semaglutide_revenue_weekly = $20,
+            drip_iv_revenue_monthly = $21, semaglutide_revenue_monthly = $22,
+            total_drip_iv_members = $23, marketing_initiatives = $24,
+            concierge_memberships = $25, corporate_memberships = $26,
+            days_left_in_month = $27, updated_at = CURRENT_TIMESTAMP
           WHERE week_start_date = $1 AND week_end_date = $2
           RETURNING id
         `;
         
         const updateValues = [
           extractedData.week_start_date, extractedData.week_end_date,
-          extractedData.ketamine_new_patient_weekly, extractedData.ketamine_initial_booster_weekly,
-          extractedData.ketamine_booster_pain_weekly, extractedData.ketamine_booster_bh_weekly,
           extractedData.drip_iv_weekday_weekly, extractedData.drip_iv_weekend_weekly,
           extractedData.semaglutide_consults_weekly, extractedData.semaglutide_injections_weekly,
           extractedData.hormone_followup_female_weekly, extractedData.hormone_initial_male_weekly,
-          extractedData.ketamine_new_patient_monthly || 0, extractedData.ketamine_initial_booster_monthly || 0,
-          extractedData.ketamine_booster_pain_monthly || 0, extractedData.ketamine_booster_bh_monthly || 0,
           extractedData.drip_iv_weekday_monthly || 0, extractedData.drip_iv_weekend_monthly || 0,
           extractedData.semaglutide_consults_monthly || 0, extractedData.semaglutide_injections_monthly || 0,
           extractedData.hormone_followup_female_monthly || 0, extractedData.hormone_initial_male_monthly || 0,
           extractedData.actual_weekly_revenue, extractedData.weekly_revenue_goal,
           extractedData.actual_monthly_revenue, extractedData.monthly_revenue_goal,
           extractedData.drip_iv_revenue_weekly, extractedData.semaglutide_revenue_weekly,
-          extractedData.ketamine_revenue_weekly, extractedData.drip_iv_revenue_monthly || 0,
-          extractedData.semaglutide_revenue_monthly || 0, extractedData.ketamine_revenue_monthly || 0,
-          extractedData.total_drip_iv_members, extractedData.hubspot_ketamine_conversions,
-          extractedData.marketing_initiatives, extractedData.concierge_memberships,
-          extractedData.corporate_memberships, extractedData.days_left_in_month
+          extractedData.drip_iv_revenue_monthly || 0, extractedData.semaglutide_revenue_monthly || 0,
+          extractedData.total_drip_iv_members, extractedData.marketing_initiatives,
+          extractedData.concierge_memberships, extractedData.corporate_memberships,
+          extractedData.days_left_in_month
         ];
 
         const result = await pool.query(updateQuery, updateValues);
@@ -489,47 +434,34 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
         const insertQuery = `
           INSERT INTO analytics_data (
             week_start_date, week_end_date,
-            ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
-            ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
             drip_iv_weekday_weekly, drip_iv_weekend_weekly,
             semaglutide_consults_weekly, semaglutide_injections_weekly,
             hormone_followup_female_weekly, hormone_initial_male_weekly,
-            ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
-            ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
             drip_iv_weekday_monthly, drip_iv_weekend_monthly,
             semaglutide_consults_monthly, semaglutide_injections_monthly,
             hormone_followup_female_monthly, hormone_initial_male_monthly,
             actual_weekly_revenue, weekly_revenue_goal,
             actual_monthly_revenue, monthly_revenue_goal,
-            drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
-            drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
-            total_drip_iv_members, hubspot_ketamine_conversions,
-            marketing_initiatives, concierge_memberships, corporate_memberships,
+            drip_iv_revenue_weekly, semaglutide_revenue_weekly,
+            drip_iv_revenue_monthly, semaglutide_revenue_monthly,
+            total_drip_iv_members, marketing_initiatives,
+            concierge_memberships, corporate_memberships,
             days_left_in_month
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-            $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-            $31, $32, $33, $34, $35, $36, $37
+            $17, $18, $19, $20, $21, $22, $23, $24, $25
           ) RETURNING id
         `;
 
         const values = [
           extractedData.week_start_date,
           extractedData.week_end_date,
-          extractedData.ketamine_new_patient_weekly,
-          extractedData.ketamine_initial_booster_weekly,
-          extractedData.ketamine_booster_pain_weekly,
-          extractedData.ketamine_booster_bh_weekly,
           extractedData.drip_iv_weekday_weekly,
           extractedData.drip_iv_weekend_weekly,
           extractedData.semaglutide_consults_weekly,
           extractedData.semaglutide_injections_weekly,
           extractedData.hormone_followup_female_weekly,
           extractedData.hormone_initial_male_weekly,
-          extractedData.ketamine_new_patient_monthly || 0,
-          extractedData.ketamine_initial_booster_monthly || 0,
-          extractedData.ketamine_booster_pain_monthly || 0,
-          extractedData.ketamine_booster_bh_monthly || 0,
           extractedData.drip_iv_weekday_monthly || 0,
           extractedData.drip_iv_weekend_monthly || 0,
           extractedData.semaglutide_consults_monthly || 0,
@@ -542,12 +474,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.monthly_revenue_goal,
           extractedData.drip_iv_revenue_weekly,
           extractedData.semaglutide_revenue_weekly,
-          extractedData.ketamine_revenue_weekly,
           extractedData.drip_iv_revenue_monthly || 0,
           extractedData.semaglutide_revenue_monthly || 0,
-          extractedData.ketamine_revenue_monthly || 0,
           extractedData.total_drip_iv_members,
-          extractedData.hubspot_ketamine_conversions,
           extractedData.marketing_initiatives,
           extractedData.concierge_memberships,
           extractedData.corporate_memberships,
@@ -629,31 +558,27 @@ app.route('/api/add-july-data')
     const insertQuery = `
       INSERT INTO analytics_data (
         week_start_date, week_end_date,
-        ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
-        ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
         drip_iv_weekday_weekly, drip_iv_weekend_weekly,
         semaglutide_consults_weekly, semaglutide_injections_weekly,
         hormone_followup_female_weekly, hormone_initial_male_weekly,
-        ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
-        ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
         drip_iv_weekday_monthly, drip_iv_weekend_monthly,
         semaglutide_consults_monthly, semaglutide_injections_monthly,
         hormone_followup_female_monthly, hormone_initial_male_monthly,
         actual_weekly_revenue, weekly_revenue_goal,
         actual_monthly_revenue, monthly_revenue_goal,
-        drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
-        drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
-        total_drip_iv_members, hubspot_ketamine_conversions,
-        marketing_initiatives, concierge_memberships, corporate_memberships,
+        drip_iv_revenue_weekly, semaglutide_revenue_weekly,
+        drip_iv_revenue_monthly, semaglutide_revenue_monthly,
+        total_drip_iv_members, marketing_initiatives,
+        concierge_memberships, corporate_memberships,
         days_left_in_month
       ) VALUES (
         '2025-07-07', '2025-07-13',
-        0, 1, 0, 2, 171, 47, 3, 39, 1, 1,
-        0, 6, 1, 12, 977, 232, 17, 208, 4, 3,
+        171, 47, 3, 39, 1, 1,
+        977, 232, 17, 208, 4, 3,
         29934.65, 32125, 50223.9, 128500,
-        18337.4, 10422.25, 2000,
-        31090.15, 17143.75, 2000,
-        126, 0, 1, 21, 1, 18
+        18337.4, 10422.25,
+        31090.15, 17143.75,
+        126, 1, 21, 1, 18
       ) RETURNING id
     `;
 
@@ -699,31 +624,27 @@ app.route('/api/add-july-data')
     const insertQuery = `
       INSERT INTO analytics_data (
         week_start_date, week_end_date,
-        ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
-        ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
         drip_iv_weekday_weekly, drip_iv_weekend_weekly,
         semaglutide_consults_weekly, semaglutide_injections_weekly,
         hormone_followup_female_weekly, hormone_initial_male_weekly,
-        ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
-        ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
         drip_iv_weekday_monthly, drip_iv_weekend_monthly,
         semaglutide_consults_monthly, semaglutide_injections_monthly,
         hormone_followup_female_monthly, hormone_initial_male_monthly,
         actual_weekly_revenue, weekly_revenue_goal,
         actual_monthly_revenue, monthly_revenue_goal,
-        drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
-        drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
-        total_drip_iv_members, hubspot_ketamine_conversions,
-        marketing_initiatives, concierge_memberships, corporate_memberships,
+        drip_iv_revenue_weekly, semaglutide_revenue_weekly,
+        drip_iv_revenue_monthly, semaglutide_revenue_monthly,
+        total_drip_iv_members, marketing_initiatives,
+        concierge_memberships, corporate_memberships,
         days_left_in_month
       ) VALUES (
         '2025-07-07', '2025-07-13',
-        0, 1, 0, 2, 171, 47, 3, 39, 1, 1,
-        0, 6, 1, 12, 977, 232, 17, 208, 4, 3,
+        171, 47, 3, 39, 1, 1,
+        977, 232, 17, 208, 4, 3,
         29934.65, 32125, 50223.9, 128500,
-        18337.4, 10422.25, 2000,
-        31090.15, 17143.75, 2000,
-        126, 0, 1, 21, 1, 18
+        18337.4, 10422.25,
+        31090.15, 17143.75,
+        126, 1, 21, 1, 18
       ) RETURNING id
     `;
 

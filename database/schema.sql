@@ -12,10 +12,6 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     week_end_date DATE NOT NULL,
     
     -- Volume metrics
-    ketamine_new_patient_weekly INTEGER DEFAULT 0,
-    ketamine_initial_booster_weekly INTEGER DEFAULT 0,
-    ketamine_booster_pain_weekly INTEGER DEFAULT 0,
-    ketamine_booster_bh_weekly INTEGER DEFAULT 0,
     drip_iv_weekday_weekly INTEGER DEFAULT 0,
     drip_iv_weekend_weekly INTEGER DEFAULT 0,
     semaglutide_consults_weekly INTEGER DEFAULT 0,
@@ -24,10 +20,6 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     hormone_initial_male_weekly INTEGER DEFAULT 0,
     
     -- Monthly cumulative data
-    ketamine_new_patient_monthly INTEGER DEFAULT 0,
-    ketamine_initial_booster_monthly INTEGER DEFAULT 0,
-    ketamine_booster_pain_monthly INTEGER DEFAULT 0,
-    ketamine_booster_bh_monthly INTEGER DEFAULT 0,
     drip_iv_weekday_monthly INTEGER DEFAULT 0,
     drip_iv_weekend_monthly INTEGER DEFAULT 0,
     semaglutide_consults_monthly INTEGER DEFAULT 0,
@@ -44,14 +36,11 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     -- Revenue breakdown
     drip_iv_revenue_weekly DECIMAL(10,2) DEFAULT 0,
     semaglutide_revenue_weekly DECIMAL(10,2) DEFAULT 0,
-    ketamine_revenue_weekly DECIMAL(10,2) DEFAULT 0,
     drip_iv_revenue_monthly DECIMAL(10,2) DEFAULT 0,
     semaglutide_revenue_monthly DECIMAL(10,2) DEFAULT 0,
-    ketamine_revenue_monthly DECIMAL(10,2) DEFAULT 0,
     
     -- Membership data
     total_drip_iv_members INTEGER DEFAULT 0,
-    hubspot_ketamine_conversions INTEGER DEFAULT 0,
     marketing_initiatives INTEGER DEFAULT 0,
     concierge_memberships INTEGER DEFAULT 0,
     corporate_memberships INTEGER DEFAULT 0,
@@ -86,7 +75,7 @@ CREATE TABLE IF NOT EXISTS file_uploads (
 CREATE TABLE IF NOT EXISTS revenue_goals (
     id SERIAL PRIMARY KEY,
     goal_type VARCHAR(50) NOT NULL, -- 'weekly' or 'monthly'
-    service_category VARCHAR(100) NOT NULL, -- 'drip_iv', 'semaglutide', 'ketamine', 'total'
+    service_category VARCHAR(100) NOT NULL, -- 'drip_iv', 'semaglutide', 'total'
     goal_amount DECIMAL(10,2) NOT NULL,
     effective_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -98,10 +87,8 @@ INSERT INTO revenue_goals (goal_type, service_category, goal_amount, effective_d
 ('monthly', 'total', 128500.00, '2025-01-01'),
 ('weekly', 'drip_iv', 15875.00, '2025-01-01'),
 ('weekly', 'semaglutide', 8750.00, '2025-01-01'),
-('weekly', 'ketamine', 5000.00, '2025-01-01'),
 ('monthly', 'drip_iv', 63500.00, '2025-01-01'),
-('monthly', 'semaglutide', 35000.00, '2025-01-01'),
-('monthly', 'ketamine', 20000.00, '2025-01-01');
+('monthly', 'semaglutide', 35000.00, '2025-01-01');
 
 -- User sessions for basic tracking (no auth for now)
 CREATE TABLE IF NOT EXISTS user_sessions (

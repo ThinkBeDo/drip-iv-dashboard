@@ -77,11 +77,10 @@ http://localhost:3000
 ### ✅ Real Revenue Tracking
 - Weekly vs Monthly revenue comparison
 - Goal vs Actual performance with progress bars
-- Service-specific revenue breakdown (IV, Semaglutide, Ketamine)
+- Service-specific revenue breakdown (IV, Semaglutide)
 - Revenue percentage calculations
 
 ### ✅ Service Volume Analytics
-- Ketamine therapy tracking (New patients, boosters, pain/BH)
 - IV therapy session counts (weekday/weekend split)
 - Weight management program metrics
 - Hormone therapy appointments
@@ -89,7 +88,6 @@ http://localhost:3000
 ### ✅ Membership Management
 - Total Drip IV members
 - Concierge and corporate membership tracking
-- HubSpot conversion monitoring
 - Marketing initiative counting
 
 ## 🔧 API Endpoints

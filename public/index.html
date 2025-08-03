@@ -337,9 +337,6 @@
             font-size: 14px;
         }
         
-        .ketamine-icon {
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-        }
         
         .iv-icon {
             background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
@@ -499,10 +496,6 @@
                     <div class="metric-label">Total Drip IV Members</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value hubspot-conversions">--</div>
-                    <div class="metric-label">HubSpot Ketamine Conversions</div>
-                </div>
-                <div class="metric-card">
                     <div class="metric-value marketing-initiatives">--</div>
                     <div class="metric-label">Marketing Initiatives</div>
                 </div>
@@ -531,10 +524,6 @@
                             <span class="revenue-amount actual sema-revenue-weekly">--</span>
                         </div>
                         <div class="revenue-item">
-                            <span class="revenue-label">Ketamine Therapy</span>
-                            <span class="revenue-amount actual ketamine-revenue-weekly">--</span>
-                        </div>
-                        <div class="revenue-item">
                             <span class="revenue-label"><strong>Total Weekly Actual</strong></span>
                             <span class="revenue-amount actual weekly-actual"><strong>--</strong></span>
                         </div>
@@ -557,10 +546,6 @@
                         <div class="revenue-item">
                             <span class="revenue-label">Semaglutide Weight Loss</span>
                             <span class="revenue-amount actual sema-revenue-monthly">--</span>
-                        </div>
-                        <div class="revenue-item">
-                            <span class="revenue-label">Ketamine Therapy</span>
-                            <span class="revenue-amount actual ketamine-revenue-monthly">--</span>
                         </div>
                         <div class="revenue-item">
                             <span class="revenue-label"><strong>Total Monthly Actual</strong></span>
@@ -618,29 +603,6 @@
             <div class="section">
                 <h2 class="section-title">Service Volume Analytics</h2>
                 <div class="services-grid">
-                    <div class="service-card">
-                        <h4>
-                            <div class="service-icon ketamine-icon">🧠</div>
-                            Ketamine Therapy
-                        </h4>
-                        <div class="service-item">
-                            <span class="service-label">New Patient Consultations</span>
-                            <span class="service-count"><span class="ketamine-new-weekly">--</span> weekly (<span class="ketamine-new-monthly">--</span> monthly)</span>
-                        </div>
-                        <div class="service-item">
-                            <span class="service-label">Initial Booster Series 6</span>
-                            <span class="service-count"><span class="ketamine-booster-weekly">--</span> weekly (<span class="ketamine-booster-monthly">--</span> monthly)</span>
-                        </div>
-                        <div class="service-item">
-                            <span class="service-label">Pain Management Boosters</span>
-                            <span class="service-count"><span class="ketamine-pain-weekly">--</span> weekly (<span class="ketamine-pain-monthly">--</span> monthly)</span>
-                        </div>
-                        <div class="service-item">
-                            <span class="service-label">Mental Health Boosters</span>
-                            <span class="service-count"><span class="ketamine-bh-weekly">--</span> weekly (<span class="ketamine-bh-monthly">--</span> monthly)</span>
-                        </div>
-                    </div>
-                    
                     <div class="service-card">
                         <h4>
                             <div class="service-icon iv-icon">💧</div>
@@ -749,7 +711,6 @@
             
             // Update metric cards
             updateElement('.total-members', data.total_drip_iv_members || 0);
-            updateElement('.hubspot-conversions', data.hubspot_ketamine_conversions || 0);
             updateElement('.marketing-initiatives', data.marketing_initiatives || 0);
             updateElement('.concierge-memberships', data.concierge_memberships || 0);
             updateElement('.corporate-memberships', data.corporate_memberships || 0);
@@ -762,10 +723,8 @@
             
             updateElement('.iv-revenue-weekly', `$${formatCurrency(data.drip_iv_revenue_weekly || 0)}`);
             updateElement('.sema-revenue-weekly', `$${formatCurrency(data.semaglutide_revenue_weekly || 0)}`);
-            updateElement('.ketamine-revenue-weekly', `$${formatCurrency(data.ketamine_revenue_weekly || 0)}`);
             updateElement('.iv-revenue-monthly', `$${formatCurrency(data.drip_iv_revenue_monthly || 0)}`);
             updateElement('.sema-revenue-monthly', `$${formatCurrency(data.semaglutide_revenue_monthly || 0)}`);
-            updateElement('.ketamine-revenue-monthly', `$${formatCurrency(data.ketamine_revenue_monthly || 0)}`);
             
             // Update progress bars
             const weeklyPercent = calculatePercentage(data.actual_weekly_revenue, data.weekly_revenue_goal);
@@ -791,14 +750,6 @@
             updateElement('.corporate-member-count', data.corporate_memberships || 0);
             
             // Update service volume data
-            updateElement('.ketamine-new-weekly', data.ketamine_new_patient_weekly || 0);
-            updateElement('.ketamine-new-monthly', data.ketamine_new_patient_monthly || 0);
-            updateElement('.ketamine-booster-weekly', data.ketamine_initial_booster_weekly || 0);
-            updateElement('.ketamine-booster-monthly', data.ketamine_initial_booster_monthly || 0);
-            updateElement('.ketamine-pain-weekly', data.ketamine_booster_pain_weekly || 0);
-            updateElement('.ketamine-pain-monthly', data.ketamine_booster_pain_monthly || 0);
-            updateElement('.ketamine-bh-weekly', data.ketamine_booster_bh_weekly || 0);
-            updateElement('.ketamine-bh-monthly', data.ketamine_booster_bh_monthly || 0);
             
             updateElement('.iv-weekday-weekly', data.drip_iv_weekday_weekly || 0);
             updateElement('.iv-weekday-monthly', data.drip_iv_weekday_monthly || 0);
