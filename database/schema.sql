@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     
     -- Membership data
     total_drip_iv_members INTEGER DEFAULT 0,
+    individual_memberships INTEGER DEFAULT 0,
+    family_memberships INTEGER DEFAULT 0,
+    family_concierge_memberships INTEGER DEFAULT 0,
+    drip_concierge_memberships INTEGER DEFAULT 0,
     marketing_initiatives INTEGER DEFAULT 0,
     concierge_memberships INTEGER DEFAULT 0,
     corporate_memberships INTEGER DEFAULT 0,

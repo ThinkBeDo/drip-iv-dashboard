@@ -49,6 +49,10 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
     drip_iv_revenue_monthly: "31090.15",
     semaglutide_revenue_monthly: "17143.75",
     total_drip_iv_members: 126,
+    individual_memberships: 104,  // calculated as 126 - 21 - 1
+    family_memberships: 0,
+    family_concierge_memberships: 0,
+    drip_concierge_memberships: 0,
     marketing_initiatives: 1,
     concierge_memberships: 21,
     corporate_memberships: 1,
@@ -101,15 +105,69 @@ const upload = multer({
   }
 });
 
-// Utility function to parse CSV data
+// Utility function to parse CSV data with UTF-16 support
 async function parseCSVData(filePath) {
   return new Promise((resolve, reject) => {
     const results = [];
-    fs.createReadStream(filePath)
-      .pipe(csvParser())
-      .on('data', (data) => results.push(data))
-      .on('end', () => resolve(results))
-      .on('error', reject);
+    
+    // First, read a small chunk to detect encoding
+    const buffer = fs.readFileSync(filePath, { flag: 'r' });
+    const firstBytes = buffer.slice(0, 4);
+    
+    let encoding = 'utf8';
+    // Check for UTF-16 LE BOM (FF FE)
+    if (firstBytes[0] === 0xFF && firstBytes[1] === 0xFE) {
+      encoding = 'utf16le';
+    }
+    // Check for UTF-16 BE BOM (FE FF)
+    else if (firstBytes[0] === 0xFE && firstBytes[1] === 0xFF) {
+      encoding = 'utf16be';
+    }
+
+    let csvContent;
+    if (encoding === 'utf8') {
+      // Standard UTF-8 processing
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (data) => results.push(data))
+        .on('end', () => resolve(results))
+        .on('error', reject);
+    } else {
+      // Handle UTF-16 encoding
+      try {
+        const fullBuffer = fs.readFileSync(filePath);
+        const decoder = new TextDecoder(encoding);
+        csvContent = decoder.decode(fullBuffer);
+        
+        // Remove BOM if present
+        if (csvContent.charCodeAt(0) === 0xFEFF) {
+          csvContent = csvContent.substring(1);
+        }
+        
+        // Parse CSV content manually
+        const lines = csvContent.split('\n').filter(line => line.trim());
+        if (lines.length === 0) {
+          return resolve([]);
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+          if (values.length === headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            results.push(row);
+          }
+        }
+        
+        resolve(results);
+      } catch (error) {
+        reject(error);
+      }
+    }
   });
 }
 
@@ -153,6 +211,10 @@ function extractFromPDF(pdfText) {
     drip_iv_revenue_monthly: 0,
     semaglutide_revenue_monthly: 0,
     total_drip_iv_members: 0,
+    individual_memberships: 0,
+    family_memberships: 0,
+    family_concierge_memberships: 0,
+    drip_concierge_memberships: 0,
     marketing_initiatives: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
@@ -263,17 +325,164 @@ function extractFromPDF(pdfText) {
     data.week_end_date = endOfWeek.toISOString().split('T')[0];
   }
 
+  // Calculate individual memberships from PDF totals
+  // For PDF processing: individual = total - concierge - corporate
+  // Family memberships are not separately tracked in PDF
+  if (data.total_drip_iv_members > 0) {
+    data.individual_memberships = Math.max(0, 
+      data.total_drip_iv_members - data.concierge_memberships - data.corporate_memberships
+    );
+  }
+  
+  // Family, Family & Concierge, and Drip & Concierge are not tracked separately in PDF
+  data.family_memberships = 0;
+  data.family_concierge_memberships = 0;
+  data.drip_concierge_memberships = 0;
+
+  console.log('PDF Membership Breakdown:', {
+    total: data.total_drip_iv_members,
+    individual: data.individual_memberships,
+    concierge: data.concierge_memberships,
+    corporate: data.corporate_memberships
+  });
+
   return data;
 }
 
 function extractFromCSV(csvData) {
-  // Implementation for CSV parsing would go here
-  // For now, return sample data structure
-  return {
-    week_start_date: new Date().toISOString().split('T')[0],
-    week_end_date: new Date().toISOString().split('T')[0],
-    // ... other fields would be extracted from CSV
+  const data = {
+    // Default values
+    drip_iv_weekday_weekly: 0,
+    drip_iv_weekend_weekly: 0,
+    semaglutide_consults_weekly: 0,
+    semaglutide_injections_weekly: 0,
+    hormone_followup_female_weekly: 0,
+    hormone_initial_male_weekly: 0,
+    drip_iv_weekday_monthly: 0,
+    drip_iv_weekend_monthly: 0,
+    semaglutide_consults_monthly: 0,
+    semaglutide_injections_monthly: 0,
+    hormone_followup_female_monthly: 0,
+    hormone_initial_male_monthly: 0,
+    actual_weekly_revenue: 0,
+    weekly_revenue_goal: 0,
+    actual_monthly_revenue: 0,
+    monthly_revenue_goal: 0,
+    drip_iv_revenue_weekly: 0,
+    semaglutide_revenue_weekly: 0,
+    drip_iv_revenue_monthly: 0,
+    semaglutide_revenue_monthly: 0,
+    total_drip_iv_members: 0,
+    individual_memberships: 0,
+    family_memberships: 0,
+    family_concierge_memberships: 0,
+    drip_concierge_memberships: 0,
+    marketing_initiatives: 0,
+    concierge_memberships: 0,
+    corporate_memberships: 0,
+    days_left_in_month: 0
   };
+
+  if (!csvData || csvData.length === 0) {
+    // Set default date range to current week
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+    data.week_start_date = startOfWeek.toISOString().split('T')[0];
+    data.week_end_date = endOfWeek.toISOString().split('T')[0];
+    return data;
+  }
+
+  // Track unique patients for membership counts
+  const membershipCounts = {
+    individual: new Set(),
+    family: new Set(),
+    concierge: new Set(),
+    corporate: new Set(),
+    familyConcierge: new Set(),
+    dripConcierge: new Set()
+  };
+
+  // Process CSV data to extract membership information
+  csvData.forEach(row => {
+    const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
+    const patient = row['Patient'] || '';
+    
+    if (!patient) return; // Skip rows without patient info
+    
+    // Map membership types based on charge descriptions
+    if (chargeDesc.includes('membership - individual')) {
+      membershipCounts.individual.add(patient);
+    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('new')) {
+      membershipCounts.family.add(patient);
+    } else if (chargeDesc.includes('membership - family (new)')) {
+      membershipCounts.family.add(patient);
+    } else if (chargeDesc.includes('concierge membership')) {
+      membershipCounts.concierge.add(patient);
+    } else if (chargeDesc.includes('membership - corporate')) {
+      membershipCounts.corporate.add(patient);
+    }
+    
+    // Note: Family & Concierge and Drip & Concierge combinations 
+    // are not typically found in CSV data as separate line items
+    // They would be calculated based on overlapping memberships
+  });
+
+  // Set membership counts
+  data.individual_memberships = membershipCounts.individual.size;
+  data.family_memberships = membershipCounts.family.size;
+  data.concierge_memberships = membershipCounts.concierge.size;
+  data.corporate_memberships = membershipCounts.corporate.size;
+  data.family_concierge_memberships = 0; // Not tracked separately in CSV
+  data.drip_concierge_memberships = 0; // Not tracked separately in CSV
+  
+  // Calculate total memberships
+  data.total_drip_iv_members = data.individual_memberships + 
+                               data.family_memberships + 
+                               data.concierge_memberships + 
+                               data.corporate_memberships;
+
+  // Extract date range from CSV data if available
+  // Look for date columns or use current week as fallback
+  let minDate = null;
+  let maxDate = null;
+  
+  csvData.forEach(row => {
+    // Try to find date fields in common column names
+    const dateFields = ['Date', 'Service Date', 'Transaction Date', 'Created Date'];
+    for (const field of dateFields) {
+      const dateStr = row[field];
+      if (dateStr) {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          if (!minDate || date < minDate) minDate = date;
+          if (!maxDate || date > maxDate) maxDate = date;
+        }
+      }
+    }
+  });
+
+  if (minDate && maxDate) {
+    data.week_start_date = minDate.toISOString().split('T')[0];
+    data.week_end_date = maxDate.toISOString().split('T')[0];
+  } else {
+    // Default to current week
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
+    data.week_start_date = startOfWeek.toISOString().split('T')[0];
+    data.week_end_date = endOfWeek.toISOString().split('T')[0];
+  }
+
+  console.log('CSV Membership Counts:', {
+    individual: data.individual_memberships,
+    family: data.family_memberships,
+    concierge: data.concierge_memberships,
+    corporate: data.corporate_memberships,
+    total: data.total_drip_iv_members
+  });
+
+  return data;
 }
 
 // Routes
@@ -401,9 +610,11 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             actual_monthly_revenue = $17, monthly_revenue_goal = $18,
             drip_iv_revenue_weekly = $19, semaglutide_revenue_weekly = $20,
             drip_iv_revenue_monthly = $21, semaglutide_revenue_monthly = $22,
-            total_drip_iv_members = $23, marketing_initiatives = $24,
-            concierge_memberships = $25, corporate_memberships = $26,
-            days_left_in_month = $27, updated_at = CURRENT_TIMESTAMP
+            total_drip_iv_members = $23, individual_memberships = $24,
+            family_memberships = $25, family_concierge_memberships = $26,
+            drip_concierge_memberships = $27, marketing_initiatives = $28,
+            concierge_memberships = $29, corporate_memberships = $30,
+            days_left_in_month = $31, updated_at = CURRENT_TIMESTAMP
           WHERE week_start_date = $1 AND week_end_date = $2
           RETURNING id
         `;
@@ -420,7 +631,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.actual_monthly_revenue, extractedData.monthly_revenue_goal,
           extractedData.drip_iv_revenue_weekly, extractedData.semaglutide_revenue_weekly,
           extractedData.drip_iv_revenue_monthly || 0, extractedData.semaglutide_revenue_monthly || 0,
-          extractedData.total_drip_iv_members, extractedData.marketing_initiatives,
+          extractedData.total_drip_iv_members, extractedData.individual_memberships || 0,
+          extractedData.family_memberships || 0, extractedData.family_concierge_memberships || 0,
+          extractedData.drip_concierge_memberships || 0, extractedData.marketing_initiatives,
           extractedData.concierge_memberships, extractedData.corporate_memberships,
           extractedData.days_left_in_month
         ];
@@ -444,12 +657,14 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             actual_monthly_revenue, monthly_revenue_goal,
             drip_iv_revenue_weekly, semaglutide_revenue_weekly,
             drip_iv_revenue_monthly, semaglutide_revenue_monthly,
-            total_drip_iv_members, marketing_initiatives,
+            total_drip_iv_members, individual_memberships,
+            family_memberships, family_concierge_memberships,
+            drip_concierge_memberships, marketing_initiatives,
             concierge_memberships, corporate_memberships,
             days_left_in_month
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-            $17, $18, $19, $20, $21, $22, $23, $24, $25
+            $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
           ) RETURNING id
         `;
 
@@ -477,6 +692,10 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.drip_iv_revenue_monthly || 0,
           extractedData.semaglutide_revenue_monthly || 0,
           extractedData.total_drip_iv_members,
+          extractedData.individual_memberships || 0,
+          extractedData.family_memberships || 0,
+          extractedData.family_concierge_memberships || 0,
+          extractedData.drip_concierge_memberships || 0,
           extractedData.marketing_initiatives,
           extractedData.concierge_memberships,
           extractedData.corporate_memberships,
@@ -568,7 +787,9 @@ app.route('/api/add-july-data')
         actual_monthly_revenue, monthly_revenue_goal,
         drip_iv_revenue_weekly, semaglutide_revenue_weekly,
         drip_iv_revenue_monthly, semaglutide_revenue_monthly,
-        total_drip_iv_members, marketing_initiatives,
+        total_drip_iv_members, individual_memberships,
+        family_memberships, family_concierge_memberships,
+        drip_concierge_memberships, marketing_initiatives,
         concierge_memberships, corporate_memberships,
         days_left_in_month
       ) VALUES (
@@ -578,7 +799,7 @@ app.route('/api/add-july-data')
         29934.65, 32125, 50223.9, 128500,
         18337.4, 10422.25,
         31090.15, 17143.75,
-        126, 1, 21, 1, 18
+        126, 105, 0, 0, 0, 1, 21, 1, 18
       ) RETURNING id
     `;
 
@@ -634,7 +855,9 @@ app.route('/api/add-july-data')
         actual_monthly_revenue, monthly_revenue_goal,
         drip_iv_revenue_weekly, semaglutide_revenue_weekly,
         drip_iv_revenue_monthly, semaglutide_revenue_monthly,
-        total_drip_iv_members, marketing_initiatives,
+        total_drip_iv_members, individual_memberships,
+        family_memberships, family_concierge_memberships,
+        drip_concierge_memberships, marketing_initiatives,
         concierge_memberships, corporate_memberships,
         days_left_in_month
       ) VALUES (
@@ -644,7 +867,7 @@ app.route('/api/add-july-data')
         29934.65, 32125, 50223.9, 128500,
         18337.4, 10422.25,
         31090.15, 17143.75,
-        126, 1, 21, 1, 18
+        126, 105, 0, 0, 0, 1, 21, 1, 18
       ) RETURNING id
     `;
 
