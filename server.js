@@ -1299,6 +1299,81 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Import weekly data endpoint - handles both revenue CSV and membership Excel files
+const { importWeeklyData } = require('./import-weekly-data');
+
+app.post('/api/import-weekly-data', upload.fields([
+  { name: 'revenueFile', maxCount: 1 },
+  { name: 'membershipFile', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    if (!req.files || !req.files.revenueFile || !req.files.membershipFile) {
+      return res.status(400).json({ 
+        error: 'Both revenue CSV file and membership Excel file are required' 
+      });
+    }
+
+    const revenueFile = req.files.revenueFile[0];
+    const membershipFile = req.files.membershipFile[0];
+    
+    // Validate file types
+    if (!revenueFile.originalname.endsWith('.csv')) {
+      return res.status(400).json({ 
+        error: 'Revenue file must be a CSV file' 
+      });
+    }
+    
+    if (!membershipFile.originalname.endsWith('.xlsx')) {
+      return res.status(400).json({ 
+        error: 'Membership file must be an Excel (.xlsx) file' 
+      });
+    }
+
+    console.log(`Processing weekly data import: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+    
+    // Use the specialized import function
+    const importedData = await importWeeklyData(revenueFile.path, membershipFile.path);
+    
+    // Clean up uploaded files
+    try {
+      fs.unlinkSync(revenueFile.path);
+      fs.unlinkSync(membershipFile.path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files:', cleanupError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Weekly data imported successfully',
+      data: {
+        weeklyRevenue: importedData.actual_weekly_revenue,
+        monthlyRevenue: importedData.actual_monthly_revenue,
+        totalMembers: importedData.total_drip_iv_members,
+        uniqueCustomersWeekly: importedData.unique_customers_weekly,
+        uniqueCustomersMonthly: importedData.unique_customers_monthly,
+        weekStart: importedData.week_start_date,
+        weekEnd: importedData.week_end_date
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error importing weekly data:', error);
+    
+    // Clean up files on error
+    try {
+      if (req.files?.revenueFile?.[0]?.path) fs.unlinkSync(req.files.revenueFile[0].path);
+      if (req.files?.membershipFile?.[0]?.path) fs.unlinkSync(req.files.membershipFile[0].path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to import weekly data',
+      details: error.message 
+    });
+  }
+});
+
 // Initialize database tables
 async function initializeDatabase() {
   try {
