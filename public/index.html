@@ -472,7 +472,7 @@
                     </div>
                 </div>
                 <div class="date-range">Weekly Dashboard: July 14 - July 20, 2025</div>
-                <div class="locations-badge">📍 Baton Rouge & Lafayette, LA</div>
+                <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
                     <div class="upload-section" onclick="document.getElementById('fileInput').click()">
                         <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" multiple>
@@ -602,6 +602,34 @@
                             <div class="membership-card">
                                 <h4>Drip & Concierge</h4>
                                 <div class="membership-count">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- New Memberships This Week -->
+            <div class="section">
+                <div class="wellness-section">
+                    <div class="wellness-content">
+                        <h2 style="margin: 0 0 15px 0; font-size: 2rem; font-weight: 600;">New Memberships This Week</h2>
+                        <p style="margin-bottom: 0; opacity: 0.9; font-size: 1.1rem;">Fresh additions to our wellness community</p>
+                        <div class="membership-grid">
+                            <div class="membership-card">
+                                <h4>Individual</h4>
+                                <div class="membership-count new-individual-weekly">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Family</h4>
+                                <div class="membership-count new-family-weekly">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Concierge</h4>
+                                <div class="membership-count new-concierge-weekly">--</div>
+                            </div>
+                            <div class="membership-card">
+                                <h4>Corporate</h4>
+                                <div class="membership-count new-corporate-weekly">--</div>
                             </div>
                         </div>
                     </div>
@@ -765,6 +793,12 @@
             updateElement('.individual-members', data.total_drip_iv_members || 0);
             updateElement('.concierge-member-count', data.concierge_memberships || 0);
             updateElement('.corporate-member-count', data.corporate_memberships || 0);
+            
+            // Update new membership counts this week
+            updateElement('.new-individual-weekly', data.new_individual_members_weekly || 0);
+            updateElement('.new-family-weekly', data.new_family_members_weekly || 0);
+            updateElement('.new-concierge-weekly', data.new_concierge_members_weekly || 0);
+            updateElement('.new-corporate-weekly', data.new_corporate_members_weekly || 0);
             
             // Update service volume data
             updateElement('.ketamine-new-weekly', data.ketamine_new_patient_weekly || 0);

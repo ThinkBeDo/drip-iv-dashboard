@@ -313,13 +313,181 @@ function extractFromPDF(pdfText) {
 }
 
 function extractFromCSV(csvData) {
-  // Implementation for CSV parsing would go here
-  // For now, return sample data structure
-  return {
+  // Define IV Base Services that count as visits
+  const IV_BASE_SERVICES = [
+    'Saline 1L', 'Hydration', 'Performance & Recovery', 'Energy', 
+    'Immunity', 'Alleviate', 'All Inclusive', 'Lux Beauty', 'Methylene Blue'
+  ];
+  
+  // Define standalone injections
+  const STANDALONE_INJECTIONS = ['Semaglutide', 'Tirzepatide'];
+  
+  // Initialize data structure
+  const data = {
+    // Default values
+    ketamine_new_patient_weekly: 0,
+    ketamine_initial_booster_weekly: 0,
+    ketamine_booster_pain_weekly: 0,
+    ketamine_booster_bh_weekly: 0,
+    drip_iv_weekday_weekly: 0,
+    drip_iv_weekend_weekly: 0,
+    semaglutide_consults_weekly: 0,
+    semaglutide_injections_weekly: 0,
+    hormone_followup_female_weekly: 0,
+    hormone_initial_male_weekly: 0,
+    ketamine_new_patient_monthly: 0,
+    ketamine_initial_booster_monthly: 0,
+    ketamine_booster_pain_monthly: 0,
+    ketamine_booster_bh_monthly: 0,
+    drip_iv_weekday_monthly: 0,
+    drip_iv_weekend_monthly: 0,
+    semaglutide_consults_monthly: 0,
+    semaglutide_injections_monthly: 0,
+    hormone_followup_female_monthly: 0,
+    hormone_initial_male_monthly: 0,
+    actual_weekly_revenue: 0,
+    weekly_revenue_goal: 32125.00,
+    actual_monthly_revenue: 0,
+    monthly_revenue_goal: 128500.00,
+    drip_iv_revenue_weekly: 0,
+    semaglutide_revenue_weekly: 0,
+    ketamine_revenue_weekly: 0,
+    drip_iv_revenue_monthly: 0,
+    semaglutide_revenue_monthly: 0,
+    ketamine_revenue_monthly: 0,
+    total_drip_iv_members: 0,
+    hubspot_ketamine_conversions: 0,
+    marketing_initiatives: 0,
+    concierge_memberships: 0,
+    corporate_memberships: 0,
+    new_individual_members_weekly: 0,
+    new_family_members_weekly: 0,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0,
+    days_left_in_month: 0,
     week_start_date: new Date().toISOString().split('T')[0],
-    week_end_date: new Date().toISOString().split('T')[0],
-    // ... other fields would be extracted from CSV
+    week_end_date: new Date().toISOString().split('T')[0]
   };
+  
+  // Track unique visits by patient + date
+  const visitTracker = new Set();
+  
+  // Process CSV data
+  csvData.forEach(row => {
+    // CRITICAL: Filter out TOTAL_TIPS rows
+    if (row.Charge_Type === 'TOTAL_TIPS' || row.Description?.includes('Tips')) {
+      return; // Skip tips
+    }
+    
+    // Extract service name and patient info
+    const service = row.Service_Name || row.Service || row.Description || '';
+    const patient = row.Patient_Name || row.Patient || '';
+    const date = row.Service_Date || row.Date || '';
+    const revenue = parseFloat(row.Amount || row.Revenue || 0);
+    
+    // Skip if no valid data
+    if (!service || !date) return;
+    
+    // Create unique visit key (patient + date)
+    const visitKey = `${patient}_${date}`;
+    
+    // Check if this is an IV base service (counts as visit)
+    const isIVBaseService = IV_BASE_SERVICES.some(base => 
+      service.toLowerCase().includes(base.toLowerCase())
+    );
+    
+    // Only count unique visits for IV base services
+    if (isIVBaseService && patient && !visitTracker.has(visitKey)) {
+      visitTracker.add(visitKey);
+      
+      // Determine if weekday or weekend
+      const serviceDate = new Date(date);
+      const dayOfWeek = serviceDate.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      if (isWeekend) {
+        data.drip_iv_weekend_weekly++;
+      } else {
+        data.drip_iv_weekday_weekly++;
+      }
+      
+      // Add to revenue
+      data.drip_iv_revenue_weekly += revenue;
+    }
+    
+    // Process Semaglutide/Tirzepatide
+    if (STANDALONE_INJECTIONS.some(inj => service.toLowerCase().includes(inj.toLowerCase()))) {
+      if (service.toLowerCase().includes('consult')) {
+        data.semaglutide_consults_weekly++;
+      } else {
+        data.semaglutide_injections_weekly++;
+      }
+      data.semaglutide_revenue_weekly += revenue;
+    }
+    
+    // Process Ketamine
+    if (service.toLowerCase().includes('ketamine')) {
+      data.ketamine_revenue_weekly += revenue;
+      
+      if (service.toLowerCase().includes('new patient')) {
+        data.ketamine_new_patient_weekly++;
+      } else if (service.toLowerCase().includes('initial booster')) {
+        data.ketamine_initial_booster_weekly++;
+      } else if (service.toLowerCase().includes('booster') && service.toLowerCase().includes('pain')) {
+        data.ketamine_booster_pain_weekly++;
+      } else if (service.toLowerCase().includes('booster')) {
+        data.ketamine_booster_bh_weekly++;
+      }
+    }
+    
+    // Process Hormone services
+    if (service.toLowerCase().includes('hormone')) {
+      if (service.toLowerCase().includes('female') && service.toLowerCase().includes('follow')) {
+        data.hormone_followup_female_weekly++;
+      } else if (service.toLowerCase().includes('male') && service.toLowerCase().includes('initial')) {
+        data.hormone_initial_male_weekly++;
+      }
+    }
+    
+    // Track membership changes (if membership data in CSV)
+    if (row.Membership_Type) {
+      const membershipType = row.Membership_Type.toLowerCase();
+      if (row.Is_New_Member === 'true' || row.Is_New_Member === true) {
+        if (membershipType.includes('individual')) {
+          data.new_individual_members_weekly++;
+        } else if (membershipType.includes('family')) {
+          data.new_family_members_weekly++;
+        } else if (membershipType.includes('concierge')) {
+          data.new_concierge_members_weekly++;
+        } else if (membershipType.includes('corporate')) {
+          data.new_corporate_members_weekly++;
+        }
+      }
+    }
+  });
+  
+  // Calculate total weekly revenue
+  data.actual_weekly_revenue = data.drip_iv_revenue_weekly + 
+                               data.semaglutide_revenue_weekly + 
+                               data.ketamine_revenue_weekly;
+  
+  // Extract date range from CSV data
+  if (csvData.length > 0) {
+    const dates = csvData
+      .map(row => new Date(row.Service_Date || row.Date || ''))
+      .filter(date => !isNaN(date.getTime()))
+      .sort((a, b) => a - b);
+    
+    if (dates.length > 0) {
+      data.week_start_date = dates[0].toISOString().split('T')[0];
+      data.week_end_date = dates[dates.length - 1].toISOString().split('T')[0];
+    }
+  }
+  
+  // Note: Monthly data would need to be calculated from a larger dataset
+  // or provided separately. For now, we're only processing weekly data.
+  
+  return data;
 }
 
 // Routes
@@ -453,7 +621,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             drip_iv_revenue_monthly = $30, semaglutide_revenue_monthly = $31, ketamine_revenue_monthly = $32,
             total_drip_iv_members = $33, hubspot_ketamine_conversions = $34,
             marketing_initiatives = $35, concierge_memberships = $36, corporate_memberships = $37,
-            days_left_in_month = $38, updated_at = CURRENT_TIMESTAMP
+            days_left_in_month = $38, new_individual_members_weekly = $39,
+            new_family_members_weekly = $40, new_concierge_members_weekly = $41,
+            new_corporate_members_weekly = $42, updated_at = CURRENT_TIMESTAMP
           WHERE week_start_date = $1 AND week_end_date = $2
           RETURNING id
         `;
@@ -477,7 +647,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.semaglutide_revenue_monthly || 0, extractedData.ketamine_revenue_monthly || 0,
           extractedData.total_drip_iv_members, extractedData.hubspot_ketamine_conversions,
           extractedData.marketing_initiatives, extractedData.concierge_memberships,
-          extractedData.corporate_memberships, extractedData.days_left_in_month
+          extractedData.corporate_memberships, extractedData.days_left_in_month,
+          extractedData.new_individual_members_weekly || 0, extractedData.new_family_members_weekly || 0,
+          extractedData.new_concierge_members_weekly || 0, extractedData.new_corporate_members_weekly || 0
         ];
 
         const result = await pool.query(updateQuery, updateValues);
@@ -505,11 +677,12 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
             total_drip_iv_members, hubspot_ketamine_conversions,
             marketing_initiatives, concierge_memberships, corporate_memberships,
-            days_left_in_month
+            days_left_in_month, new_individual_members_weekly, new_family_members_weekly,
+            new_concierge_members_weekly, new_corporate_members_weekly
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
             $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-            $31, $32, $33, $34, $35, $36, $37
+            $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41
           ) RETURNING id
         `;
 
@@ -551,7 +724,11 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.marketing_initiatives,
           extractedData.concierge_memberships,
           extractedData.corporate_memberships,
-          extractedData.days_left_in_month
+          extractedData.days_left_in_month,
+          extractedData.new_individual_members_weekly || 0,
+          extractedData.new_family_members_weekly || 0,
+          extractedData.new_concierge_members_weekly || 0,
+          extractedData.new_corporate_members_weekly || 0
         ];
 
         const result = await pool.query(insertQuery, values);

@@ -56,6 +56,12 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     concierge_memberships INTEGER DEFAULT 0,
     corporate_memberships INTEGER DEFAULT 0,
     
+    -- New membership tracking (weekly additions)
+    new_individual_members_weekly INTEGER DEFAULT 0,
+    new_family_members_weekly INTEGER DEFAULT 0,
+    new_concierge_members_weekly INTEGER DEFAULT 0,
+    new_corporate_members_weekly INTEGER DEFAULT 0,
+    
     -- Additional metrics
     days_left_in_month INTEGER DEFAULT 0,
     
