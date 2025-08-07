@@ -217,7 +217,7 @@ function extractAnalyticsData(content, isCSV = false) {
 }
 
 // Service categorization functions
-function isInfusionService(chargeDesc) {
+function isBaseInfusionService(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
   
   // Exclude non-medical services first
@@ -226,41 +226,47 @@ function isInfusionService(chargeDesc) {
     return false;
   }
   
-  const infusionServices = [
-    'saline', 'nad', 'energy', 'performance', 'recovery', 'alleviate', 'immunity',
-    'all inclusive', 'lux beauty', 'glutathione infusion', 'methylene blue infusion',
-    'vitamin c', 'hydration', 'myers', 'tri-immune', 'drip'
+  // IV Base Services (count as visits)
+  const baseInfusionServices = [
+    'saline 1l', 'hydration', 'performance & recovery', 'energy', 'immunity', 
+    'alleviate', 'all inclusive', 'lux beauty', 'methylene blue infusion'
   ];
   
-  // More specific IV matching - require word boundaries or specific contexts  
-  const hasIVService = lowerDesc.includes(' iv ') || lowerDesc.startsWith('iv ') || lowerDesc.endsWith(' iv') ||
-                      lowerDesc.includes('iv drip') || lowerDesc.includes('iv infusion') || lowerDesc.includes('iv therapy');
-  
-  return infusionServices.some(service => 
-    lowerDesc.includes(service) && 
-    !lowerDesc.includes('injection') && 
-    !lowerDesc.includes('weekly') &&
-    !lowerDesc.includes('monthly')
-  ) || hasIVService;
+  return baseInfusionServices.some(service => lowerDesc.includes(service));
 }
 
-function isInjectionService(chargeDesc) {
+function isInfusionAddon(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
   
-  // Exclude non-medical services first
-  const exclusions = ['membership', 'lab', 'cbc', 'cmp', 'draw fee', 'office visit', 'consultation'];
-  if (exclusions.some(excl => lowerDesc.includes(excl))) {
-    return false;
-  }
-  
-  const injectionServices = [
-    'injection', 'weekly', 'monthly', 'tirzepatide', 'semaglutide', 
-    'b12', 'vitamin b12', 'vitamin d3', 'metabolism boost', 'toradol',
-    'glutathione injection'
+  // IV Add-ons (don't count as separate visits)
+  const addonServices = [
+    'vitamin d3', 'glutathione', 'nad', 'toradol', 'magnesium', 'vitamin b12',
+    'zofran', 'biotin', 'vitamin c', 'zinc', 'mineral blend', 'vita-complex', 'taurine'
   ];
   
-  return injectionServices.some(service => lowerDesc.includes(service)) ||
-         (lowerDesc.includes('weekly') || lowerDesc.includes('monthly'));
+  return addonServices.some(service => lowerDesc.includes(service));
+}
+
+function isStandaloneInjection(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Standalone Injections (count separately)
+  const standaloneInjections = [
+    'semaglutide', 'tirzepatide', 'b12 injection', 'metabolism boost injection'
+  ];
+  
+  return standaloneInjections.some(service => lowerDesc.includes(service)) ||
+         (lowerDesc.includes('b12') && lowerDesc.includes('injection') && !lowerDesc.includes('vitamin'));
+}
+
+// Legacy function for backward compatibility
+function isInfusionService(chargeDesc) {
+  return isBaseInfusionService(chargeDesc) || isInfusionAddon(chargeDesc);
+}
+
+// Legacy function for backward compatibility - now delegates to standalone injection check
+function isInjectionService(chargeDesc) {
+  return isStandaloneInjection(chargeDesc);
 }
 
 function isMembershipOrAdminService(chargeDesc) {
@@ -276,8 +282,9 @@ function isMembershipOrAdminService(chargeDesc) {
 
 function getServiceCategory(chargeDesc) {
   if (isMembershipOrAdminService(chargeDesc)) return 'admin';
-  if (isInjectionService(chargeDesc)) return 'injection';
-  if (isInfusionService(chargeDesc)) return 'infusion';
+  if (isStandaloneInjection(chargeDesc)) return 'injection';
+  if (isBaseInfusionService(chargeDesc)) return 'base_infusion';
+  if (isInfusionAddon(chargeDesc)) return 'infusion_addon';
   return 'other';
 }
 
@@ -493,6 +500,11 @@ function extractFromCSV(csvData) {
     marketing_initiatives: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
+    // New membership tracking columns
+    new_individual_members_weekly: 0,
+    new_family_members_weekly: 0,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0,
     days_left_in_month: 0,
     
     // Popular services
@@ -512,6 +524,21 @@ function extractFromCSV(csvData) {
     return data;
   }
 
+  // CRITICAL FIX 1: Filter out TOTAL_TIPS entries immediately
+  const filteredData = csvData.filter(row => {
+    const chargeType = row['Charge Type'] || '';
+    const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
+    
+    // Exclude TOTAL_TIPS entries
+    if (chargeType === 'TOTAL_TIPS' || chargeDesc.includes('total_tips')) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  console.log(`Filtered ${csvData.length - filteredData.length} TOTAL_TIPS entries from ${csvData.length} total rows`);
+
   // Track unique patients for membership counts
   const membershipCounts = {
     individual: new Set(),
@@ -521,9 +548,17 @@ function extractFromCSV(csvData) {
     familyConcierge: new Set(),
     dripConcierge: new Set()
   };
+  
+  // Track new weekly membership signups
+  const newMembershipCounts = {
+    individual: new Set(),
+    family: new Set(),
+    concierge: new Set(),
+    corporate: new Set()
+  };
 
-  // Process CSV data to extract membership information
-  csvData.forEach(row => {
+  // Process filtered CSV data to extract membership information
+  filteredData.forEach(row => {
     const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
     const patient = row['Patient'] || '';
     
@@ -532,28 +567,44 @@ function extractFromCSV(csvData) {
     // Map membership types based on charge descriptions
     if (chargeDesc.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('new') && !chargeDesc.includes('concierge')) {
+      if (chargeDesc.includes('new')) {
+        newMembershipCounts.individual.add(patient);
+      }
+    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('concierge')) {
       membershipCounts.family.add(patient);
-    } else if (chargeDesc.includes('membership - family (new)')) {
-      membershipCounts.family.add(patient);
+      if (chargeDesc.includes('new')) {
+        newMembershipCounts.family.add(patient);
+      }
     } else if (chargeDesc.includes('family membership w/ concierge')) {
       membershipCounts.familyConcierge.add(patient);
     } else if (chargeDesc.includes('concierge & drip membership')) {
       membershipCounts.dripConcierge.add(patient);
     } else if (chargeDesc.includes('concierge membership')) {
       membershipCounts.concierge.add(patient);
+      if (chargeDesc.includes('new')) {
+        newMembershipCounts.concierge.add(patient);
+      }
     } else if (chargeDesc.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
+      if (chargeDesc.includes('new')) {
+        newMembershipCounts.corporate.add(patient);
+      }
     }
   });
 
-  // Set membership counts
+  // Set membership counts (active totals)
   data.individual_memberships = membershipCounts.individual.size;
-  data.family_memberships = membershipCounts.family.size;
+  data.family_memberships = membershipCounts.family.size * 2; // Family = 2 members
   data.concierge_memberships = membershipCounts.concierge.size;
-  data.corporate_memberships = membershipCounts.corporate.size;
-  data.family_concierge_memberships = membershipCounts.familyConcierge.size;
-  data.drip_concierge_memberships = membershipCounts.dripConcierge.size;
+  data.corporate_memberships = membershipCounts.corporate.size * 10; // Corporate = 10 members
+  data.family_concierge_memberships = membershipCounts.familyConcierge.size * 2;
+  data.drip_concierge_memberships = membershipCounts.dripConcierge.size * 2; // Both Drip + Concierge
+  
+  // Set new weekly membership signups
+  data.new_individual_members_weekly = newMembershipCounts.individual.size;
+  data.new_family_members_weekly = newMembershipCounts.family.size;
+  data.new_concierge_members_weekly = newMembershipCounts.concierge.size;
+  data.new_corporate_members_weekly = newMembershipCounts.corporate.size;
   
   // Calculate total memberships
   data.total_drip_iv_members = data.individual_memberships + 
@@ -563,12 +614,11 @@ function extractFromCSV(csvData) {
                                data.family_concierge_memberships +
                                data.drip_concierge_memberships;
 
-  // Extract date range from CSV data if available
-  // Look for date columns or use current week as fallback
+  // Extract date range from filtered CSV data
   let minDate = null;
   let maxDate = null;
   
-  csvData.forEach(row => {
+  filteredData.forEach(row => {
     // Try to find date fields in common column names
     const dateFields = ['Date', 'Service Date', 'Transaction Date', 'Created Date'];
     for (const field of dateFields) {
@@ -595,7 +645,8 @@ function extractFromCSV(csvData) {
     data.week_end_date = endOfWeek.toISOString().split('T')[0];
   }
 
-  // Process services and count infusions vs injections
+  // CRITICAL FIX 2: Proper visit counting by grouping patient + date
+  const visitMap = new Map(); // key: "patient|date", value: visit data
   const weeklyCustomers = new Set();
   const monthlyCustomers = new Set();
   const memberCustomers = new Set();
@@ -613,7 +664,8 @@ function extractFromCSV(csvData) {
   let membershipWeeklyRevenue = 0;
   let membershipMonthlyRevenue = 0;
   
-  csvData.forEach(row => {
+  // First pass: group services by patient + date
+  filteredData.forEach(row => {
     const chargeType = row['Charge Type'] || '';
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row['Patient'] || '';
@@ -627,6 +679,42 @@ function extractFromCSV(csvData) {
     if (chargeType !== 'PROCEDURE' && chargeType !== 'OFFICE_VISIT') return;
     if (!patient || !chargeDesc) return;
     
+    // Create visit key
+    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const visitKey = `${patient}|${dateKey}`;
+    
+    if (!visitMap.has(visitKey)) {
+      visitMap.set(visitKey, {
+        patient,
+        date,
+        isMember,
+        hasBaseInfusion: false,
+        hasStandaloneInjection: false,
+        services: [],
+        totalAmount: 0
+      });
+    }
+    
+    const visit = visitMap.get(visitKey);
+    visit.services.push(chargeDesc);
+    visit.totalAmount += paymentAmount;
+    
+    // Categorize service for this visit
+    const category = getServiceCategory(chargeDesc);
+    if (category === 'base_infusion') {
+      visit.hasBaseInfusion = true;
+    } else if (category === 'injection') {
+      visit.hasStandaloneInjection = true;
+    }
+  });
+  
+  console.log(`Processed ${filteredData.length} rows into ${visitMap.size} unique visits`);
+  
+  // Second pass: count visits and track revenue
+  visitMap.forEach((visit, visitKey) => {
+    const { patient, date, isMember, hasBaseInfusion, hasStandaloneInjection, services, totalAmount } = visit;
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    
     // Track customers
     if (!isNaN(date.getTime())) {
       weeklyCustomers.add(patient);
@@ -639,16 +727,12 @@ function extractFromCSV(csvData) {
       }
     }
     
-    // Categorize service
-    const category = getServiceCategory(chargeDesc);
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    
     // Add to total revenue
-    totalWeeklyRevenue += paymentAmount;
-    totalMonthlyRevenue += paymentAmount;
+    totalWeeklyRevenue += totalAmount;
+    totalMonthlyRevenue += totalAmount;
     
-    if (category === 'infusion') {
-      // Count infusions
+    // Count IV infusion visits (base infusion + any addons = 1 visit)
+    if (hasBaseInfusion) {
       if (isWeekend) {
         data.iv_infusions_weekend_weekly++;
         data.iv_infusions_weekend_monthly++;
@@ -657,16 +741,19 @@ function extractFromCSV(csvData) {
         data.iv_infusions_weekday_monthly++;
       }
       
-      // Track revenue for infusions
-      infusionWeeklyRevenue += paymentAmount;
-      infusionMonthlyRevenue += paymentAmount;
+      infusionWeeklyRevenue += totalAmount;
+      infusionMonthlyRevenue += totalAmount;
       
-      // Track popular infusions
-      const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
-      infusionServices[serviceName] = (infusionServices[serviceName] || 0) + 1;
-      
-    } else if (category === 'injection') {
-      // Count injections
+      // Track popular infusions (base service only)
+      const baseService = services.find(s => isBaseInfusionService(s));
+      if (baseService) {
+        const serviceName = baseService.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
+        infusionServices[serviceName] = (infusionServices[serviceName] || 0) + 1;
+      }
+    }
+    
+    // Count standalone injection visits separately
+    if (hasStandaloneInjection) {
       if (isWeekend) {
         data.injections_weekend_weekly++;
         data.injections_weekend_monthly++;
@@ -675,18 +762,27 @@ function extractFromCSV(csvData) {
         data.injections_weekday_monthly++;
       }
       
-      // Track revenue for injections  
-      injectionWeeklyRevenue += paymentAmount;
-      injectionMonthlyRevenue += paymentAmount;
+      // Only count injection revenue if no base infusion
+      if (!hasBaseInfusion) {
+        injectionWeeklyRevenue += totalAmount;
+        injectionMonthlyRevenue += totalAmount;
+      }
       
       // Track popular injections
-      const serviceName = chargeDesc.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
-      injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
-      
-    } else if (category === 'admin') {
-      // Track membership/admin revenue
-      membershipWeeklyRevenue += paymentAmount;
-      membershipMonthlyRevenue += paymentAmount;
+      const injectionService = services.find(s => isStandaloneInjection(s));
+      if (injectionService) {
+        const serviceName = injectionService.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
+        injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
+      }
+    }
+    
+    // Handle visits with only addons or admin services
+    if (!hasBaseInfusion && !hasStandaloneInjection) {
+      const hasAdminService = services.some(s => isMembershipOrAdminService(s));
+      if (hasAdminService) {
+        membershipWeeklyRevenue += totalAmount;
+        membershipMonthlyRevenue += totalAmount;
+      }
     }
   });
   
@@ -730,35 +826,51 @@ function extractFromCSV(csvData) {
     .slice(0, 3)
     .map(([name]) => name);
   
-  data.popular_infusions = topInfusions.length > 0 ? topInfusions : ['Energy', 'NAD+', 'Performance & Recovery'];
-  data.popular_injections = topInjections.length > 0 ? topInjections : ['Tirzepatide', 'Semaglutide', 'B12'];
+  data.popular_infusions = topInfusions.length > 0 ? topInfusions : ['Energy', 'Performance & Recovery', 'Saline 1L'];
+  data.popular_injections = topInjections.length > 0 ? topInjections : ['Tirzepatide', 'Semaglutide', 'B12 Injection'];
   data.popular_infusions_status = 'Active';
   data.popular_injections_status = 'Active';
 
-  console.log('CSV Service Analysis:', {
+  console.log('CSV Service Analysis (FIXED):', {
     infusions: {
       weekday: data.iv_infusions_weekday_weekly,
       weekend: data.iv_infusions_weekend_weekly,
+      total_visits: data.iv_infusions_weekday_weekly + data.iv_infusions_weekend_weekly,
       popular: data.popular_infusions
     },
     injections: {
       weekday: data.injections_weekday_weekly,
       weekend: data.injections_weekend_weekly,
+      total_visits: data.injections_weekday_weekly + data.injections_weekend_weekly,
       popular: data.popular_injections
     },
     customers: {
       unique: data.unique_customers_weekly,
       members: data.member_customers_weekly,
       nonMembers: data.non_member_customers_weekly
+    },
+    revenue: {
+      total: data.actual_weekly_revenue,
+      infusions: data.infusion_revenue_weekly,
+      injections: data.injection_revenue_weekly,
+      memberships: data.membership_revenue_weekly
     }
   });
 
-  console.log('CSV Membership Counts:', {
-    individual: data.individual_memberships,
-    family: data.family_memberships,
-    concierge: data.concierge_memberships,
-    corporate: data.corporate_memberships,
-    total: data.total_drip_iv_members
+  console.log('CSV Membership Counts (FIXED):', {
+    active_totals: {
+      individual: data.individual_memberships,
+      family: data.family_memberships,
+      concierge: data.concierge_memberships,
+      corporate: data.corporate_memberships,
+      total: data.total_drip_iv_members
+    },
+    new_weekly_signups: {
+      individual: data.new_individual_members_weekly,
+      family: data.new_family_members_weekly,
+      concierge: data.new_concierge_members_weekly,
+      corporate: data.new_corporate_members_weekly
+    }
   });
 
   return data;
@@ -876,7 +988,7 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
       let analyticsId;
       
       if (existingData.rows.length > 0) {
-        // Update existing record
+        // Update existing record with new membership tracking
         const updateQuery = `
           UPDATE analytics_data SET
             drip_iv_weekday_weekly = $3, drip_iv_weekend_weekly = $4,
@@ -893,7 +1005,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             family_memberships = $25, family_concierge_memberships = $26,
             drip_concierge_memberships = $27, marketing_initiatives = $28,
             concierge_memberships = $29, corporate_memberships = $30,
-            days_left_in_month = $31, updated_at = CURRENT_TIMESTAMP
+            new_individual_members_weekly = $31, new_family_members_weekly = $32,
+            new_concierge_members_weekly = $33, new_corporate_members_weekly = $34,
+            days_left_in_month = $35, updated_at = CURRENT_TIMESTAMP
           WHERE week_start_date = $1 AND week_end_date = $2
           RETURNING id
         `;
@@ -914,6 +1028,8 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.family_memberships || 0, extractedData.family_concierge_memberships || 0,
           extractedData.drip_concierge_memberships || 0, extractedData.marketing_initiatives,
           extractedData.concierge_memberships, extractedData.corporate_memberships,
+          extractedData.new_individual_members_weekly || 0, extractedData.new_family_members_weekly || 0,
+          extractedData.new_concierge_members_weekly || 0, extractedData.new_corporate_members_weekly || 0,
           extractedData.days_left_in_month
         ];
 
@@ -922,7 +1038,7 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
         
         console.log(`Updated existing data for ${extractedData.week_start_date} to ${extractedData.week_end_date}`);
       } else {
-        // Insert new record
+        // Insert new record with new membership tracking
         const insertQuery = `
           INSERT INTO analytics_data (
             week_start_date, week_end_date,
@@ -940,10 +1056,12 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             family_memberships, family_concierge_memberships,
             drip_concierge_memberships, marketing_initiatives,
             concierge_memberships, corporate_memberships,
+            new_individual_members_weekly, new_family_members_weekly,
+            new_concierge_members_weekly, new_corporate_members_weekly,
             days_left_in_month
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-            $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
+            $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33
           ) RETURNING id
         `;
 
@@ -978,6 +1096,10 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.marketing_initiatives,
           extractedData.concierge_memberships,
           extractedData.corporate_memberships,
+          extractedData.new_individual_members_weekly || 0,
+          extractedData.new_family_members_weekly || 0,
+          extractedData.new_concierge_members_weekly || 0,
+          extractedData.new_corporate_members_weekly || 0,
           extractedData.days_left_in_month
         ];
 

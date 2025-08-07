@@ -568,7 +568,10 @@
                 <div class="wellness-section">
                     <div class="wellness-content">
                         <h2 style="margin: 0 0 15px 0; font-size: 2rem; font-weight: 600;">Drip IV Wellness Memberships</h2>
-                        <p style="margin-bottom: 0; opacity: 0.9; font-size: 1.1rem;">Comprehensive wellness solutions for optimal health and vitality</p>
+                        <p style="margin-bottom: 20px; opacity: 0.9; font-size: 1.1rem;">Comprehensive wellness solutions for optimal health and vitality</p>
+                        
+                        <!-- Active Membership Totals -->
+                        <h3 style="margin: 20px 0 15px 0; font-size: 1.4rem; font-weight: 500; opacity: 0.95;">📊 Active Members (Total Count)</h3>
                         <div class="membership-grid">
                             <div class="membership-card">
                                 <h4>Individual</h4>
@@ -593,6 +596,27 @@
                             <div class="membership-card">
                                 <h4>Drip & Concierge</h4>
                                 <div class="membership-count drip-concierge-members">--</div>
+                            </div>
+                        </div>
+                        
+                        <!-- New Weekly Signups -->
+                        <h3 style="margin: 40px 0 15px 0; font-size: 1.4rem; font-weight: 500; opacity: 0.95;">🆕 New This Week (New Signups)</h3>
+                        <div class="membership-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                            <div class="membership-card" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(0,212,255,0.4);">
+                                <h4>New Individual</h4>
+                                <div class="membership-count new-individual-members">--</div>
+                            </div>
+                            <div class="membership-card" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(0,212,255,0.4);">
+                                <h4>New Family</h4>
+                                <div class="membership-count new-family-members">--</div>
+                            </div>
+                            <div class="membership-card" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(0,212,255,0.4);">
+                                <h4>New Concierge</h4>
+                                <div class="membership-count new-concierge-members">--</div>
+                            </div>
+                            <div class="membership-card" style="background: rgba(255,255,255,0.25); border: 2px solid rgba(0,212,255,0.4);">
+                                <h4>New Corporate</h4>
+                                <div class="membership-count new-corporate-members">--</div>
                             </div>
                         </div>
                     </div>
@@ -795,7 +819,7 @@
             updateElement('.weekly-progress-text', `${weeklyPercent}% of weekly goal achieved`);
             updateElement('.monthly-progress-text', `${monthlyPercent}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)`);
             
-            // Update membership counts
+            // Update membership counts - active totals
             updateElement('.individual-members', data.individual_memberships || 0);
             updateElement('.family-members', data.family_memberships || 0);
             updateElement('.concierge-member-count', data.concierge_memberships || 0);
@@ -804,6 +828,12 @@
             // For combination memberships that are not tracked separately, show '--' with tooltip
             updateElement('.family-concierge-members', data.family_concierge_memberships > 0 ? data.family_concierge_memberships : '--');
             updateElement('.drip-concierge-members', data.drip_concierge_memberships > 0 ? data.drip_concierge_memberships : '--');
+            
+            // Update new weekly membership signups
+            updateElement('.new-individual-members', data.new_individual_members_weekly || 0);
+            updateElement('.new-family-members', data.new_family_members_weekly || 0);
+            updateElement('.new-concierge-members', data.new_concierge_members_weekly || 0);
+            updateElement('.new-corporate-members', data.new_corporate_members_weekly || 0);
             
             // Update IV Infusions data
             updateElement('.infusions-weekday-weekly', data.iv_infusions_weekday_weekly || 0);

@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     drip_iv_revenue_monthly DECIMAL(10,2) DEFAULT 0,
     semaglutide_revenue_monthly DECIMAL(10,2) DEFAULT 0,
     
-    -- Membership data
+    -- Membership data (total active memberships)
     total_drip_iv_members INTEGER DEFAULT 0,
     individual_memberships INTEGER DEFAULT 0,
     family_memberships INTEGER DEFAULT 0,
@@ -64,6 +64,12 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     marketing_initiatives INTEGER DEFAULT 0,
     concierge_memberships INTEGER DEFAULT 0,
     corporate_memberships INTEGER DEFAULT 0,
+    
+    -- New membership tracking (weekly signups)
+    new_individual_members_weekly INTEGER DEFAULT 0,
+    new_family_members_weekly INTEGER DEFAULT 0,
+    new_concierge_members_weekly INTEGER DEFAULT 0,
+    new_corporate_members_weekly INTEGER DEFAULT 0,
     
     -- Additional metrics
     days_left_in_month INTEGER DEFAULT 0,
