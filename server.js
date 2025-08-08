@@ -105,13 +105,6 @@ const inMemoryData = {
     new_concierge_members_weekly: 0,
     new_corporate_members_weekly: 0
   };
-} else {
-  // PostgreSQL for production
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  });
-}
 
 // Middleware
 app.use(helmet({
