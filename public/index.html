@@ -585,7 +585,7 @@
                             </div>
                             <div class="membership-card">
                                 <h4>Family</h4>
-                                <div class="membership-count">--</div>
+                                <div class="membership-count family-members">--</div>
                             </div>
                             <div class="membership-card">
                                 <h4>Concierge</h4>
@@ -597,11 +597,11 @@
                             </div>
                             <div class="membership-card">
                                 <h4>Family & Concierge</h4>
-                                <div class="membership-count">--</div>
+                                <div class="membership-count family-concierge-members">--</div>
                             </div>
                             <div class="membership-card">
                                 <h4>Drip & Concierge</h4>
-                                <div class="membership-count">--</div>
+                                <div class="membership-count drip-concierge-members">--</div>
                             </div>
                         </div>
                     </div>
@@ -790,9 +790,12 @@
             updateElement('.monthly-progress-text', `${monthlyPercent}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)`);
             
             // Update membership counts
-            updateElement('.individual-members', data.total_drip_iv_members || 0);
+            updateElement('.individual-members', data.individual_memberships || 0);
+            updateElement('.family-members', data.family_memberships || 0);
             updateElement('.concierge-member-count', data.concierge_memberships || 0);
             updateElement('.corporate-member-count', data.corporate_memberships || 0);
+            updateElement('.family-concierge-members', data.family_concierge_memberships || 0);
+            updateElement('.drip-concierge-members', data.drip_concierge_memberships || 0);
             
             // Update new membership counts this week
             updateElement('.new-individual-weekly', data.new_individual_members_weekly || 0);
