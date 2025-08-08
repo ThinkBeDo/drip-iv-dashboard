@@ -1453,6 +1453,66 @@ app.post('/api/upload-dual', upload.fields([
   }
 });
 
+// July-August data integration endpoint
+const { integrateJulyAugustData } = require('./integrate-july-august-data');
+
+app.post('/api/integrate-july-august', upload.fields([
+  { name: 'revenueFile', maxCount: 1 },
+  { name: 'membershipFile', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    if (!req.files || !req.files.revenueFile || !req.files.membershipFile) {
+      return res.status(400).json({ 
+        error: 'Both revenue CSV file and membership CSV file are required for July-August integration'
+      });
+    }
+
+    const revenueFile = req.files.revenueFile[0];
+    const membershipFile = req.files.membershipFile[0];
+    
+    console.log(`Processing July-August integration: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+    
+    // Use the comprehensive integration function
+    const result = await integrateJulyAugustData(revenueFile.path, membershipFile.path);
+    
+    // Clean up uploaded files
+    try {
+      fs.unlinkSync(revenueFile.path);
+      fs.unlinkSync(membershipFile.path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files:', cleanupError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'July-August data integration completed successfully',
+      data: {
+        weeks_processed: result.weeks_processed,
+        total_members: result.membership_totals?.total_drip_iv_members,
+        last_week_revenue: result.last_week_data?.actual_weekly_revenue,
+        last_week_customers: result.last_week_data?.unique_customers_weekly,
+        integration_summary: result
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in July-August integration:', error);
+    
+    // Clean up files on error
+    try {
+      if (req.files?.revenueFile?.[0]?.path) fs.unlinkSync(req.files.revenueFile[0].path);
+      if (req.files?.membershipFile?.[0]?.path) fs.unlinkSync(req.files.membershipFile[0].path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to integrate July-August data',
+      details: error.message 
+    });
+  }
+});
+
 // Initialize database tables
 async function initializeDatabase() {
   try {
