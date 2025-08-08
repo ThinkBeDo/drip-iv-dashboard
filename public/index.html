@@ -103,6 +103,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 5px 20px rgba(0,212,255,0.3);
+            position: relative;
+            min-width: 200px;
         }
         
         .upload-section:hover {
@@ -119,7 +121,59 @@
             font-weight: 500;
             display: flex;
             align-items: center;
+            flex-direction: column;
+            text-align: center;
+            gap: 5px;
+        }
+        
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .upload-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+            display: flex;
+            align-items: center;
             gap: 10px;
+        }
+        
+        .upload-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        
+        .upload-button:disabled {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: 0 2px 10px rgba(108, 117, 125, 0.2);
+        }
+        
+        .upload-section.has-file {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .upload-section.has-file::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
         }
         
         .main-content {
@@ -477,12 +531,29 @@
                 <div class="date-range">Weekly Dashboard: <span class="week-date-range">Loading...</span></div>
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
-                    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
-                        <input type="file" id="fileInput" accept=".xlsx,.csv,.pdf" multiple>
-                        <div class="upload-text">
-                            <span>📊</span>
-                            <span>Upload Weekly Analytics Reports</span>
+                    <div class="upload-container">
+                        <div class="upload-section" onclick="document.getElementById('revenueFileInput').click()">
+                            <input type="file" id="revenueFileInput" accept=".csv" style="display: none;">
+                            <div class="upload-text">
+                                <span>💰</span>
+                                <span>Patient Analysis CSV</span>
+                                <div style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Revenue & service data</div>
+                            </div>
                         </div>
+                        
+                        <div class="upload-section" onclick="document.getElementById('membershipFileInput').click()">
+                            <input type="file" id="membershipFileInput" accept=".xlsx" style="display: none;">
+                            <div class="upload-text">
+                                <span>👥</span>
+                                <span>Active Memberships Excel</span>
+                                <div style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Current membership totals</div>
+                            </div>
+                        </div>
+                        
+                        <button id="uploadButton" class="upload-button" disabled>
+                            <span>📊</span>
+                            <span>Upload Weekly Data</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -902,40 +973,92 @@
         
         // File upload handling
         function setupFileUpload() {
-            const fileInput = document.getElementById('fileInput');
-            if (!fileInput) return;
+            const revenueFileInput = document.getElementById('revenueFileInput');
+            const membershipFileInput = document.getElementById('membershipFileInput');
+            const uploadButton = document.getElementById('uploadButton');
             
-            fileInput.addEventListener('change', async function(e) {
-                const files = Array.from(e.target.files);
-                if (files.length === 0) return;
+            if (!revenueFileInput || !membershipFileInput || !uploadButton) return;
+            
+            let revenueFile = null;
+            let membershipFile = null;
+            
+            // Handle revenue file selection
+            revenueFileInput.addEventListener('change', function(e) {
+                revenueFile = e.target.files[0];
+                updateFileStatus();
+            });
+            
+            // Handle membership file selection
+            membershipFileInput.addEventListener('change', function(e) {
+                membershipFile = e.target.files[0];
+                updateFileStatus();
+            });
+            
+            // Update UI based on file selection
+            function updateFileStatus() {
+                const revenueSection = revenueFileInput.closest('.upload-section');
+                const membershipSection = membershipFileInput.closest('.upload-section');
+                
+                // Update revenue section
+                if (revenueFile) {
+                    revenueSection.classList.add('has-file');
+                    revenueSection.querySelector('.upload-text span:nth-child(2)').textContent = revenueFile.name;
+                } else {
+                    revenueSection.classList.remove('has-file');
+                    revenueSection.querySelector('.upload-text span:nth-child(2)').textContent = 'Patient Analysis CSV';
+                }
+                
+                // Update membership section
+                if (membershipFile) {
+                    membershipSection.classList.add('has-file');
+                    membershipSection.querySelector('.upload-text span:nth-child(2)').textContent = membershipFile.name;
+                } else {
+                    membershipSection.classList.remove('has-file');
+                    membershipSection.querySelector('.upload-text span:nth-child(2)').textContent = 'Active Memberships Excel';
+                }
+                
+                // Enable/disable upload button
+                uploadButton.disabled = !(revenueFile && membershipFile);
+            }
+            
+            // Handle upload button click
+            uploadButton.addEventListener('click', async function() {
+                if (!revenueFile || !membershipFile) {
+                    showAlert('Please select both files before uploading', 'error');
+                    return;
+                }
                 
                 showAlert('Processing files...', 'info');
                 
-                for (const file of files) {
-                    try {
-                        const formData = new FormData();
-                        formData.append('analyticsFile', file);
+                try {
+                    const formData = new FormData();
+                    formData.append('revenueFile', revenueFile);
+                    formData.append('membershipFile', membershipFile);
+                    
+                    const response = await fetch('/api/import-weekly-data', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('Weekly data uploaded successfully!', 'success');
+                        await loadDashboardData(); // Reload dashboard
                         
-                        const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            showAlert(`${file.name} processed successfully!`, 'success');
-                            await loadDashboardData(); // Reload dashboard
-                        } else {
-                            throw new Error(result.error || 'Upload failed');
-                        }
-                    } catch (error) {
-                        console.error('Upload error:', error);
-                        showAlert(`Failed to process ${file.name}: ${error.message}`, 'error');
+                        // Reset the upload interface
+                        revenueFile = null;
+                        membershipFile = null;
+                        revenueFileInput.value = '';
+                        membershipFileInput.value = '';
+                        updateFileStatus();
+                    } else {
+                        throw new Error(result.error || 'Upload failed');
                     }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showAlert(`Upload failed: ${error.message}`, 'error');
                 }
-                
-                fileInput.value = ''; // Reset file input
             });
         }
         

@@ -948,7 +948,7 @@ app.get('/api/historical', async (req, res) => {
   }
 });
 
-// Upload and process file
+// Legacy single file upload endpoint - redirects to import logic for CSV files
 app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
   try {
     if (!req.file) {
@@ -956,6 +956,21 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
     }
 
     const { filename, originalname, mimetype, size, path: filePath } = req.file;
+    
+    // For CSV files, recommend using the dual upload endpoint
+    if (mimetype === 'text/csv' || originalname.endsWith('.csv')) {
+      // Clean up the file
+      try {
+        fs.unlinkSync(filePath);
+      } catch (cleanupError) {
+        console.warn('Could not clean up uploaded file:', cleanupError.message);
+      }
+      
+      return res.status(400).json({ 
+        error: 'CSV files require both revenue data and membership data. Please use the dual file upload interface.',
+        recommendation: 'Upload both Patient Analysis CSV and Active Memberships Excel files together.'
+      });
+    }
     
     // Record file upload
     const fileRecord = await pool.query(`
@@ -1369,6 +1384,70 @@ app.post('/api/import-weekly-data', upload.fields([
     
     res.status(500).json({ 
       error: 'Failed to import weekly data',
+      details: error.message 
+    });
+  }
+});
+
+// Dual file upload endpoint - accepts both CSV and Excel files together
+app.post('/api/upload-dual', upload.fields([
+  { name: 'revenueFile', maxCount: 1 },
+  { name: 'membershipFile', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    if (!req.files || !req.files.revenueFile || !req.files.membershipFile) {
+      return res.status(400).json({ 
+        error: 'Both revenue CSV file and membership Excel file are required',
+        received: {
+          revenueFile: !!req.files?.revenueFile,
+          membershipFile: !!req.files?.membershipFile
+        }
+      });
+    }
+
+    const revenueFile = req.files.revenueFile[0];
+    const membershipFile = req.files.membershipFile[0];
+    
+    console.log(`Processing dual file upload: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+    
+    // Use the specialized import function
+    const importedData = await importWeeklyData(revenueFile.path, membershipFile.path);
+    
+    // Clean up uploaded files
+    try {
+      fs.unlinkSync(revenueFile.path);
+      fs.unlinkSync(membershipFile.path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files:', cleanupError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Weekly data imported successfully via dual upload',
+      data: {
+        weeklyRevenue: importedData.actual_weekly_revenue,
+        monthlyRevenue: importedData.actual_monthly_revenue,
+        totalMembers: importedData.total_drip_iv_members,
+        uniqueCustomersWeekly: importedData.unique_customers_weekly,
+        uniqueCustomersMonthly: importedData.unique_customers_monthly,
+        weekStart: importedData.week_start_date,
+        weekEnd: importedData.week_end_date
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in dual file upload:', error);
+    
+    // Clean up files on error
+    try {
+      if (req.files?.revenueFile?.[0]?.path) fs.unlinkSync(req.files.revenueFile[0].path);
+      if (req.files?.membershipFile?.[0]?.path) fs.unlinkSync(req.files.membershipFile[0].path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to process dual file upload',
       details: error.message 
     });
   }

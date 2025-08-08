@@ -209,7 +209,7 @@ function analyzeRevenueData(csvData) {
     
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
-    const chargeAmount = cleanCurrency(row.Charges);
+    const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']); // Use actual payment, not charge amount
     const isWeekendDay = isWeekend(date);
     
     // Determine if this is a member service (based on charge description)
@@ -218,27 +218,64 @@ function analyzeRevenueData(csvData) {
     const isNonMemberService = chargeDesc.toLowerCase().includes('(non-member)') || 
                               chargeDesc.toLowerCase().includes('non member');
     
-    // Track date ranges
+    // Track date ranges for the entire dataset
     if (!metrics.monthStartDate || date < metrics.monthStartDate) {
       metrics.monthStartDate = date;
     }
     if (!metrics.monthEndDate || date > metrics.monthEndDate) {
       metrics.monthEndDate = date;
     }
+  }
+  
+  // After processing all dates, determine the most recent week in the data
+  if (metrics.monthEndDate && metrics.monthStartDate) {
+    // Find the most recent complete week (Sunday to Saturday)
+    const endDate = new Date(metrics.monthEndDate);
     
-    // For weekly data, let's assume the data represents the most recent week
-    // We'll determine this from the date range in the data
-    if (!metrics.weekStartDate) {
-      metrics.weekStartDate = new Date(date);
-      metrics.weekEndDate = new Date(date);
-      metrics.weekEndDate.setDate(metrics.weekEndDate.getDate() + 6);
-    }
+    // Find the most recent Sunday (start of week)
+    const dayOfWeek = endDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const weekStart = new Date(endDate);
+    weekStart.setDate(endDate.getDate() - dayOfWeek);
+    
+    // Week end is the following Saturday
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    
+    metrics.weekStartDate = weekStart;
+    metrics.weekEndDate = weekEnd;
+    
+    console.log(`Determined week range: ${weekStart.toDateString()} to ${weekEnd.toDateString()}`);
+  }
+  
+  // Second pass: Process service counts and revenue with proper week detection
+  for (const row of csvData) {
+    if (!row.Date || row.Date === 'Total') continue;
+    
+    const date = parseDate(row.Date);
+    if (!date || isNaN(date)) continue;
+    
+    const chargeDesc = row['Charge Desc'] || '';
+    const patient = row.Patient || '';
+    const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']);
+    const isWeekendDay = isWeekend(date);
+    
+    // Skip non-service charges and administrative entries
+    const lowerChargeDesc = chargeDesc.toLowerCase();
+    if (lowerChargeDesc.includes('total_tips') || 
+        lowerChargeDesc.includes('tip') ||
+        lowerChargeDesc === 'total' ||
+        chargeDesc === '' ||
+        !chargeAmount) continue;
+        
+    // Determine if this is a member service (based on charge description)
+    const isMemberService = chargeDesc.toLowerCase().includes('(member)') || 
+                           chargeDesc.toLowerCase().includes('member');
+    const isNonMemberService = chargeDesc.toLowerCase().includes('(non-member)') || 
+                              chargeDesc.toLowerCase().includes('non member');
     
     // Determine if this row is from the current week vs the full month
-    const isCurrentWeek = date >= metrics.weekStartDate && date <= metrics.weekEndDate;
-    
-    // Skip non-service charges
-    if (chargeDesc.toLowerCase().includes('total_tips')) continue;
+    const isCurrentWeek = metrics.weekStartDate && metrics.weekEndDate && 
+                         date >= metrics.weekStartDate && date <= metrics.weekEndDate;
     
     // Get service category
     const serviceCategory = getServiceCategory(chargeDesc);
