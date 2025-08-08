@@ -13,17 +13,34 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Database connection
+// Database connection - Always use PostgreSQL for Railway deployment
 let pool;
-let inMemoryData = null; // Store for development
 
-if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) {
-  // For development with SQLite - we'll use a simpler in-memory approach
-  console.log('⚠️  Using in-memory data store for development');
-  pool = null;
+if (process.env.DATABASE_URL) {
+  // PostgreSQL for production and development
+  console.log('🐘 Connecting to PostgreSQL database...');
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
   
-  // Initialize with actual July 27 - Aug 2 data from processed files
-  inMemoryData = {
+  // Test database connection
+  pool.query('SELECT 1')
+    .then(() => {
+      console.log('✅ Database connection successful');
+    })
+    .catch(err => {
+      console.error('❌ Database connection failed:', err.message);
+      console.error('Please check your DATABASE_URL configuration');
+    });
+} else {
+  console.error('❌ DATABASE_URL environment variable not found');
+  console.error('Please set DATABASE_URL in your environment variables');
+  process.exit(1);
+}
+
+// Legacy in-memory data for reference only (not used anymore)
+const inMemoryData = {
     id: 1,
     upload_date: "2025-08-08T19:34:55.944Z",
     week_start_date: "2025-07-27T00:00:00.000Z",
@@ -893,20 +910,14 @@ app.get('/', (req, res) => {
 // Get dashboard data
 app.get('/api/dashboard', async (req, res) => {
   try {
+    // Ensure database connection exists
     if (!pool) {
-      // Use in-memory data for development
-      if (inMemoryData) {
-        return res.json({
-          success: true,
-          data: inMemoryData
-        });
-      } else {
-        return res.json({
-          success: false,
-          message: 'No data available. Please upload analytics data.',
-          data: null
-        });
-      }
+      console.error('Database connection not available');
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection not available',
+        message: 'Please ensure DATABASE_URL is properly configured'
+      });
     }
 
     const result = await pool.query(`
@@ -958,6 +969,15 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    // Check database connection
+    if (!pool) {
+      console.error('Database connection not available for upload');
+      return res.status(503).json({
+        error: 'Database connection not available',
+        message: 'Cannot process upload without database connection'
+      });
     }
 
     const { filename, originalname, mimetype, size, path: filePath } = req.file;
@@ -1522,8 +1542,17 @@ app.post('/api/integrate-july-august', upload.fields([
 async function initializeDatabase() {
   try {
     if (!pool) {
-      console.log('🚀 Skipping database initialization (using in-memory store)');
+      console.error('❌ Cannot initialize database - pool not available');
       return;
+    }
+    
+    // Test database connection first
+    try {
+      await pool.query('SELECT 1');
+      console.log('✅ Database connection verified during initialization');
+    } catch (connError) {
+      console.error('❌ Database connection test failed during initialization:', connError.message);
+      throw connError;
     }
     
     // First, create tables from schema
@@ -1566,7 +1595,13 @@ async function initializeDatabase() {
 // Start server
 app.listen(port, async () => {
   console.log(`🌟 Drip IV Dashboard server running on port ${port}`);
-  await initializeDatabase();
+  try {
+    await initializeDatabase();
+    console.log('🚀 Server initialization complete');
+  } catch (error) {
+    console.error('❌ Server initialization failed:', error.message);
+    console.error('The server will continue running but database operations may fail');
+  }
 });
 
 // Graceful shutdown
