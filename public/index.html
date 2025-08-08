@@ -471,7 +471,7 @@
                         <div class="tagline">Boost Your Energy • Burn Fat • Feel Energized</div>
                     </div>
                 </div>
-                <div class="date-range">Weekly Dashboard: July 14 - July 20, 2025</div>
+                <div class="date-range" id="dashboard-date-range">Weekly Dashboard: Loading...</div>
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
                     <div class="upload-section" onclick="document.getElementById('fileInput').click()">
@@ -600,7 +600,7 @@
                                 <div class="membership-count family-concierge-members">--</div>
                             </div>
                             <div class="membership-card">
-                                <h4>Drip & Concierge</h4>
+                                <h4>Drip Concierge</h4>
                                 <div class="membership-count drip-concierge-members">--</div>
                             </div>
                         </div>
@@ -738,7 +738,20 @@
                 
                 if (result.success && result.data) {
                     console.log('Data loaded successfully:', result.data);
+                    console.log('Membership data:', {
+                        individual: result.data.individual_memberships,
+                        family: result.data.family_memberships,
+                        concierge: result.data.concierge_memberships,
+                        corporate: result.data.corporate_memberships,
+                        family_concierge: result.data.family_concierge_memberships,
+                        drip_concierge: result.data.drip_concierge_memberships
+                    });
                     updateDashboard(result.data);
+                    
+                    // Update date range if data contains date information
+                    if (result.data.week_start_date && result.data.week_end_date) {
+                        updateDateRangeFromData(result.data.week_start_date, result.data.week_end_date);
+                    }
                 } else {
                     console.log('No data available:', result.message);
                     showNoDataState();
@@ -751,8 +764,18 @@
         
         // Update dashboard with data
         function updateDashboard(data) {
+            // Calculate total members from all membership types if not provided
+            const totalMembers = data.total_drip_iv_members || (
+                (data.individual_memberships || 0) +
+                (data.family_memberships || 0) +
+                (data.concierge_memberships || 0) +
+                (data.corporate_memberships || 0) +
+                (data.family_concierge_memberships || 0) +
+                (data.drip_concierge_memberships || 0)
+            );
+            
             // Update metric cards
-            updateElement('.total-members', data.total_drip_iv_members || 0);
+            updateElement('.total-members', totalMembers);
             updateElement('.hubspot-conversions', data.hubspot_ketamine_conversions || 0);
             updateElement('.marketing-initiatives', data.marketing_initiatives || 0);
             updateElement('.concierge-memberships', data.concierge_memberships || 0);
@@ -946,9 +969,54 @@
             });
         }
         
+        // Update the dashboard date range to show current week
+        function updateDateRange() {
+            const today = new Date();
+            const currentDay = today.getDay();
+            const diff = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // adjust when day is sunday
+            const monday = new Date(today.setDate(diff));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            
+            const formatDate = (date) => {
+                return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            };
+            
+            const dateRangeText = `Weekly Dashboard: ${formatDate(monday)} - ${formatDate(sunday)}`;
+            const dateRangeElement = document.getElementById('dashboard-date-range');
+            if (dateRangeElement) {
+                dateRangeElement.textContent = dateRangeText;
+            }
+        }
+        
+        // Update date range from actual data
+        function updateDateRangeFromData(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            
+            const formatDate = (date) => {
+                return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            };
+            
+            const dateRangeText = `Weekly Dashboard: ${formatDate(start)} - ${formatDate(end)}`;
+            const dateRangeElement = document.getElementById('dashboard-date-range');
+            if (dateRangeElement) {
+                dateRangeElement.textContent = dateRangeText;
+            }
+        }
+        
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🌟 Drip IV Dashboard initializing...');
+            updateDateRange();
             setupFileUpload();
             addInteractiveEffects();
             loadDashboardData();

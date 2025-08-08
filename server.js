@@ -13,66 +13,30 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Database connection
+// Database connection - Always use PostgreSQL for Railway deployment
 let pool;
-let inMemoryData = null; // Store for development
 
-if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) {
-  // For development with SQLite - we'll use a simpler in-memory approach
-  console.log('⚠️  Using in-memory data store for development');
-  pool = null;
-  
-  // Initialize with sample July data
-  inMemoryData = {
-    id: 1,
-    upload_date: "2025-07-29T19:34:55.944Z",
-    week_start_date: "2025-07-07T00:00:00.000Z",
-    week_end_date: "2025-07-13T00:00:00.000Z",
-    ketamine_new_patient_weekly: 0,
-    ketamine_initial_booster_weekly: 1,
-    ketamine_booster_pain_weekly: 0,
-    ketamine_booster_bh_weekly: 2,
-    drip_iv_weekday_weekly: 171,
-    drip_iv_weekend_weekly: 47,
-    semaglutide_consults_weekly: 3,
-    semaglutide_injections_weekly: 39,
-    hormone_followup_female_weekly: 1,
-    hormone_initial_male_weekly: 1,
-    ketamine_new_patient_monthly: 0,
-    ketamine_initial_booster_monthly: 6,
-    ketamine_booster_pain_monthly: 1,
-    ketamine_booster_bh_monthly: 12,
-    drip_iv_weekday_monthly: 977,
-    drip_iv_weekend_monthly: 232,
-    semaglutide_consults_monthly: 17,
-    semaglutide_injections_monthly: 208,
-    hormone_followup_female_monthly: 4,
-    hormone_initial_male_monthly: 3,
-    actual_weekly_revenue: "29934.65",
-    weekly_revenue_goal: "32125.00",
-    actual_monthly_revenue: "50223.90",
-    monthly_revenue_goal: "128500.00",
-    drip_iv_revenue_weekly: "18337.40",
-    semaglutide_revenue_weekly: "10422.25",
-    ketamine_revenue_weekly: "2000.00",
-    drip_iv_revenue_monthly: "31090.15",
-    semaglutide_revenue_monthly: "17143.75",
-    ketamine_revenue_monthly: "2000.00",
-    total_drip_iv_members: 126,
-    hubspot_ketamine_conversions: 0,
-    marketing_initiatives: 1,
-    concierge_memberships: 21,
-    corporate_memberships: 1,
-    days_left_in_month: 18,
-    created_at: "2025-07-29T19:34:55.944Z",
-    updated_at: "2025-07-29T19:34:55.944Z"
-  };
-} else {
-  // PostgreSQL for production
+if (process.env.DATABASE_URL) {
+  // PostgreSQL for production and development
+  console.log('🐘 Connecting to PostgreSQL database...');
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
   });
+  
+  // Test database connection
+  pool.query('SELECT 1')
+    .then(() => {
+      console.log('✅ Database connection successful');
+    })
+    .catch(err => {
+      console.error('❌ Database connection failed:', err.message);
+      console.error('Please check your DATABASE_URL configuration');
+    });
+} else {
+  console.error('❌ DATABASE_URL environment variable not found');
+  console.error('Please set DATABASE_URL in your environment variables');
+  process.exit(1);
 }
 
 // Middleware
@@ -170,10 +134,17 @@ function extractFromPDF(pdfText) {
     semaglutide_revenue_monthly: 0,
     ketamine_revenue_monthly: 0,
     total_drip_iv_members: 0,
-    hubspot_ketamine_conversions: 0,
-    marketing_initiatives: 0,
+    individual_memberships: 0,
+    family_memberships: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
+    new_individual_members_weekly: 0,
+    new_family_members_weekly: 0,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0,
+    unique_customers_count: 0,
+    hubspot_ketamine_conversions: 0,
+    marketing_initiatives: 0,
     days_left_in_month: 0
   };
 
@@ -194,6 +165,8 @@ function extractFromPDF(pdfText) {
     'monthly_revenue': /ACTUAL MONTHLY REVENUE\s+\$([0-9,]+\.?\d*)/,
     'monthly_goal': /MONTHLY REVENUE GOAL\s+\$([0-9,]+)/,
     'total_members': /Total Drip IV Members.*?(\d+)/,
+    'individual_memberships': /Individual Memberships.*?(\d+)/,
+    'family_memberships': /Family Memberships.*?(\d+)/,
     'hubspot_conversions': /Hubspot Ketamine Conversions.*?(\d+)/,
     'marketing_initiatives': /Marketing Initiatives.*?(\d+)/,
     'concierge_memberships': /Concierge Memberships.*?(\d+)/,
@@ -260,6 +233,12 @@ function extractFromPDF(pdfText) {
           break;
         case 'total_members':
           data.total_drip_iv_members = parseInt(match[1]) || 0;
+          break;
+        case 'individual_memberships':
+          data.individual_memberships = parseInt(match[1]) || 0;
+          break;
+        case 'family_memberships':
+          data.family_memberships = parseInt(match[1]) || 0;
           break;
         case 'hubspot_conversions':
           data.hubspot_ketamine_conversions = parseInt(match[1]) || 0;
@@ -356,14 +335,17 @@ function extractFromCSV(csvData) {
     semaglutide_revenue_monthly: 0,
     ketamine_revenue_monthly: 0,
     total_drip_iv_members: 0,
-    hubspot_ketamine_conversions: 0,
-    marketing_initiatives: 0,
+    individual_memberships: 0,
+    family_memberships: 0,
     concierge_memberships: 0,
     corporate_memberships: 0,
     new_individual_members_weekly: 0,
     new_family_members_weekly: 0,
     new_concierge_members_weekly: 0,
     new_corporate_members_weekly: 0,
+    unique_customers_count: 0,
+    hubspot_ketamine_conversions: 0,
+    marketing_initiatives: 0,
     days_left_in_month: 0,
     week_start_date: new Date().toISOString().split('T')[0],
     week_end_date: new Date().toISOString().split('T')[0]
@@ -371,6 +353,7 @@ function extractFromCSV(csvData) {
   
   // Track unique visits by patient + date
   const visitTracker = new Set();
+  const uniqueCustomers = new Set();
   
   // Process CSV data
   csvData.forEach(row => {
@@ -387,6 +370,11 @@ function extractFromCSV(csvData) {
     
     // Skip if no valid data
     if (!service || !date) return;
+    
+    // Track unique customers
+    if (patient) {
+      uniqueCustomers.add(patient);
+    }
     
     // Create unique visit key (patient + date)
     const visitKey = `${patient}_${date}`;
@@ -471,6 +459,9 @@ function extractFromCSV(csvData) {
                                data.semaglutide_revenue_weekly + 
                                data.ketamine_revenue_weekly;
   
+  // Set unique customers count
+  data.unique_customers_count = uniqueCustomers.size;
+  
   // Extract date range from CSV data
   if (csvData.length > 0) {
     const dates = csvData
@@ -502,24 +493,43 @@ app.get('/', (req, res) => {
 // Get dashboard data
 app.get('/api/dashboard', async (req, res) => {
   try {
+    // Ensure database connection exists
     if (!pool) {
-      // Use in-memory data for development
-      if (inMemoryData) {
-        return res.json({
-          success: true,
-          data: inMemoryData
-        });
-      } else {
-        return res.json({
-          success: false,
-          message: 'No data available. Please upload analytics data.',
-          data: null
-        });
-      }
+      console.error('Database connection not available');
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection not available',
+        message: 'Please ensure DATABASE_URL is properly configured'
+      });
     }
 
     const result = await pool.query(`
-      SELECT * FROM analytics_data 
+      SELECT 
+        id, upload_date, week_start_date, week_end_date,
+        ketamine_new_patient_weekly, ketamine_initial_booster_weekly,
+        ketamine_booster_pain_weekly, ketamine_booster_bh_weekly,
+        drip_iv_weekday_weekly, drip_iv_weekend_weekly,
+        semaglutide_consults_weekly, semaglutide_injections_weekly,
+        hormone_followup_female_weekly, hormone_initial_male_weekly,
+        ketamine_new_patient_monthly, ketamine_initial_booster_monthly,
+        ketamine_booster_pain_monthly, ketamine_booster_bh_monthly,
+        drip_iv_weekday_monthly, drip_iv_weekend_monthly,
+        semaglutide_consults_monthly, semaglutide_injections_monthly,
+        hormone_followup_female_monthly, hormone_initial_male_monthly,
+        actual_weekly_revenue, weekly_revenue_goal,
+        actual_monthly_revenue, monthly_revenue_goal,
+        drip_iv_revenue_weekly, semaglutide_revenue_weekly, ketamine_revenue_weekly,
+        drip_iv_revenue_monthly, semaglutide_revenue_monthly, ketamine_revenue_monthly,
+        total_drip_iv_members, 
+        COALESCE(individual_memberships, 0) as individual_memberships,
+        COALESCE(family_memberships, 0) as family_memberships,
+        concierge_memberships, corporate_memberships,
+        new_individual_members_weekly, new_family_members_weekly,
+        new_concierge_members_weekly, new_corporate_members_weekly,
+        COALESCE(unique_customers_count, 0) as unique_customers_count,
+        hubspot_ketamine_conversions, marketing_initiatives,
+        days_left_in_month, created_at, updated_at
+      FROM analytics_data 
       ORDER BY upload_date DESC 
       LIMIT 1
     `);
@@ -567,6 +577,15 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    // Check database connection
+    if (!pool) {
+      console.error('Database connection not available for upload');
+      return res.status(503).json({
+        error: 'Database connection not available',
+        message: 'Cannot process upload without database connection'
+      });
     }
 
     const { filename, originalname, mimetype, size, path: filePath } = req.file;
@@ -623,7 +642,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             marketing_initiatives = $35, concierge_memberships = $36, corporate_memberships = $37,
             days_left_in_month = $38, new_individual_members_weekly = $39,
             new_family_members_weekly = $40, new_concierge_members_weekly = $41,
-            new_corporate_members_weekly = $42, updated_at = CURRENT_TIMESTAMP
+            new_corporate_members_weekly = $42, individual_memberships = $43,
+            family_memberships = $44, unique_customers_count = $45,
+            updated_at = CURRENT_TIMESTAMP
           WHERE week_start_date = $1 AND week_end_date = $2
           RETURNING id
         `;
@@ -649,7 +670,9 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.marketing_initiatives, extractedData.concierge_memberships,
           extractedData.corporate_memberships, extractedData.days_left_in_month,
           extractedData.new_individual_members_weekly || 0, extractedData.new_family_members_weekly || 0,
-          extractedData.new_concierge_members_weekly || 0, extractedData.new_corporate_members_weekly || 0
+          extractedData.new_concierge_members_weekly || 0, extractedData.new_corporate_members_weekly || 0,
+          extractedData.individual_memberships || 0, extractedData.family_memberships || 0,
+          extractedData.unique_customers_count || 0
         ];
 
         const result = await pool.query(updateQuery, updateValues);
@@ -678,11 +701,12 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
             total_drip_iv_members, hubspot_ketamine_conversions,
             marketing_initiatives, concierge_memberships, corporate_memberships,
             days_left_in_month, new_individual_members_weekly, new_family_members_weekly,
-            new_concierge_members_weekly, new_corporate_members_weekly
+            new_concierge_members_weekly, new_corporate_members_weekly,
+            individual_memberships, family_memberships, unique_customers_count
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
             $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-            $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41
+            $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44
           ) RETURNING id
         `;
 
@@ -728,7 +752,10 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
           extractedData.new_individual_members_weekly || 0,
           extractedData.new_family_members_weekly || 0,
           extractedData.new_concierge_members_weekly || 0,
-          extractedData.new_corporate_members_weekly || 0
+          extractedData.new_corporate_members_weekly || 0,
+          extractedData.individual_memberships || 0,
+          extractedData.family_memberships || 0,
+          extractedData.unique_customers_count || 0
         ];
 
         const result = await pool.query(insertQuery, values);
@@ -779,6 +806,27 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
 
     res.status(500).json({ 
       error: 'Failed to process file',
+      details: error.message 
+    });
+  }
+});
+
+// Import latest data endpoint
+app.post('/api/import', async (req, res) => {
+  try {
+    const { importLatestData } = require('./import-latest-data');
+    
+    // Run the import function
+    await importLatestData();
+    
+    res.json({
+      success: true,
+      message: 'Data import initiated successfully. Check the console for progress.'
+    });
+  } catch (error) {
+    console.error('Error initiating import:', error);
+    res.status(500).json({ 
+      error: 'Failed to import data',
       details: error.message 
     });
   }
@@ -935,25 +983,43 @@ app.get('/health', async (req, res) => {
 async function initializeDatabase() {
   try {
     if (!pool) {
-      console.log('🚀 Skipping database initialization (using in-memory store)');
+      console.error('❌ Cannot initialize database - pool not available');
       return;
+    }
+    
+    // Test database connection first
+    try {
+      await pool.query('SELECT 1');
+      console.log('✅ Database connection verified during initialization');
+    } catch (connError) {
+      console.error('❌ Database connection test failed during initialization:', connError.message);
+      throw connError;
     }
     
     const schemaPath = path.join(__dirname, 'database', 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');
       await pool.query(schema);
-      console.log('Database initialized successfully');
+      console.log('✅ Database tables initialized successfully');
+    } else {
+      console.log('⚠️  Schema file not found at:', schemaPath);
     }
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('❌ Error initializing database:', error.message);
+    throw error;
   }
 }
 
 // Start server
 app.listen(port, async () => {
   console.log(`🌟 Drip IV Dashboard server running on port ${port}`);
-  await initializeDatabase();
+  try {
+    await initializeDatabase();
+    console.log('🚀 Server initialization complete');
+  } catch (error) {
+    console.error('❌ Server initialization failed:', error.message);
+    console.error('The server will continue running but database operations may fail');
+  }
 });
 
 // Graceful shutdown
