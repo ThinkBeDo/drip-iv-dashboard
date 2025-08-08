@@ -1518,7 +1518,7 @@ app.post('/api/integrate-july-august', upload.fields([
   }
 });
 
-// Initialize database tables
+// Initialize database tables and ensure correct data
 async function initializeDatabase() {
   try {
     if (!pool) {
@@ -1526,12 +1526,38 @@ async function initializeDatabase() {
       return;
     }
     
+    // First, create tables from schema
     const schemaPath = path.join(__dirname, 'database', 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');
       await pool.query(schema);
-      console.log('Database initialized successfully');
+      console.log('Database schema initialized successfully');
     }
+    
+    // Then, check if we need to initialize with correct data
+    try {
+      const checkData = await pool.query(`
+        SELECT * FROM analytics_data 
+        WHERE week_start_date = '2025-07-27' 
+        AND week_end_date = '2025-08-02'
+        LIMIT 1
+      `);
+      
+      // If no data exists for this week, or if it has incorrect membership data, fix it
+      if (checkData.rows.length === 0 || 
+          checkData.rows[0].individual_memberships === 0 ||
+          checkData.rows[0].total_drip_iv_members !== 138) {
+        
+        console.log('📊 Initializing database with correct membership data...');
+        const { initializeProductionDatabase } = require('./init-production-db');
+        await initializeProductionDatabase();
+      } else {
+        console.log('✅ Database already has correct data');
+      }
+    } catch (dbError) {
+      console.log('⚠️  Could not check/initialize data:', dbError.message);
+    }
+    
   } catch (error) {
     console.error('Error initializing database:', error);
   }
