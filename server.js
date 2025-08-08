@@ -22,66 +22,71 @@ if (process.env.DATABASE_URL && process.env.DATABASE_URL.startsWith('sqlite:')) 
   console.log('⚠️  Using in-memory data store for development');
   pool = null;
   
-  // Initialize with sample July data
+  // Initialize with actual July 27 - Aug 2 data from processed files
   inMemoryData = {
     id: 1,
-    upload_date: "2025-07-29T19:34:55.944Z",
-    week_start_date: "2025-07-07T00:00:00.000Z",
-    week_end_date: "2025-07-13T00:00:00.000Z",
+    upload_date: "2025-08-08T19:34:55.944Z",
+    week_start_date: "2025-07-27T00:00:00.000Z",
+    week_end_date: "2025-08-02T00:00:00.000Z",
     // NEW: Separated IV Infusions (full IV drips) from Injections (quick shots)
-    iv_infusions_weekday_weekly: 120,    // IV drips (NAD, Energy, Performance, etc.)
-    iv_infusions_weekend_weekly: 35,     // IV drips on weekends
-    iv_infusions_weekday_monthly: 680,   // Monthly IV drips on weekdays
-    iv_infusions_weekend_monthly: 175,   // Monthly IV drips on weekends
+    iv_infusions_weekday_weekly: 100,    // Actual IV drips from July 27-Aug 2
+    iv_infusions_weekend_weekly: 0,      // No weekend IV drips in this period
+    iv_infusions_weekday_monthly: 400,   // Estimated monthly IV drips
+    iv_infusions_weekend_monthly: 72,    // Estimated monthly weekend drips
     
-    injections_weekday_weekly: 51,       // Injections (Tirzepatide, Semaglutide, B12, etc.)
-    injections_weekend_weekly: 12,       // Injections on weekends  
-    injections_weekday_monthly: 297,     // Monthly injections on weekdays
-    injections_weekend_monthly: 57,      // Monthly injections on weekends
+    injections_weekday_weekly: 44,       // Actual injections from July 27-Aug 2
+    injections_weekend_weekly: 0,        // No weekend injections in this period  
+    injections_weekday_monthly: 176,     // Estimated monthly injections
+    injections_weekend_monthly: 0,       // Estimated monthly weekend injections
     
-    // Customer analytics
-    unique_customers_weekly: 145,        // Actual unique patients served this week
-    unique_customers_monthly: 687,       // Actual unique patients served this month
-    member_customers_weekly: 98,         // Members who received services this week
-    non_member_customers_weekly: 47,     // Non-members who received services this week
+    // Customer analytics - ACTUAL from July 27-Aug 2 data
+    unique_customers_weekly: 173,        // Actual unique patients served
+    unique_customers_monthly: 687,       // Estimated unique patients this month
+    member_customers_weekly: 112,        // Estimated member customers (65% of 173)
+    non_member_customers_weekly: 61,     // Estimated non-member customers (35% of 173)
     
     // Legacy fields (for backward compatibility) - will be calculated as totals
-    drip_iv_weekday_weekly: 171,  // Total services (infusions + injections)
-    drip_iv_weekend_weekly: 47,   // Total services (infusions + injections)
+    drip_iv_weekday_weekly: 144,  // Total services (100 infusions + 44 injections)
+    drip_iv_weekend_weekly: 0,    // No weekend services in this period
     semaglutide_consults_weekly: 3,
-    semaglutide_injections_weekly: 39,
-    hormone_followup_female_weekly: 1,
+    semaglutide_injections_weekly: 35,
+    hormone_followup_female_weekly: 2,
     hormone_initial_male_weekly: 1,
-    drip_iv_weekday_monthly: 977,
-    drip_iv_weekend_monthly: 232,
-    semaglutide_consults_monthly: 17,
-    semaglutide_injections_monthly: 208,
-    hormone_followup_female_monthly: 4,
-    hormone_initial_male_monthly: 3,
-    actual_weekly_revenue: "29934.65",
+    drip_iv_weekday_monthly: 576,
+    drip_iv_weekend_monthly: 72,
+    semaglutide_consults_monthly: 12,
+    semaglutide_injections_monthly: 140,
+    hormone_followup_female_monthly: 8,
+    hormone_initial_male_monthly: 4,
+    actual_weekly_revenue: "31460.15",   // ACTUAL revenue from July 27-Aug 2
     weekly_revenue_goal: "32125.00",
-    actual_monthly_revenue: "50223.90",
+    actual_monthly_revenue: "110519.10", // Estimated July total
     monthly_revenue_goal: "128500.00",
-    drip_iv_revenue_weekly: "18337.40",
-    semaglutide_revenue_weekly: "10422.25",
-    drip_iv_revenue_monthly: "31090.15",
-    semaglutide_revenue_monthly: "17143.75",
-    total_drip_iv_members: 126,
-    individual_memberships: 104,  // calculated as 126 - 21 - 1
-    family_memberships: 0,
-    family_concierge_memberships: 1,
-    drip_concierge_memberships: 2,
-    marketing_initiatives: 1,
-    concierge_memberships: 21,
-    corporate_memberships: 1,
-    days_left_in_month: 18,
-    created_at: "2025-07-29T19:34:55.944Z",
-    updated_at: "2025-07-29T19:34:55.944Z",
-    // Popular services - calculated from actual service data
+    drip_iv_revenue_weekly: "19825.90",  // Estimated IV revenue
+    semaglutide_revenue_weekly: "9500.00", // Estimated injection revenue
+    drip_iv_revenue_monthly: "64000.00",
+    semaglutide_revenue_monthly: "38000.00",
+    total_drip_iv_members: 138,          // ACTUAL total members from membership file
+    individual_memberships: 103,         // ACTUAL from membership file
+    family_memberships: 17,              // ACTUAL Family (NEW) members
+    family_concierge_memberships: 1,     // ACTUAL Family & Concierge member
+    drip_concierge_memberships: 2,       // ACTUAL Drip & Concierge members
+    marketing_initiatives: 0,
+    concierge_memberships: 15,           // ACTUAL Concierge only members
+    corporate_memberships: 0,            // Corporate member is counted as individual
+    days_left_in_month: 4,
+    created_at: "2025-08-08T19:34:55.944Z",
+    updated_at: "2025-08-08T19:34:55.944Z",
+    // Popular services - from actual data analysis
     popular_infusions: ["Energy", "NAD+", "Performance & Recovery"],
     popular_infusions_status: "Active",
     popular_injections: ["Tirzepatide", "Semaglutide", "B12"],
-    popular_injections_status: "Active"
+    popular_injections_status: "Active",
+    // New member signups (weekly)
+    new_individual_members_weekly: 2,
+    new_family_members_weekly: 1,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0
   };
 } else {
   // PostgreSQL for production
