@@ -84,9 +84,10 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for date-based queries
+-- Create indexes for date-based queries
 CREATE INDEX IF NOT EXISTS idx_analytics_week_start ON analytics_data(week_start_date);
 CREATE INDEX IF NOT EXISTS idx_analytics_upload_date ON analytics_data(upload_date);
+CREATE INDEX IF NOT EXISTS idx_analytics_date_range ON analytics_data(week_start_date, week_end_date);
 
 -- Create unique constraint to prevent duplicate date ranges
 ALTER TABLE analytics_data ADD CONSTRAINT unique_week_range UNIQUE (week_start_date, week_end_date);

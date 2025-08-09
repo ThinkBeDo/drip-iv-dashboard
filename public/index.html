@@ -498,6 +498,209 @@
             opacity: 0.8;
         }
         
+        /* Date Filter Styles */
+        .date-filter-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .date-filter-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .date-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .date-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-input-group label {
+            color: white;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e3c72;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .date-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
+        }
+        
+        .aggregate-checkbox {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+        }
+        
+        .aggregate-checkbox label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        
+        .aggregate-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .date-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .date-preset-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .date-preset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .date-preset-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            border-color: transparent;
+        }
+        
+        .date-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .apply-btn, .clear-btn {
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .apply-btn {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .apply-btn:hover {
+            background: linear-gradient(135deg, #0099cc 0%, #007aa3 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+        
+        .clear-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .filter-status {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-badge {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .filter-text {
+            color: white;
+            font-size: 0.95rem;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 60, 114, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
         @media (max-width: 768px) {
             .revenue-section {
                 grid-template-columns: 1fr;
@@ -514,10 +717,55 @@
             .main-content {
                 padding: 30px 20px;
             }
+            
+            /* Date filter responsive styles */
+            .date-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-input-group {
+                width: 100%;
+            }
+            
+            .date-input {
+                width: 100%;
+            }
+            
+            .aggregate-checkbox {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+            
+            .date-buttons {
+                justify-content: center;
+            }
+            
+            .date-preset-btn {
+                flex: 1 1 calc(50% - 5px);
+                min-width: 120px;
+            }
+            
+            .date-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+            
+            .apply-btn, .clear-btn {
+                flex: 1;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Loading data...</div>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <div class="header-content">
@@ -529,6 +777,44 @@
                     </div>
                 </div>
                 <div class="date-range">Weekly Dashboard: <span class="week-date-range">Loading...</span></div>
+                
+                <!-- Date Filter Section -->
+                <div class="date-filter-section">
+                    <div class="date-filter-controls">
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label for="startDate">From:</label>
+                                <input type="date" id="startDate" class="date-input">
+                            </div>
+                            <div class="date-input-group">
+                                <label for="endDate">To:</label>
+                                <input type="date" id="endDate" class="date-input">
+                            </div>
+                            <div class="aggregate-checkbox">
+                                <label>
+                                    <input type="checkbox" id="aggregateData">
+                                    <span>Aggregate Data</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="date-buttons">
+                            <button class="date-preset-btn" data-preset="this-week">This Week</button>
+                            <button class="date-preset-btn" data-preset="last-week">Last Week</button>
+                            <button class="date-preset-btn" data-preset="this-month">This Month</button>
+                            <button class="date-preset-btn" data-preset="last-month">Last Month</button>
+                            <button class="date-preset-btn" data-preset="last-3-months">Last 3 Months</button>
+                        </div>
+                        <div class="date-actions">
+                            <button id="applyDateFilter" class="apply-btn">Apply Filter</button>
+                            <button id="clearDateFilter" class="clear-btn">Clear Filter</button>
+                        </div>
+                    </div>
+                    <div class="filter-status" id="filterStatus" style="display: none;">
+                        <span class="filter-badge">Filtered</span>
+                        <span class="filter-text"></span>
+                    </div>
+                </div>
+                
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
                     <div class="upload-container">
@@ -858,24 +1144,254 @@
     </div>
     
     <script>
-        // Load dashboard data and update UI
-        async function loadDashboardData() {
+        // Global variables for date filtering
+        let currentFilters = {
+            startDate: null,
+            endDate: null,
+            aggregate: false
+        };
+        
+        // Load dashboard data with optional date filtering
+        async function loadDashboardData(startDate = null, endDate = null, aggregate = false, showLoading = true) {
             try {
-                console.log('Loading dashboard data...');
-                const response = await fetch('/api/dashboard');
+                // Show loading overlay
+                if (showLoading) {
+                    showLoadingOverlay();
+                }
+                
+                // Build query parameters
+                const params = new URLSearchParams();
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                if (aggregate) params.append('aggregate', 'true');
+                
+                const queryString = params.toString();
+                const url = queryString ? `/api/dashboard?${queryString}` : '/api/dashboard';
+                
+                console.log('Loading dashboard data...', url);
+                const response = await fetch(url);
                 const result = await response.json();
                 
                 if (result.success && result.data) {
                     console.log('Data loaded successfully:', result.data);
                     updateDashboard(result.data);
+                    
+                    // Update filter status
+                    if (startDate || endDate) {
+                        showFilterStatus(startDate, endDate, aggregate, result.data);
+                    } else {
+                        hideFilterStatus();
+                    }
                 } else {
-                    console.log('No data available:', result.message);
-                    showNoDataState();
+                    console.log('No data available:', result.message || result.error);
+                    showNoDataState(result.message || 'No data available for the selected date range.');
                 }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
                 showAlert('Failed to load dashboard data. Please try again.', 'error');
+            } finally {
+                // Hide loading overlay
+                if (showLoading) {
+                    hideLoadingOverlay();
+                }
             }
+        }
+        
+        // Show loading overlay
+        function showLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+            }
+        }
+        
+        // Hide loading overlay
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
+        
+        // Show filter status
+        function showFilterStatus(startDate, endDate, aggregate, data) {
+            const filterStatus = document.getElementById('filterStatus');
+            const filterText = filterStatus.querySelector('.filter-text');
+            
+            let dateText = '';
+            if (startDate && endDate) {
+                dateText = `${formatDateDisplay(startDate)} to ${formatDateDisplay(endDate)}`;
+            } else if (startDate) {
+                dateText = `From ${formatDateDisplay(startDate)}`;
+            } else if (endDate) {
+                dateText = `Until ${formatDateDisplay(endDate)}`;
+            }
+            
+            if (aggregate && data.weeks_included) {
+                dateText += ` (${data.weeks_included} weeks aggregated)`;
+            }
+            
+            filterText.textContent = dateText;
+            filterStatus.style.display = 'flex';
+        }
+        
+        // Hide filter status
+        function hideFilterStatus() {
+            const filterStatus = document.getElementById('filterStatus');
+            if (filterStatus) {
+                filterStatus.style.display = 'none';
+            }
+        }
+        
+        // Format date for display
+        function formatDateDisplay(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+        
+        // Format date for input field (YYYY-MM-DD)
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Get Monday of the week for a given date
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+            return new Date(d.setDate(diff));
+        }
+        
+        // Get Sunday of the week for a given date
+        function getSunday(date) {
+            const monday = getMonday(date);
+            return new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+        }
+        
+        // Apply preset date range
+        function applyPreset(preset) {
+            const today = new Date();
+            let startDate, endDate;
+            
+            switch (preset) {
+                case 'this-week':
+                    startDate = getMonday(today);
+                    endDate = getSunday(today);
+                    break;
+                case 'last-week':
+                    const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    startDate = getMonday(lastWeek);
+                    endDate = getSunday(lastWeek);
+                    break;
+                case 'this-month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    break;
+                case 'last-month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                case 'last-3-months':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    document.getElementById('aggregateData').checked = true; // Auto-check aggregate for multi-month
+                    break;
+            }
+            
+            // Update input fields
+            document.getElementById('startDate').value = formatDateForInput(startDate);
+            document.getElementById('endDate').value = formatDateForInput(endDate);
+            
+            // Highlight active preset button
+            document.querySelectorAll('.date-preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Clear date filters
+        function clearDateFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('aggregateData').checked = false;
+            
+            // Remove active class from preset buttons
+            document.querySelectorAll('.date-preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Reset current filters
+            currentFilters = {
+                startDate: null,
+                endDate: null,
+                aggregate: false
+            };
+            
+            // Load default data
+            loadDashboardData();
+        }
+        
+        // Apply date filters
+        function applyDateFilters() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const aggregate = document.getElementById('aggregateData').checked;
+            
+            // Validate dates
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                if (start > end) {
+                    showAlert('Start date must be before end date', 'error');
+                    return;
+                }
+                
+                // Check if date range exceeds 365 days
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 365) {
+                    showAlert('Date range cannot exceed 365 days', 'error');
+                    return;
+                }
+            }
+            
+            // Update current filters
+            currentFilters = {
+                startDate: startDate,
+                endDate: endDate,
+                aggregate: aggregate
+            };
+            
+            // Load filtered data
+            loadDashboardData(startDate, endDate, aggregate);
+        }
+        
+        // Initialize date filter event listeners
+        function initializeDateFilters() {
+            // Preset buttons
+            document.querySelectorAll('.date-preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    applyPreset(e.target.dataset.preset);
+                });
+            });
+            
+            // Apply button
+            document.getElementById('applyDateFilter').addEventListener('click', applyDateFilters);
+            
+            // Clear button
+            document.getElementById('clearDateFilter').addEventListener('click', clearDateFilters);
+            
+            // Enter key on date inputs
+            document.getElementById('startDate').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applyDateFilters();
+            });
+            document.getElementById('endDate').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applyDateFilters();
+            });
         }
         
         // Update dashboard with data
@@ -1010,8 +1526,9 @@
         }
         
         // Show no data state
-        function showNoDataState() {
-            showAlert('No data available. Please upload analytics data using the upload section above.', 'info');
+        function showNoDataState(message = null) {
+            const defaultMessage = 'No data available. Please upload analytics data using the upload section above.';
+            showAlert(message || defaultMessage, 'info');
         }
         
         // File upload handling
@@ -1087,6 +1604,8 @@
                     
                     if (result.success) {
                         showAlert('Weekly data uploaded successfully!', 'success');
+                        // Clear filters and reload dashboard to show new data
+                        clearDateFilters();
                         await loadDashboardData(); // Reload dashboard
                         
                         // Reset the upload interface
@@ -1196,11 +1715,14 @@
             console.log('🌟 Drip IV Dashboard initializing...');
             setupFileUpload();
             addInteractiveEffects();
+            initializeDateFilters();
             loadDashboardData();
         });
         
-        // Auto-refresh data every 5 minutes
-        setInterval(loadDashboardData, 5 * 60 * 1000);
+        // Auto-refresh data every 5 minutes (with current filters)
+        setInterval(() => {
+            loadDashboardData(currentFilters.startDate, currentFilters.endDate, currentFilters.aggregate, false);
+        }, 5 * 60 * 1000);
         
         console.log('🌟 Drip IV Dashboard ready - Boost Your Energy, Burn Fat, Feel Energized!');
     </script>

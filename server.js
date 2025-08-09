@@ -39,72 +39,19 @@ if (process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-// Legacy in-memory data for reference only (not used anymore)
-const inMemoryData = {
-    id: 1,
-    upload_date: "2025-08-08T19:34:55.944Z",
-    week_start_date: "2025-07-27T00:00:00.000Z",
-    week_end_date: "2025-08-02T00:00:00.000Z",
-    // NEW: Separated IV Infusions (full IV drips) from Injections (quick shots)
-    iv_infusions_weekday_weekly: 100,    // Actual IV drips from July 27-Aug 2
-    iv_infusions_weekend_weekly: 0,      // No weekend IV drips in this period
-    iv_infusions_weekday_monthly: 400,   // Estimated monthly IV drips
-    iv_infusions_weekend_monthly: 72,    // Estimated monthly weekend drips
-    
-    injections_weekday_weekly: 44,       // Actual injections from July 27-Aug 2
-    injections_weekend_weekly: 0,        // No weekend injections in this period  
-    injections_weekday_monthly: 176,     // Estimated monthly injections
-    injections_weekend_monthly: 0,       // Estimated monthly weekend injections
-    
-    // Customer analytics - ACTUAL from July 27-Aug 2 data
-    unique_customers_weekly: 173,        // Actual unique patients served
-    unique_customers_monthly: 687,       // Estimated unique patients this month
-    member_customers_weekly: 112,        // Estimated member customers (65% of 173)
-    non_member_customers_weekly: 61,     // Estimated non-member customers (35% of 173)
-    
-    // Legacy fields (for backward compatibility) - will be calculated as totals
-    drip_iv_weekday_weekly: 144,  // Total services (100 infusions + 44 injections)
-    drip_iv_weekend_weekly: 0,    // No weekend services in this period
-    semaglutide_consults_weekly: 3,
-    semaglutide_injections_weekly: 35,
-    hormone_followup_female_weekly: 2,
-    hormone_initial_male_weekly: 1,
-    drip_iv_weekday_monthly: 576,
-    drip_iv_weekend_monthly: 72,
-    semaglutide_consults_monthly: 12,
-    semaglutide_injections_monthly: 140,
-    hormone_followup_female_monthly: 8,
-    hormone_initial_male_monthly: 4,
-    actual_weekly_revenue: "31460.15",   // ACTUAL revenue from July 27-Aug 2
-    weekly_revenue_goal: "32125.00",
-    actual_monthly_revenue: "110519.10", // Estimated July total
-    monthly_revenue_goal: "128500.00",
-    drip_iv_revenue_weekly: "19825.90",  // Estimated IV revenue
-    semaglutide_revenue_weekly: "9500.00", // Estimated injection revenue
-    drip_iv_revenue_monthly: "64000.00",
-    semaglutide_revenue_monthly: "38000.00",
-    total_drip_iv_members: 138,          // ACTUAL total members from membership file
-    individual_memberships: 103,         // ACTUAL from membership file
-    family_memberships: 17,              // ACTUAL Family (NEW) members
-    family_concierge_memberships: 1,     // ACTUAL Family & Concierge member
-    drip_concierge_memberships: 2,       // ACTUAL Drip & Concierge members
-    marketing_initiatives: 0,
-    concierge_memberships: 15,           // ACTUAL Concierge only members
-    corporate_memberships: 0,            // Corporate member is counted as individual
-    days_left_in_month: 4,
-    created_at: "2025-08-08T19:34:55.944Z",
-    updated_at: "2025-08-08T19:34:55.944Z",
-    // Popular services - from actual data analysis
-    popular_infusions: ["Energy", "NAD+", "Performance & Recovery"],
-    popular_infusions_status: "Active",
-    popular_injections: ["Tirzepatide", "Semaglutide", "B12"],
-    popular_injections_status: "Active",
-    // New member signups (weekly)
-    new_individual_members_weekly: 2,
-    new_family_members_weekly: 1,
-    new_concierge_members_weekly: 0,
-    new_corporate_members_weekly: 0
-  };
+// Configure connection pool for better performance
+if (pool) {
+  pool.on('error', (err) => {
+    console.error('Unexpected database error:', err);
+  });
+  
+  // Set pool configuration for production
+  if (process.env.NODE_ENV === 'production') {
+    pool.options.max = 20; // Maximum number of clients in the pool
+    pool.options.idleTimeoutMillis = 30000; // Close idle clients after 30 seconds
+    pool.options.connectionTimeoutMillis = 10000; // Return an error after 10 seconds if connection could not be established
+  }
+}
 
 // Middleware
 app.use(helmet({
@@ -1016,7 +963,7 @@ app.post('/api/migrate', async (req, res) => {
   }
 });
 
-// Get dashboard data
+// Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
     // Ensure database connection exists
@@ -1029,16 +976,174 @@ app.get('/api/dashboard', async (req, res) => {
       });
     }
 
-    const result = await pool.query(`
-      SELECT * FROM analytics_data 
-      ORDER BY upload_date DESC 
-      LIMIT 1
-    `);
+    // Extract date parameters
+    const { start_date, end_date, aggregate } = req.query;
+    
+    // Validate date parameters if provided
+    if (start_date || end_date) {
+      const startDate = start_date ? new Date(start_date) : null;
+      const endDate = end_date ? new Date(end_date) : null;
+      
+      // Validate date formats
+      if ((start_date && isNaN(startDate.getTime())) || (end_date && isNaN(endDate.getTime()))) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid date format. Please use YYYY-MM-DD format.'
+        });
+      }
+      
+      // Ensure start_date <= end_date
+      if (startDate && endDate && startDate > endDate) {
+        return res.status(400).json({
+          success: false,
+          error: 'Start date must be before or equal to end date.'
+        });
+      }
+      
+      // Limit date range to 1 year
+      if (startDate && endDate) {
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > 365) {
+          return res.status(400).json({
+            success: false,
+            error: 'Date range cannot exceed 365 days.'
+          });
+        }
+      }
+    }
+
+    let result;
+    
+    if (start_date || end_date) {
+      // Date range filtering
+      if (aggregate === 'true') {
+        // Aggregate data across the date range
+        const aggregateQuery = `
+          SELECT 
+            MIN(week_start_date) as week_start_date,
+            MAX(week_end_date) as week_end_date,
+            SUM(iv_infusions_weekday_weekly) as iv_infusions_weekday_weekly,
+            SUM(iv_infusions_weekend_weekly) as iv_infusions_weekend_weekly,
+            SUM(iv_infusions_weekday_monthly) as iv_infusions_weekday_monthly,
+            SUM(iv_infusions_weekend_monthly) as iv_infusions_weekend_monthly,
+            SUM(injections_weekday_weekly) as injections_weekday_weekly,
+            SUM(injections_weekend_weekly) as injections_weekend_weekly,
+            SUM(injections_weekday_monthly) as injections_weekday_monthly,
+            SUM(injections_weekend_monthly) as injections_weekend_monthly,
+            SUM(drip_iv_weekday_weekly) as drip_iv_weekday_weekly,
+            SUM(drip_iv_weekend_weekly) as drip_iv_weekend_weekly,
+            SUM(semaglutide_consults_weekly) as semaglutide_consults_weekly,
+            SUM(semaglutide_injections_weekly) as semaglutide_injections_weekly,
+            SUM(hormone_followup_female_weekly) as hormone_followup_female_weekly,
+            SUM(hormone_initial_male_weekly) as hormone_initial_male_weekly,
+            SUM(drip_iv_weekday_monthly) as drip_iv_weekday_monthly,
+            SUM(drip_iv_weekend_monthly) as drip_iv_weekend_monthly,
+            SUM(semaglutide_consults_monthly) as semaglutide_consults_monthly,
+            SUM(semaglutide_injections_monthly) as semaglutide_injections_monthly,
+            SUM(hormone_followup_female_monthly) as hormone_followup_female_monthly,
+            SUM(hormone_initial_male_monthly) as hormone_initial_male_monthly,
+            SUM(unique_customers_weekly) as unique_customers_weekly,
+            SUM(unique_customers_monthly) as unique_customers_monthly,
+            SUM(member_customers_weekly) as member_customers_weekly,
+            SUM(non_member_customers_weekly) as non_member_customers_weekly,
+            SUM(actual_weekly_revenue) as actual_weekly_revenue,
+            SUM(weekly_revenue_goal) as weekly_revenue_goal,
+            SUM(actual_monthly_revenue) as actual_monthly_revenue,
+            SUM(monthly_revenue_goal) as monthly_revenue_goal,
+            SUM(drip_iv_revenue_weekly) as drip_iv_revenue_weekly,
+            SUM(semaglutide_revenue_weekly) as semaglutide_revenue_weekly,
+            SUM(drip_iv_revenue_monthly) as drip_iv_revenue_monthly,
+            SUM(semaglutide_revenue_monthly) as semaglutide_revenue_monthly,
+            AVG(total_drip_iv_members) as total_drip_iv_members,
+            AVG(individual_memberships) as individual_memberships,
+            AVG(family_memberships) as family_memberships,
+            AVG(family_concierge_memberships) as family_concierge_memberships,
+            AVG(drip_concierge_memberships) as drip_concierge_memberships,
+            AVG(marketing_initiatives) as marketing_initiatives,
+            AVG(concierge_memberships) as concierge_memberships,
+            AVG(corporate_memberships) as corporate_memberships,
+            SUM(new_individual_members_weekly) as new_individual_members_weekly,
+            SUM(new_family_members_weekly) as new_family_members_weekly,
+            SUM(new_concierge_members_weekly) as new_concierge_members_weekly,
+            SUM(new_corporate_members_weekly) as new_corporate_members_weekly,
+            COUNT(*) as weeks_included,
+            'aggregated' as data_type
+          FROM analytics_data
+          WHERE 1=1
+        `;
+        
+        const params = [];
+        let paramCount = 0;
+        
+        let whereClause = '';
+        if (start_date) {
+          paramCount++;
+          whereClause += ` AND week_start_date >= $${paramCount}`;
+          params.push(start_date);
+        }
+        if (end_date) {
+          paramCount++;
+          whereClause += ` AND week_end_date <= $${paramCount}`;
+          params.push(end_date);
+        }
+        
+        result = await pool.query(aggregateQuery + whereClause, params);
+        
+        // Round the averaged values
+        if (result.rows.length > 0) {
+          const avgFields = ['total_drip_iv_members', 'individual_memberships', 'family_memberships', 
+                            'family_concierge_memberships', 'drip_concierge_memberships', 
+                            'marketing_initiatives', 'concierge_memberships', 'corporate_memberships'];
+          avgFields.forEach(field => {
+            if (result.rows[0][field]) {
+              result.rows[0][field] = Math.round(result.rows[0][field]);
+            }
+          });
+        }
+      } else {
+        // Get single record for the date range (most recent)
+        const singleQuery = `
+          SELECT * FROM analytics_data 
+          WHERE 1=1
+        `;
+        
+        const params = [];
+        let paramCount = 0;
+        
+        let whereClause = '';
+        if (start_date) {
+          paramCount++;
+          whereClause += ` AND week_start_date >= $${paramCount}`;
+          params.push(start_date);
+        }
+        if (end_date) {
+          paramCount++;
+          whereClause += ` AND week_end_date <= $${paramCount}`;
+          params.push(end_date);
+        }
+        
+        whereClause += ' ORDER BY week_start_date DESC LIMIT 1';
+        
+        result = await pool.query(singleQuery + whereClause, params);
+      }
+    } else {
+      // No date filtering - get most recent record (default behavior)
+      result = await pool.query(`
+        SELECT * FROM analytics_data 
+        ORDER BY upload_date DESC 
+        LIMIT 1
+      `);
+    }
     
     if (result.rows.length === 0) {
+      const dateMessage = start_date || end_date 
+        ? `No data available for the selected date range.`
+        : 'No data available. Please upload analytics data.';
+        
       return res.json({
         success: false,
-        message: 'No data available. Please upload analytics data.',
+        message: dateMessage,
         data: null
       });
     }
