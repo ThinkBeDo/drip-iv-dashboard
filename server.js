@@ -900,6 +900,72 @@ app.get('/', (req, res) => {
 
 // API Routes
 
+// Run database migration
+app.post('/api/migrate', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection not available'
+      });
+    }
+
+    console.log('Running database migration to add missing columns...');
+    
+    // Add missing columns if they don't exist
+    const migrationQueries = [
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS individual_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS family_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS family_concierge_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS drip_concierge_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_individual_members_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_family_members_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_concierge_members_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_corporate_members_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_count INTEGER DEFAULT 0'
+    ];
+
+    for (const query of migrationQueries) {
+      await pool.query(query);
+      console.log(`✅ Executed: ${query.substring(0, 50)}...`);
+    }
+
+    // Update existing test data with proper values
+    const updateQuery = `
+      UPDATE analytics_data 
+      SET 
+        individual_memberships = 105,
+        family_memberships = 0,
+        family_concierge_memberships = 0,
+        drip_concierge_memberships = 0,
+        new_individual_members_weekly = 2,
+        new_family_members_weekly = 1,
+        new_concierge_members_weekly = 0,
+        new_corporate_members_weekly = 0,
+        unique_customers_count = 173
+      WHERE week_start_date = '2025-07-07' AND week_end_date = '2025-07-13'
+    `;
+    
+    const updateResult = await pool.query(updateQuery);
+    console.log(`✅ Updated ${updateResult.rowCount} rows with membership data`);
+
+    res.json({
+      success: true,
+      message: 'Migration completed successfully',
+      columnsAdded: migrationQueries.length,
+      rowsUpdated: updateResult.rowCount
+    });
+
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Migration failed',
+      details: error.message
+    });
+  }
+});
+
 // Get dashboard data
 app.get('/api/dashboard', async (req, res) => {
   try {
