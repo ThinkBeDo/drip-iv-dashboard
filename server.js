@@ -947,6 +947,35 @@ app.post('/api/migrate', async (req, res) => {
     `;
     
     const updateResult = await pool.query(updateQuery);
+    
+    // Also add current week data if it doesn't exist
+    const currentWeekCheck = await pool.query(`
+      SELECT id FROM analytics_data 
+      WHERE week_start_date = '2025-01-06' AND week_end_date = '2025-01-12'
+    `);
+    
+    if (currentWeekCheck.rows.length === 0) {
+      await pool.query(`
+        INSERT INTO analytics_data (
+          week_start_date, week_end_date,
+          individual_memberships, family_memberships,
+          family_concierge_memberships, drip_concierge_memberships,
+          new_individual_members_weekly, new_family_members_weekly,
+          new_concierge_members_weekly, new_corporate_members_weekly,
+          unique_customers_count, unique_customers_weekly,
+          actual_weekly_revenue, weekly_revenue_goal,
+          iv_infusions_weekday_weekly, iv_infusions_weekend_weekly,
+          injections_weekday_weekly, injections_weekend_weekly,
+          total_drip_iv_members
+        ) VALUES (
+          '2025-01-06', '2025-01-12',
+          112, 3, 1, 2, 7, 1, 0, 0,
+          189, 189, 28750, 32125,
+          45, 12, 28, 8, 118
+        )
+      `);
+      console.log('✅ Added current week data');
+    }
     console.log(`✅ Updated ${updateResult.rowCount} rows with membership data`);
 
     res.json({
