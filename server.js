@@ -914,17 +914,36 @@ app.post('/api/migrate', async (req, res) => {
     
     // Add missing columns if they don't exist
     const migrationQueries = [
+      // IV and Injection metrics
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS iv_infusions_weekday_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS iv_infusions_weekend_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS iv_infusions_weekday_monthly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS iv_infusions_weekend_monthly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS injections_weekday_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS injections_weekend_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS injections_weekday_monthly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS injections_weekend_monthly INTEGER DEFAULT 0',
+      // Customer analytics
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_monthly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS member_customers_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS non_member_customers_weekly INTEGER DEFAULT 0',
+      // Membership columns
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS total_drip_iv_members INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS individual_memberships INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS family_memberships INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS family_concierge_memberships INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS drip_concierge_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS marketing_initiatives INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS concierge_memberships INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS corporate_memberships INTEGER DEFAULT 0',
+      // New membership tracking
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_individual_members_weekly INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_family_members_weekly INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_concierge_members_weekly INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_corporate_members_weekly INTEGER DEFAULT 0',
-      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_count INTEGER DEFAULT 0',
-      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_weekly INTEGER DEFAULT 0',
-      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_monthly INTEGER DEFAULT 0'
+      // Additional unique customers count
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_count INTEGER DEFAULT 0'
     ];
 
     for (const query of migrationQueries) {
