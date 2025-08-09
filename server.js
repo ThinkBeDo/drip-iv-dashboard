@@ -922,7 +922,9 @@ app.post('/api/migrate', async (req, res) => {
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_family_members_weekly INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_concierge_members_weekly INTEGER DEFAULT 0',
       'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS new_corporate_members_weekly INTEGER DEFAULT 0',
-      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_count INTEGER DEFAULT 0'
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_count INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_weekly INTEGER DEFAULT 0',
+      'ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS unique_customers_monthly INTEGER DEFAULT 0'
     ];
 
     for (const query of migrationQueries) {
