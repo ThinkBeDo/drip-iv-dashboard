@@ -113,8 +113,13 @@
             box-shadow: 0 8px 25px rgba(0,212,255,0.4);
         }
         
-        .upload-section input {
+        .hidden-file-input {
             display: none;
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
         }
         
         .upload-text {
@@ -817,9 +822,12 @@
                 
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
+                    <!-- Hidden file inputs (moved outside of clickable divs) -->
+                    <input type="file" id="revenueFileInput" accept=".csv" class="hidden-file-input">
+                    <input type="file" id="membershipFileInput" accept=".xlsx,.xls" class="hidden-file-input">
+                    
                     <div class="upload-container">
                         <div class="upload-section" onclick="document.getElementById('revenueFileInput').click()">
-                            <input type="file" id="revenueFileInput" accept=".csv" style="display: none;">
                             <div class="upload-text">
                                 <span>💰</span>
                                 <span>Patient Analysis CSV</span>
@@ -828,7 +836,6 @@
                         </div>
                         
                         <div class="upload-section" onclick="document.getElementById('membershipFileInput').click()">
-                            <input type="file" id="membershipFileInput" accept=".xlsx" style="display: none;">
                             <div class="upload-text">
                                 <span>👥</span>
                                 <span>Active Memberships Excel</span>
