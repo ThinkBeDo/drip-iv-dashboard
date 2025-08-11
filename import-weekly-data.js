@@ -110,6 +110,16 @@ function isWeekend(date) {
 async function processRevenueData(csvFilePath) {
   console.log('Processing revenue data from:', csvFilePath);
   
+  // Validate input
+  if (!csvFilePath) {
+    throw new Error('Revenue CSV file path is required');
+  }
+  
+  // Check if file exists
+  if (!fs.existsSync(csvFilePath)) {
+    throw new Error(`Revenue CSV file not found: ${csvFilePath}`);
+  }
+  
   return new Promise((resolve, reject) => {
     const results = [];
     const buffer = fs.readFileSync(csvFilePath, { flag: 'r' });
@@ -386,6 +396,16 @@ function analyzeRevenueData(csvData) {
 async function processMembershipData(excelFilePath) {
   console.log('Processing membership data from:', excelFilePath);
   
+  // Validate input
+  if (!excelFilePath) {
+    throw new Error('Membership Excel file path is required');
+  }
+  
+  // Check if file exists
+  if (!fs.existsSync(excelFilePath)) {
+    throw new Error(`Membership Excel file not found: ${excelFilePath}`);
+  }
+  
   const workbook = XLSX.readFile(excelFilePath);
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
@@ -434,13 +454,80 @@ async function processMembershipData(excelFilePath) {
 async function importWeeklyData(revenueFilePath, membershipFilePath) {
   try {
     console.log('Starting weekly data import...');
+    console.log('Revenue file:', revenueFilePath || 'Not provided');
+    console.log('Membership file:', membershipFilePath || 'Not provided');
     
-    // Process revenue data
-    const csvData = await processRevenueData(revenueFilePath);
-    const revenueMetrics = analyzeRevenueData(csvData);
+    // Initialize default metrics
+    let revenueMetrics = {
+      // Service counts - default to 0
+      iv_infusions_weekday_weekly: 0,
+      iv_infusions_weekend_weekly: 0,
+      iv_infusions_weekday_monthly: 0,
+      iv_infusions_weekend_monthly: 0,
+      injections_weekday_weekly: 0,
+      injections_weekend_weekly: 0,
+      injections_weekday_monthly: 0,
+      injections_weekend_monthly: 0,
+      
+      // Customer analytics - default to 0
+      unique_customers_weekly: 0,
+      unique_customers_monthly: 0,
+      member_customers_weekly: 0,
+      non_member_customers_weekly: 0,
+      
+      // Revenue data - default to 0
+      actual_weekly_revenue: 0,
+      actual_monthly_revenue: 0,
+      drip_iv_revenue_weekly: 0,
+      semaglutide_revenue_weekly: 0,
+      drip_iv_revenue_monthly: 0,
+      semaglutide_revenue_monthly: 0,
+      
+      // Additional revenue categories
+      infusion_revenue_weekly: 0,
+      infusion_revenue_monthly: 0,
+      injection_revenue_weekly: 0,
+      injection_revenue_monthly: 0,
+      membership_revenue_weekly: 0,
+      membership_revenue_monthly: 0,
+      
+      // Legacy fields for backward compatibility
+      drip_iv_weekday_weekly: 0,
+      drip_iv_weekend_weekly: 0,
+      drip_iv_weekday_monthly: 0,
+      drip_iv_weekend_monthly: 0,
+      
+      // Date tracking
+      weekStartDate: null,
+      weekEndDate: null
+    };
     
-    // Process membership data
-    const membershipMetrics = await processMembershipData(membershipFilePath);
+    let membershipMetrics = {
+      // Membership counts - default to 0
+      total_drip_iv_members: 0,
+      individual_memberships: 0,
+      family_memberships: 0,
+      family_concierge_memberships: 0,
+      drip_concierge_memberships: 0,
+      concierge_memberships: 0,
+      corporate_memberships: 0,
+      marketing_initiatives: 0
+    };
+    
+    // Process revenue data if file is provided
+    if (revenueFilePath) {
+      const csvData = await processRevenueData(revenueFilePath);
+      revenueMetrics = analyzeRevenueData(csvData);
+    } else {
+      console.log('No revenue file provided, using default revenue metrics');
+    }
+    
+    // Process membership data if file is provided
+    if (membershipFilePath) {
+      membershipMetrics = await processMembershipData(membershipFilePath);
+    } else {
+      console.log('No membership file provided, using default membership metrics');
+    }
     
     // Combine metrics
     const combinedData = {
