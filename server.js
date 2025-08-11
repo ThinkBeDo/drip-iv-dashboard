@@ -9,6 +9,7 @@ const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+const { importWeeklyData } = require('./import-weekly-data');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -1554,44 +1555,52 @@ app.get('/health', async (req, res) => {
 });
 
 // Import weekly data endpoint - handles both revenue CSV and membership Excel files
-const { importWeeklyData } = require('./import-weekly-data');
-
 app.post('/api/import-weekly-data', upload.fields([
   { name: 'revenueFile', maxCount: 1 },
   { name: 'membershipFile', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    if (!req.files || !req.files.revenueFile || !req.files.membershipFile) {
+    if (!req.files || (!req.files.revenueFile && !req.files.membershipFile)) {
       return res.status(400).json({ 
-        error: 'Both revenue CSV file and membership Excel file are required' 
+        error: 'At least one file (revenue CSV or membership Excel) is required' 
       });
     }
 
-    const revenueFile = req.files.revenueFile[0];
-    const membershipFile = req.files.membershipFile[0];
+    const revenueFile = req.files.revenueFile ? req.files.revenueFile[0] : null;
+    const membershipFile = req.files.membershipFile ? req.files.membershipFile[0] : null;
     
-    // Validate file types
-    if (!revenueFile.originalname.endsWith('.csv')) {
+    // Validate file types if provided
+    if (revenueFile && !revenueFile.originalname.endsWith('.csv')) {
       return res.status(400).json({ 
         error: 'Revenue file must be a CSV file' 
       });
     }
     
-    if (!membershipFile.originalname.endsWith('.xlsx')) {
+    if (membershipFile && !membershipFile.originalname.endsWith('.xlsx') && !membershipFile.originalname.endsWith('.xls')) {
       return res.status(400).json({ 
-        error: 'Membership file must be an Excel (.xlsx) file' 
+        error: 'Membership file must be an Excel (.xlsx or .xls) file' 
       });
     }
 
-    console.log(`Processing weekly data import: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+    // Log what we're processing
+    if (revenueFile && membershipFile) {
+      console.log(`Processing weekly data import: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+    } else if (revenueFile) {
+      console.log(`Processing revenue data import: ${revenueFile.originalname}`);
+    } else {
+      console.log(`Processing membership data import: ${membershipFile.originalname}`);
+    }
     
-    // Use the specialized import function
-    const importedData = await importWeeklyData(revenueFile.path, membershipFile.path);
+    // Use the specialized import function with optional membership file
+    const importedData = await importWeeklyData(
+      revenueFile ? revenueFile.path : null, 
+      membershipFile ? membershipFile.path : null
+    );
     
     // Clean up uploaded files
     try {
-      fs.unlinkSync(revenueFile.path);
-      fs.unlinkSync(membershipFile.path);
+      if (revenueFile) fs.unlinkSync(revenueFile.path);
+      if (membershipFile) fs.unlinkSync(membershipFile.path);
     } catch (cleanupError) {
       console.warn('Warning: Could not clean up temp files:', cleanupError.message);
     }

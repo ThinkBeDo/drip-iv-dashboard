@@ -1596,23 +1596,30 @@
                     membershipSection.querySelector('.upload-text span:nth-child(2)').textContent = 'Active Memberships Excel';
                 }
                 
-                // Enable/disable upload button
-                uploadButton.disabled = !(revenueFile && membershipFile);
+                // Enable/disable upload button - allow uploading with at least one file
+                uploadButton.disabled = !(revenueFile || membershipFile);
             }
             
             // Handle upload button click
             uploadButton.addEventListener('click', async function() {
-                if (!revenueFile || !membershipFile) {
-                    showAlert('Please select both files before uploading', 'error');
+                if (!revenueFile && !membershipFile) {
+                    showAlert('Please select at least one file to upload', 'error');
                     return;
                 }
                 
-                showAlert('Processing files...', 'info');
+                // Show different message based on what's being uploaded
+                if (revenueFile && membershipFile) {
+                    showAlert('Processing both files...', 'info');
+                } else if (revenueFile) {
+                    showAlert('Processing revenue data...', 'info');
+                } else {
+                    showAlert('Processing membership data...', 'info');
+                }
                 
                 try {
                     const formData = new FormData();
-                    formData.append('revenueFile', revenueFile);
-                    formData.append('membershipFile', membershipFile);
+                    if (revenueFile) formData.append('revenueFile', revenueFile);
+                    if (membershipFile) formData.append('membershipFile', membershipFile);
                     
                     const response = await fetch('/api/import-weekly-data', {
                         method: 'POST',
