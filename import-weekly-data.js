@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const csvParser = require('csv-parser');
 const XLSX = require('xlsx');
+const iconv = require('iconv-lite');
+const { parse } = require('csv-parse/sync');
 require('dotenv').config();
 
 // Database connection
@@ -121,46 +123,49 @@ async function processRevenueData(csvFilePath) {
   }
   
   return new Promise((resolve, reject) => {
-    const results = [];
-    const buffer = fs.readFileSync(csvFilePath, { flag: 'r' });
-    const firstBytes = buffer.slice(0, 4);
-    
-    let encoding = 'utf8';
-    // Check for UTF-16 LE BOM (FF FE)
-    if (firstBytes[0] === 0xFF && firstBytes[1] === 0xFE) {
-      encoding = 'utf16le';
-    }
-    
-    if (encoding === 'utf16le') {
-      // Handle UTF-16 encoding using Node.js built-in method
-      const csvContent = buffer.toString('utf16le');
-      const lines = csvContent.split('\n').filter(line => line.trim());
+    try {
+      // Read the file as a buffer
+      const buffer = fs.readFileSync(csvFilePath);
+      const firstBytes = buffer.slice(0, 4);
       
-      if (lines.length === 0) {
-        return resolve([]);
+      let csvContent;
+      
+      // Check for UTF-16 LE BOM (FF FE)
+      if (firstBytes[0] === 0xFF && firstBytes[1] === 0xFE) {
+        console.log('Detected UTF-16 LE encoding with BOM');
+        // Use iconv-lite to decode UTF-16 LE to UTF-8
+        // BOM is automatically stripped by iconv-lite
+        csvContent = iconv.decode(buffer, 'utf-16le');
+      } else {
+        // Standard UTF-8 processing
+        console.log('Processing as UTF-8 encoding');
+        csvContent = buffer.toString('utf8');
       }
       
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-        if (values.length === headers.length) {
-          const row = {};
-          headers.forEach((header, index) => {
-            row[header] = values[index] || '';
-          });
-          results.push(row);
+      // Use csv-parse to properly parse the CSV content
+      // This handles embedded quotes, commas in fields, and complex CSV formatting
+      const records = parse(csvContent, {
+        columns: true, // Use first row as column headers
+        skip_empty_lines: true, // Skip empty lines
+        trim: true, // Trim whitespace from fields
+        relax_quotes: true, // Be lenient with quotes
+        relax_column_count: true, // Allow variable column counts
+        on_record: (record) => {
+          // Clean up any remaining quotes from field values
+          const cleanedRecord = {};
+          for (const [key, value] of Object.entries(record)) {
+            cleanedRecord[key] = value ? value.toString() : '';
+          }
+          return cleanedRecord;
         }
-      }
+      });
       
-      resolve(results);
-    } else {
-      // Standard UTF-8 processing
-      fs.createReadStream(csvFilePath)
-        .pipe(csvParser())
-        .on('data', (data) => results.push(data))
-        .on('end', () => resolve(results))
-        .on('error', reject);
+      console.log(`Successfully parsed ${records.length} rows from CSV`);
+      resolve(records);
+      
+    } catch (error) {
+      console.error('Error parsing CSV file:', error);
+      reject(new Error(`Failed to parse CSV file: ${error.message}`));
     }
   });
 }
