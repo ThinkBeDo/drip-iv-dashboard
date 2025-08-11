@@ -1838,6 +1838,34 @@ async function initializeDatabase() {
       console.error('⚠️  Migration error (non-fatal):', migrationError.message);
     }
     
+    // Fix 1925 date bug migration
+    try {
+      // Check if we have any 1925 dates that need fixing
+      const dateCheck = await pool.query(`
+        SELECT COUNT(*) as count 
+        FROM analytics_data 
+        WHERE EXTRACT(YEAR FROM week_start_date) = 1925
+      `);
+      
+      if (dateCheck.rows[0].count > 0) {
+        console.log(`🗓️  Found ${dateCheck.rows[0].count} records with 1925 dates, fixing...`);
+        
+        // Fix the dates by adding 100 years
+        const fixResult = await pool.query(`
+          UPDATE analytics_data 
+          SET 
+            week_start_date = week_start_date + INTERVAL '100 years',
+            week_end_date = week_end_date + INTERVAL '100 years',
+            upload_date = CURRENT_TIMESTAMP
+          WHERE EXTRACT(YEAR FROM week_start_date) = 1925
+        `);
+        
+        console.log(`✅ Fixed ${fixResult.rowCount} records: 1925 dates corrected to 2025`);
+      }
+    } catch (dateFixError) {
+      console.error('⚠️  Date fix migration error (non-fatal):', dateFixError.message);
+    }
+    
     // Then, check if we need to initialize with correct data
     try {
       const checkData = await pool.query(`

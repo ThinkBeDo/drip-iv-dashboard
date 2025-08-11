@@ -90,12 +90,13 @@ function cleanCurrency(value) {
 function parseDate(dateStr) {
   if (!dateStr || dateStr === 'Total') return null;
   
-  // Handle format like "7/1/25"
+  // Handle format like "8/9/25" for August 9, 2025
   const parts = dateStr.split('/');
   if (parts.length === 3) {
     const month = parseInt(parts[0]);
     const day = parseInt(parts[1]);
-    const year = parseInt(parts[2]) + (parseInt(parts[2]) < 50 ? 2000 : 1900);
+    // Fix: All 2-digit years should be 2000s (e.g., 25 = 2025, not 1925)
+    const year = parseInt(parts[2]) + 2000;
     return new Date(year, month - 1, day);
   }
   
