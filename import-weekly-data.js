@@ -247,20 +247,37 @@ function analyzeRevenueData(csvData) {
   if (metrics.monthEndDate && metrics.monthStartDate) {
     // Find the most recent complete week (Sunday to Saturday)
     const endDate = new Date(metrics.monthEndDate);
+    console.log(`Most recent date in data: ${endDate.toDateString()} (day ${endDate.getDay()})`);
     
-    // Find the most recent Sunday (start of week)
+    let weekStart = new Date(endDate);
+    let weekEnd = new Date(endDate);
+    
     const dayOfWeek = endDate.getDay(); // 0 = Sunday, 6 = Saturday
-    const weekStart = new Date(endDate);
-    weekStart.setDate(endDate.getDate() - dayOfWeek);
     
-    // Week end is the following Saturday
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
+    if (dayOfWeek === 6) {
+      // If end date is Saturday, it's the end of the week
+      weekEnd = new Date(endDate);
+      weekStart = new Date(endDate);
+      weekStart.setDate(endDate.getDate() - 6); // Go back to Sunday
+    } else if (dayOfWeek === 0) {
+      // If end date is Sunday, it's the start of a week
+      weekStart = new Date(endDate);
+      weekEnd = new Date(endDate);
+      weekEnd.setDate(endDate.getDate() + 6); // Go forward to Saturday
+    } else {
+      // For any other day, find the containing week (previous Sunday to Saturday)
+      weekStart = new Date(endDate);
+      weekStart.setDate(endDate.getDate() - dayOfWeek); // Go back to Sunday
+      weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6); // Go forward to Saturday
+    }
     
     metrics.weekStartDate = weekStart;
     metrics.weekEndDate = weekEnd;
     
-    console.log(`Determined week range: ${weekStart.toDateString()} to ${weekEnd.toDateString()}`);
+    console.log(`Calculated week range: ${weekStart.toDateString()} to ${weekEnd.toDateString()}`);
+    console.log(`  Start: ${weekStart.toISOString().split('T')[0]} (${weekStart.getDay() === 0 ? 'Sunday' : 'Error'})`);
+    console.log(`  End: ${weekEnd.toISOString().split('T')[0]} (${weekEnd.getDay() === 6 ? 'Saturday' : 'Error'})`);
   }
   
   // Second pass: Process service counts and revenue with proper week detection

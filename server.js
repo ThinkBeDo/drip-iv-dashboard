@@ -1042,6 +1042,54 @@ app.post('/api/fix-dates', async (req, res) => {
   }
 });
 
+// Fix specific week dates that were calculated incorrectly
+app.post('/api/fix-week-dates', async (req, res) => {
+  try {
+    // First, show what we're about to fix
+    const checkResult = await pool.query(`
+      SELECT id, week_start_date, week_end_date, actual_weekly_revenue
+      FROM analytics_data 
+      WHERE week_start_date = '2025-08-10' 
+        AND week_end_date = '2025-08-16'
+    `);
+    
+    if (checkResult.rows.length === 0) {
+      return res.json({
+        success: false,
+        message: 'No records found with Aug 10-16 dates to fix',
+        checked: 'Aug 10-16, 2025'
+      });
+    }
+    
+    // Fix the Aug 10-16 record to be Aug 4-10 (last week)
+    const fixResult = await pool.query(`
+      UPDATE analytics_data 
+      SET 
+        week_start_date = '2025-08-04',
+        week_end_date = '2025-08-10',
+        updated_at = CURRENT_TIMESTAMP
+      WHERE week_start_date = '2025-08-10' 
+        AND week_end_date = '2025-08-16'
+    `);
+    
+    res.json({
+      success: true,
+      message: `Fixed ${fixResult.rowCount} record(s) from Aug 10-16 to Aug 4-10`,
+      rowsFixed: fixResult.rowCount,
+      recordFixed: checkResult.rows[0]
+    });
+    
+    console.log(`✅ Fixed week dates: Aug 10-16 → Aug 4-10 for ${fixResult.rowCount} record(s)`);
+    
+  } catch (error) {
+    console.error('Fix week dates error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
