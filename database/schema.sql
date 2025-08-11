@@ -181,6 +181,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop trigger if exists before creating
+DROP TRIGGER IF EXISTS update_analytics_data_updated_at ON analytics_data;
 CREATE TRIGGER update_analytics_data_updated_at 
     BEFORE UPDATE ON analytics_data 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

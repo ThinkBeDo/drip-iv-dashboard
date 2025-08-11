@@ -827,7 +827,7 @@
                     <input type="file" id="membershipFileInput" accept=".xlsx,.xls" class="hidden-file-input">
                     
                     <div class="upload-container">
-                        <div class="upload-section" onclick="document.getElementById('revenueFileInput').click()">
+                        <div class="upload-section" id="revenueUploadSection">
                             <div class="upload-text">
                                 <span>💰</span>
                                 <span>Patient Analysis CSV</span>
@@ -835,7 +835,7 @@
                             </div>
                         </div>
                         
-                        <div class="upload-section" onclick="document.getElementById('membershipFileInput').click()">
+                        <div class="upload-section" id="membershipUploadSection">
                             <div class="upload-text">
                                 <span>👥</span>
                                 <span>Active Memberships Excel</span>
@@ -1543,11 +1543,26 @@
             const revenueFileInput = document.getElementById('revenueFileInput');
             const membershipFileInput = document.getElementById('membershipFileInput');
             const uploadButton = document.getElementById('uploadButton');
+            const revenueSection = document.getElementById('revenueUploadSection');
+            const membershipSection = document.getElementById('membershipUploadSection');
             
             if (!revenueFileInput || !membershipFileInput || !uploadButton) return;
             
             let revenueFile = null;
             let membershipFile = null;
+            
+            // Add click handlers to upload sections
+            if (revenueSection) {
+                revenueSection.addEventListener('click', function() {
+                    revenueFileInput.click();
+                });
+            }
+            
+            if (membershipSection) {
+                membershipSection.addEventListener('click', function() {
+                    membershipFileInput.click();
+                });
+            }
             
             // Handle revenue file selection
             revenueFileInput.addEventListener('change', function(e) {
@@ -1563,9 +1578,6 @@
             
             // Update UI based on file selection
             function updateFileStatus() {
-                const revenueSection = revenueFileInput.closest('.upload-section');
-                const membershipSection = membershipFileInput.closest('.upload-section');
-                
                 // Update revenue section
                 if (revenueFile) {
                     revenueSection.classList.add('has-file');

@@ -1773,8 +1773,17 @@ async function initializeDatabase() {
     const schemaPath = path.join(__dirname, 'database', 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const schema = fs.readFileSync(schemaPath, 'utf8');
-      await pool.query(schema);
-      console.log('Database schema initialized successfully');
+      try {
+        await pool.query(schema);
+        console.log('Database schema initialized successfully');
+      } catch (schemaError) {
+        // Ignore trigger already exists error (code 42710)
+        if (schemaError.code !== '42710') {
+          console.error('Schema initialization error:', schemaError.message);
+        } else {
+          console.log('Database schema already initialized');
+        }
+      }
     }
     
     // Then, check if we need to initialize with correct data
