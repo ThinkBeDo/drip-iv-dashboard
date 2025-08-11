@@ -964,6 +964,84 @@ app.post('/api/migrate', async (req, res) => {
   }
 });
 
+// Debug endpoint to check dates in database
+app.get('/api/debug-dates', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id,
+        week_start_date,
+        week_end_date,
+        upload_date,
+        EXTRACT(YEAR FROM week_start_date) as start_year,
+        EXTRACT(YEAR FROM week_end_date) as end_year,
+        actual_weekly_revenue,
+        actual_monthly_revenue
+      FROM analytics_data 
+      ORDER BY upload_date DESC
+      LIMIT 10
+    `);
+    
+    res.json({
+      success: true,
+      message: 'Debug data retrieved',
+      records: result.rows,
+      count: result.rows.length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Debug dates error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// Manual date fix endpoint
+app.post('/api/fix-dates', async (req, res) => {
+  try {
+    // First check what we have
+    const checkResult = await pool.query(`
+      SELECT COUNT(*) as count 
+      FROM analytics_data 
+      WHERE EXTRACT(YEAR FROM week_start_date) < 2000
+    `);
+    
+    const oldDatesCount = parseInt(checkResult.rows[0].count);
+    
+    if (oldDatesCount === 0) {
+      return res.json({
+        success: true,
+        message: 'No dates need fixing',
+        rowsFixed: 0
+      });
+    }
+    
+    // Fix the dates
+    const fixResult = await pool.query(`
+      UPDATE analytics_data 
+      SET 
+        week_start_date = week_start_date + INTERVAL '100 years',
+        week_end_date = week_end_date + INTERVAL '100 years',
+        upload_date = CURRENT_TIMESTAMP
+      WHERE EXTRACT(YEAR FROM week_start_date) < 2000
+    `);
+    
+    res.json({
+      success: true,
+      message: `Fixed ${fixResult.rowCount} records from 1925 to 2025`,
+      rowsFixed: fixResult.rowCount
+    });
+  } catch (error) {
+    console.error('Fix dates error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -1838,17 +1916,17 @@ async function initializeDatabase() {
       console.error('⚠️  Migration error (non-fatal):', migrationError.message);
     }
     
-    // Fix 1925 date bug migration
+    // Fix old date bug migration (any dates before year 2000)
     try {
-      // Check if we have any 1925 dates that need fixing
+      // Check if we have any old dates that need fixing
       const dateCheck = await pool.query(`
         SELECT COUNT(*) as count 
         FROM analytics_data 
-        WHERE EXTRACT(YEAR FROM week_start_date) = 1925
+        WHERE EXTRACT(YEAR FROM week_start_date) < 2000
       `);
       
       if (dateCheck.rows[0].count > 0) {
-        console.log(`🗓️  Found ${dateCheck.rows[0].count} records with 1925 dates, fixing...`);
+        console.log(`🗓️  Found ${dateCheck.rows[0].count} records with dates before 2000, fixing...`);
         
         // Fix the dates by adding 100 years
         const fixResult = await pool.query(`
@@ -1857,10 +1935,12 @@ async function initializeDatabase() {
             week_start_date = week_start_date + INTERVAL '100 years',
             week_end_date = week_end_date + INTERVAL '100 years',
             upload_date = CURRENT_TIMESTAMP
-          WHERE EXTRACT(YEAR FROM week_start_date) = 1925
+          WHERE EXTRACT(YEAR FROM week_start_date) < 2000
         `);
         
-        console.log(`✅ Fixed ${fixResult.rowCount} records: 1925 dates corrected to 2025`);
+        console.log(`✅ Fixed ${fixResult.rowCount} records: old dates corrected to 2000s`);
+      } else {
+        console.log('✅ All dates are in correct century (2000+)');
       }
     } catch (dateFixError) {
       console.error('⚠️  Date fix migration error (non-fatal):', dateFixError.message);
