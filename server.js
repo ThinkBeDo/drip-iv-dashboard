@@ -1795,6 +1795,49 @@ async function initializeDatabase() {
       }
     }
     
+    // Run database migrations
+    console.log('🔄 Checking for database migrations...');
+    try {
+      // Check if popular services columns exist
+      const columnsCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'analytics_data' 
+        AND column_name IN ('popular_infusions', 'popular_infusions_status', 'popular_injections', 'popular_injections_status')
+      `);
+      
+      if (columnsCheck.rows.length < 4) {
+        console.log('📋 Running migration: Adding popular services columns...');
+        
+        // Add missing columns
+        await pool.query(`
+          ALTER TABLE analytics_data 
+          ADD COLUMN IF NOT EXISTS popular_infusions TEXT[] DEFAULT ARRAY['Energy', 'NAD+', 'Performance & Recovery']
+        `);
+        
+        await pool.query(`
+          ALTER TABLE analytics_data 
+          ADD COLUMN IF NOT EXISTS popular_infusions_status VARCHAR(50) DEFAULT 'Active'
+        `);
+        
+        await pool.query(`
+          ALTER TABLE analytics_data 
+          ADD COLUMN IF NOT EXISTS popular_injections TEXT[] DEFAULT ARRAY['Tirzepatide', 'Semaglutide', 'B12']
+        `);
+        
+        await pool.query(`
+          ALTER TABLE analytics_data 
+          ADD COLUMN IF NOT EXISTS popular_injections_status VARCHAR(50) DEFAULT 'Active'
+        `);
+        
+        console.log('✅ Migration completed: Popular services columns added');
+      } else {
+        console.log('✅ All required columns exist');
+      }
+    } catch (migrationError) {
+      console.error('⚠️  Migration error (non-fatal):', migrationError.message);
+    }
+    
     // Then, check if we need to initialize with correct data
     try {
       const checkData = await pool.query(`
