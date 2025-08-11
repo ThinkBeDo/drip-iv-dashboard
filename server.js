@@ -1092,6 +1092,11 @@ app.get('/api/dashboard', async (req, res) => {
       }
     }
 
+    // Log the query parameters for debugging
+    if (start_date || end_date) {
+      console.log(`📅 Date filter query: start_date=${start_date}, end_date=${end_date}, aggregate=${aggregate}`);
+    }
+    
     let result;
     
     if (start_date || end_date) {
@@ -1156,17 +1161,26 @@ app.get('/api/dashboard', async (req, res) => {
         let paramCount = 0;
         
         let whereClause = '';
-        if (start_date) {
+        if (start_date && end_date) {
+          // Find any week that overlaps with the date range
           paramCount++;
-          whereClause += ` AND week_start_date >= $${paramCount}`;
+          const startParam = paramCount;
           params.push(start_date);
-        }
-        if (end_date) {
           paramCount++;
-          whereClause += ` AND week_end_date <= $${paramCount}`;
+          const endParam = paramCount;
+          params.push(end_date);
+          whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+        } else if (start_date) {
+          paramCount++;
+          whereClause += ` AND week_end_date >= $${paramCount}`;
+          params.push(start_date);
+        } else if (end_date) {
+          paramCount++;
+          whereClause += ` AND week_start_date <= $${paramCount}`;
           params.push(end_date);
         }
         
+        console.log(`🔍 Aggregate query with params:`, params);
         result = await pool.query(aggregateQuery + whereClause, params);
         
         // Round the averaged values
@@ -1191,20 +1205,30 @@ app.get('/api/dashboard', async (req, res) => {
         let paramCount = 0;
         
         let whereClause = '';
-        if (start_date) {
+        if (start_date && end_date) {
+          // Find any week that overlaps with the date range
           paramCount++;
-          whereClause += ` AND week_start_date >= $${paramCount}`;
+          const startParam = paramCount;
           params.push(start_date);
-        }
-        if (end_date) {
           paramCount++;
-          whereClause += ` AND week_end_date <= $${paramCount}`;
+          const endParam = paramCount;
+          params.push(end_date);
+          whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+        } else if (start_date) {
+          paramCount++;
+          whereClause += ` AND week_end_date >= $${paramCount}`;
+          params.push(start_date);
+        } else if (end_date) {
+          paramCount++;
+          whereClause += ` AND week_start_date <= $${paramCount}`;
           params.push(end_date);
         }
         
         whereClause += ' ORDER BY week_start_date DESC LIMIT 1';
         
+        console.log(`🔍 Single record query with params:`, params);
         result = await pool.query(singleQuery + whereClause, params);
+        console.log(`📊 Query returned ${result.rows.length} rows`);
       }
     } else {
       // No date filtering - get most recent record (default behavior)
@@ -1216,6 +1240,20 @@ app.get('/api/dashboard', async (req, res) => {
     }
     
     if (result.rows.length === 0) {
+      // Debug: Check what dates are actually in the database
+      if (start_date || end_date) {
+        const allDates = await pool.query(`
+          SELECT week_start_date, week_end_date 
+          FROM analytics_data 
+          ORDER BY week_start_date DESC 
+          LIMIT 5
+        `);
+        console.log('⚠️  No data found for date range. Available dates in DB:');
+        allDates.rows.forEach(row => {
+          console.log(`  - Week: ${row.week_start_date} to ${row.week_end_date}`);
+        });
+      }
+      
       const dateMessage = start_date || end_date 
         ? `No data available for the selected date range.`
         : 'No data available. Please upload analytics data.';
