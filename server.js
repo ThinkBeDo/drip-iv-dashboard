@@ -486,6 +486,20 @@ function extractFromCSV(csvData) {
     data.week_end_date = endOfWeek.toISOString().split('T')[0];
     return data;
   }
+  
+  // Validate CSV columns
+  const requiredColumns = ['Charge Desc', 'Patient', 'Date', 'Calculated Payment (Line)'];
+  const optionalColumns = ['Charge Type'];
+  const headers = Object.keys(csvData[0] || {});
+  const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+  
+  if (missingColumns.length > 0) {
+    console.error('⚠️  WARNING: Missing required CSV columns:', missingColumns);
+    console.log('Available columns in CSV:', headers);
+    console.log('This may cause incomplete data extraction!');
+  } else {
+    console.log('✅ All required CSV columns found');
+  }
 
   // CRITICAL FIX 1: Filter out TOTAL_TIPS entries immediately
   const filteredData = csvData.filter(row => {
@@ -521,39 +535,80 @@ function extractFromCSV(csvData) {
   };
 
   // Process filtered CSV data to extract membership information
+  console.log('Processing membership data from CSV...');
+  let membershipTransactionsFound = 0;
+  
   filteredData.forEach(row => {
-    const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
+    const chargeDesc = (row['Charge Desc'] || '');
+    const chargeDescLower = chargeDesc.toLowerCase();
     const patient = row['Patient'] || '';
     
     if (!patient) return; // Skip rows without patient info
     
-    // Map membership types based on charge descriptions
-    if (chargeDesc.includes('membership - individual')) {
+    // Log membership-related transactions for debugging
+    if (chargeDescLower.includes('membership')) {
+      membershipTransactionsFound++;
+      console.log(`Found membership transaction: "${chargeDesc}" for patient: "${patient}"`);
+    }
+    
+    // Map membership types based on charge descriptions - more flexible matching
+    // Individual membership variations
+    if ((chargeDescLower.includes('individual') && chargeDescLower.includes('membership')) ||
+        chargeDescLower === 'membership individual' ||
+        chargeDescLower === 'individual membership' ||
+        chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      if (chargeDesc.includes('new')) {
+      if (chargeDescLower.includes('new')) {
         newMembershipCounts.individual.add(patient);
       }
-    } else if (chargeDesc.includes('membership - family') && !chargeDesc.includes('concierge')) {
+    }
+    // Family membership variations (excluding concierge combos)
+    else if ((chargeDescLower.includes('family') && chargeDescLower.includes('membership') && 
+             !chargeDescLower.includes('concierge')) ||
+             chargeDescLower === 'membership family' ||
+             chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      if (chargeDesc.includes('new')) {
+      if (chargeDescLower.includes('new')) {
         newMembershipCounts.family.add(patient);
       }
-    } else if (chargeDesc.includes('family membership w/ concierge')) {
+    }
+    // Family with Concierge combo
+    else if (chargeDescLower.includes('family membership w/ concierge') ||
+             chargeDescLower.includes('family membership with concierge') ||
+             (chargeDescLower.includes('family') && chargeDescLower.includes('concierge') && 
+              chargeDescLower.includes('membership'))) {
       membershipCounts.familyConcierge.add(patient);
-    } else if (chargeDesc.includes('concierge & drip membership')) {
+    }
+    // Drip & Concierge combo
+    else if (chargeDescLower.includes('concierge & drip membership') ||
+             chargeDescLower.includes('concierge and drip membership') ||
+             chargeDescLower.includes('drip & concierge membership') ||
+             chargeDescLower.includes('drip and concierge membership')) {
       membershipCounts.dripConcierge.add(patient);
-    } else if (chargeDesc.includes('concierge membership')) {
+    }
+    // Standalone Concierge membership
+    else if ((chargeDescLower.includes('concierge') && chargeDescLower.includes('membership') &&
+             !chargeDescLower.includes('family') && !chargeDescLower.includes('drip')) ||
+             chargeDescLower === 'concierge membership' ||
+             chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      if (chargeDesc.includes('new')) {
+      if (chargeDescLower.includes('new')) {
         newMembershipCounts.concierge.add(patient);
       }
-    } else if (chargeDesc.includes('membership - corporate')) {
+    }
+    // Corporate membership variations
+    else if ((chargeDescLower.includes('corporate') && chargeDescLower.includes('membership')) ||
+             chargeDescLower === 'membership corporate' ||
+             chargeDescLower === 'corporate membership' ||
+             chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      if (chargeDesc.includes('new')) {
+      if (chargeDescLower.includes('new')) {
         newMembershipCounts.corporate.add(patient);
       }
     }
   });
+  
+  console.log(`Total membership transactions found in CSV: ${membershipTransactionsFound}`);
 
   // Set membership counts (active totals)
   data.individual_memberships = membershipCounts.individual.size;
@@ -576,6 +631,23 @@ function extractFromCSV(csvData) {
                                data.corporate_memberships +
                                data.family_concierge_memberships +
                                data.drip_concierge_memberships;
+  
+  // Debug logging for membership counts
+  console.log('CSV Membership Detection Results:', {
+    individual: membershipCounts.individual.size,
+    family: membershipCounts.family.size,
+    concierge: membershipCounts.concierge.size,
+    corporate: membershipCounts.corporate.size,
+    familyConcierge: membershipCounts.familyConcierge.size,
+    dripConcierge: membershipCounts.dripConcierge.size,
+    total: data.total_drip_iv_members,
+    newSignups: {
+      individual: newMembershipCounts.individual.size,
+      family: newMembershipCounts.family.size,
+      concierge: newMembershipCounts.concierge.size,
+      corporate: newMembershipCounts.corporate.size
+    }
+  });
 
   // Extract date range from filtered CSV data
   let minDate = null;
@@ -835,6 +907,32 @@ function extractFromCSV(csvData) {
       corporate: data.new_corporate_members_weekly
     }
   });
+  
+  // Fallback calculation: Estimate memberships from revenue if no direct counts found
+  if (data.total_drip_iv_members === 0 && data.membership_revenue_weekly > 0) {
+    console.log('⚠️  No membership counts detected from charge descriptions.');
+    console.log('Attempting to estimate from membership revenue...');
+    
+    // Average membership prices (approximate):
+    // Individual: $99-149/month
+    // Family: $179-249/month  
+    // Concierge: $199-299/month
+    // Corporate: $999+/month
+    const avgMembershipPrice = 150; // Conservative average monthly price
+    
+    // Estimate based on monthly membership revenue
+    const estimatedMembers = Math.round(data.membership_revenue_monthly / avgMembershipPrice);
+    
+    if (estimatedMembers > 0) {
+      data.total_drip_iv_members = estimatedMembers;
+      data.individual_memberships = estimatedMembers; // Default all to individual as fallback
+      
+      console.log(`📊 Estimated ${estimatedMembers} members based on membership revenue:`);
+      console.log(`   Monthly membership revenue: $${data.membership_revenue_monthly}`);
+      console.log(`   Average membership price used: $${avgMembershipPrice}`);
+      console.log('   Note: This is an estimate. Upload membership Excel file for accurate counts.');
+    }
+  }
 
   return data;
 }

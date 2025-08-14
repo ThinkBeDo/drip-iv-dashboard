@@ -58,7 +58,13 @@ function isStandaloneInjection(chargeDesc) {
 
 function isMembershipService(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
-  return lowerDesc.includes('membership') || lowerDesc.includes('concierge');
+  // Expanded membership detection patterns
+  return lowerDesc.includes('membership') || 
+         lowerDesc.includes('concierge') ||
+         lowerDesc.includes('member') ||
+         (lowerDesc.includes('individual') && lowerDesc.includes('memb')) ||
+         (lowerDesc.includes('family') && lowerDesc.includes('memb')) ||
+         (lowerDesc.includes('corporate') && lowerDesc.includes('memb'));
 }
 
 function getServiceCategory(chargeDesc) {
