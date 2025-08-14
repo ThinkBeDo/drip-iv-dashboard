@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
+const XLSX = require('xlsx');
 require('dotenv').config();
 const { importWeeklyData } = require('./import-weekly-data');
 
@@ -80,13 +81,24 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024 // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || 
-        file.mimetype === 'application/pdf' ||
-        file.originalname.endsWith('.csv') ||
-        file.originalname.endsWith('.pdf')) {
+    const allowedMimeTypes = [
+      'text/csv',
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+    
+    const allowedExtensions = ['.csv', '.pdf', '.xlsx', '.xls'];
+    
+    const isAllowedMimeType = allowedMimeTypes.includes(file.mimetype);
+    const hasAllowedExtension = allowedExtensions.some(ext => 
+      file.originalname.toLowerCase().endsWith(ext)
+    );
+    
+    if (isAllowedMimeType || hasAllowedExtension) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV and PDF files are allowed'));
+      cb(new Error('Only CSV, PDF, and Excel files are allowed'));
     }
   }
 });
@@ -407,6 +419,68 @@ function extractFromPDF(pdfText) {
   });
 
   return data;
+}
+
+// Function to parse Excel membership data
+async function parseExcelData(filePath) {
+  try {
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+    
+    // Initialize membership counts
+    let totalMembers = 0;
+    let conciergeMembers = 0;
+    let corporateMembers = 0;
+    let individualMembers = 0;
+    let familyMembers = 0;
+    let familyConciergeMembers = 0;
+    let dripConciergeMembers = 0;
+    
+    // Process each row
+    data.forEach(row => {
+      totalMembers++;
+      
+      // Check membership type from various possible column names
+      const membershipType = (
+        row['Membership Type'] || 
+        row['Type'] || 
+        row['Plan'] || 
+        row['Membership'] ||
+        ''
+      ).toString().toLowerCase();
+      
+      if (membershipType.includes('individual')) {
+        individualMembers++;
+      } else if (membershipType.includes('family') && membershipType.includes('concierge')) {
+        familyConciergeMembers++;
+      } else if (membershipType.includes('family')) {
+        familyMembers++;
+      } else if (membershipType.includes('concierge') && membershipType.includes('drip')) {
+        dripConciergeMembers++;
+      } else if (membershipType.includes('concierge')) {
+        conciergeMembers++;
+      } else if (membershipType.includes('corporate')) {
+        corporateMembers++;
+      }
+    });
+    
+    return {
+      total_drip_iv_members: totalMembers,
+      individual_memberships: individualMembers,
+      family_memberships: familyMembers,
+      family_concierge_memberships: familyConciergeMembers,
+      drip_concierge_memberships: dripConciergeMembers,
+      concierge_memberships: conciergeMembers,
+      corporate_memberships: corporateMembers,
+      raw_data: data
+    };
+    
+  } catch (error) {
+    console.error('Error parsing Excel file:', error);
+    throw error;
+  }
 }
 
 function extractFromCSV(csvData) {
@@ -1492,6 +1566,66 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
       } else if (mimetype === 'application/pdf' || originalname.endsWith('.pdf')) {
         const pdfText = await parsePDFData(filePath);
         extractedData = extractAnalyticsData(pdfText, false);
+      } else if (originalname.endsWith('.xlsx') || originalname.endsWith('.xls') || 
+                 mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+                 mimetype === 'application/vnd.ms-excel') {
+        // Process Excel membership file
+        const membershipData = await parseExcelData(filePath);
+        
+        // For Excel files, we only have membership data, not full analytics
+        // Create a minimal data structure with just membership information
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of current week
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6); // End of current week
+        
+        extractedData = {
+          week_start_date: weekStart.toISOString().split('T')[0],
+          week_end_date: weekEnd.toISOString().split('T')[0],
+          total_drip_iv_members: membershipData.total_drip_iv_members,
+          individual_memberships: membershipData.individual_memberships,
+          family_memberships: membershipData.family_memberships,
+          family_concierge_memberships: membershipData.family_concierge_memberships,
+          drip_concierge_memberships: membershipData.drip_concierge_memberships,
+          concierge_memberships: membershipData.concierge_memberships,
+          corporate_memberships: membershipData.corporate_memberships,
+          // Set other fields to 0 or null for Excel-only uploads
+          drip_iv_weekday_weekly: 0,
+          drip_iv_weekend_weekly: 0,
+          semaglutide_consults_weekly: 0,
+          semaglutide_injections_weekly: 0,
+          hormone_followup_female_weekly: 0,
+          hormone_initial_male_weekly: 0,
+          drip_iv_weekday_monthly: 0,
+          drip_iv_weekend_monthly: 0,
+          semaglutide_consults_monthly: 0,
+          semaglutide_injections_monthly: 0,
+          hormone_followup_female_monthly: 0,
+          hormone_initial_male_monthly: 0,
+          actual_weekly_revenue: 0,
+          weekly_revenue_goal: 0,
+          actual_monthly_revenue: 0,
+          monthly_revenue_goal: 0,
+          drip_iv_revenue_weekly: 0,
+          semaglutide_revenue_weekly: 0,
+          drip_iv_revenue_monthly: 0,
+          semaglutide_revenue_monthly: 0,
+          marketing_initiatives: 0,
+          new_individual_members_weekly: 0,
+          new_family_members_weekly: 0,
+          new_concierge_members_weekly: 0,
+          new_corporate_members_weekly: 0,
+          days_left_in_month: 0
+        };
+        
+        console.log('Excel membership data processed:', {
+          totalMembers: membershipData.total_drip_iv_members,
+          individual: membershipData.individual_memberships,
+          family: membershipData.family_memberships,
+          concierge: membershipData.concierge_memberships,
+          corporate: membershipData.corporate_memberships
+        });
       } else {
         throw new Error('Unsupported file type');
       }
