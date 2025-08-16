@@ -1407,11 +1407,12 @@
         function updateDashboard(data) {
             // Debug: Log membership data to verify it's being received
             console.log('Dashboard Update - Membership Data:', {
-                total: data.total_drip_iv_members,
-                individual: data.individual_memberships,
-                family: data.family_memberships,
-                concierge: data.concierge_memberships,
-                corporate: data.corporate_memberships
+                total: data.total_drip_iv_members || 'undefined',
+                individual: data.individual_memberships || 'undefined',
+                family: data.family_memberships || 'undefined',
+                concierge: data.concierge_memberships || 'undefined',
+                corporate: data.corporate_memberships || 'undefined',
+                raw_data: data
             });
             
             // Update date ranges
@@ -1433,6 +1434,7 @@
             }
             
             // Update metric cards
+            console.log('Updating total-members with:', data.total_drip_iv_members || 0);
             updateElement('.total-members', data.total_drip_iv_members || 0);
             updateElement('.marketing-initiatives', data.marketing_initiatives || 0);
             updateElement('.concierge-memberships', data.concierge_memberships || 0);

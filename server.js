@@ -1454,7 +1454,7 @@ app.get('/api/dashboard', async (req, res) => {
       // No date filtering - get most recent record (default behavior)
       result = await pool.query(`
         SELECT * FROM analytics_data 
-        ORDER BY upload_date DESC 
+        ORDER BY week_start_date DESC 
         LIMIT 1
       `);
     }
@@ -1485,6 +1485,18 @@ app.get('/api/dashboard', async (req, res) => {
       });
     }
 
+    // Log membership data being sent
+    if (result.rows[0]) {
+      console.log('📊 Sending dashboard data with membership counts:', {
+        total_drip_iv_members: result.rows[0].total_drip_iv_members,
+        individual: result.rows[0].individual_memberships,
+        family: result.rows[0].family_memberships,
+        concierge: result.rows[0].concierge_memberships,
+        corporate: result.rows[0].corporate_memberships,
+        week: result.rows[0].week_start_date
+      });
+    }
+    
     res.json({
       success: true,
       data: result.rows[0]
