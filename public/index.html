@@ -1159,6 +1159,10 @@
         
         // Update dashboard with separated data (revenue/membership from latest, services from filtered)
         function updateDashboardWithSeparatedData(latestData, filteredData) {
+            // Debug log to check data
+            console.log('Separated Data - Latest:', latestData);
+            console.log('Separated Data - Filtered:', filteredData);
+            
             // Create a combined data object
             const combinedData = { ...filteredData };
             
@@ -1172,15 +1176,15 @@
             combinedData.drip_iv_revenue_monthly = latestData.drip_iv_revenue_monthly;
             combinedData.semaglutide_revenue_monthly = latestData.semaglutide_revenue_monthly;
             
-            // Override membership data with latest (unfiltered) values
-            combinedData.total_drip_iv_members = latestData.total_drip_iv_members;
-            combinedData.individual_memberships = latestData.individual_memberships;
-            combinedData.family_memberships = latestData.family_memberships;
-            combinedData.concierge_memberships = latestData.concierge_memberships;
-            combinedData.corporate_memberships = latestData.corporate_memberships;
-            combinedData.family_concierge_memberships = latestData.family_concierge_memberships;
-            combinedData.drip_concierge_memberships = latestData.drip_concierge_memberships;
-            combinedData.marketing_initiatives = latestData.marketing_initiatives;
+            // Override membership data with latest (unfiltered) values - ensure all fields are included
+            combinedData.total_drip_iv_members = latestData.total_drip_iv_members || 0;
+            combinedData.individual_memberships = latestData.individual_memberships || 0;
+            combinedData.family_memberships = latestData.family_memberships || 0;
+            combinedData.concierge_memberships = latestData.concierge_memberships || 0;
+            combinedData.corporate_memberships = latestData.corporate_memberships || 0;
+            combinedData.family_concierge_memberships = latestData.family_concierge_memberships || 0;
+            combinedData.drip_concierge_memberships = latestData.drip_concierge_memberships || 0;
+            combinedData.marketing_initiatives = latestData.marketing_initiatives || 0;
             
             // Override new member signups with latest (unfiltered) values
             combinedData.new_individual_members_weekly = latestData.new_individual_members_weekly;
@@ -1401,6 +1405,15 @@
         
         // Update dashboard with data
         function updateDashboard(data) {
+            // Debug: Log membership data to verify it's being received
+            console.log('Dashboard Update - Membership Data:', {
+                total: data.total_drip_iv_members,
+                individual: data.individual_memberships,
+                family: data.family_memberships,
+                concierge: data.concierge_memberships,
+                corporate: data.corporate_memberships
+            });
+            
             // Update date ranges
             if (data.week_start_date && data.week_end_date) {
                 const weekStart = new Date(data.week_start_date);
@@ -1455,14 +1468,21 @@
             updateElement('.monthly-progress-text', `${monthlyPercent}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)`);
             
             // Update membership counts - active totals
-            updateElement('.individual-members', data.individual_memberships || 0);
+            // Handle individual memberships (might need calculation if not provided)
+            const individualCount = data.individual_memberships !== undefined ? 
+                data.individual_memberships : 
+                (data.total_drip_iv_members ? 
+                    Math.max(0, data.total_drip_iv_members - (data.concierge_memberships || 0) - (data.corporate_memberships || 0)) : 
+                    0);
+            
+            updateElement('.individual-members', individualCount);
             updateElement('.family-members', data.family_memberships || 0);
             updateElement('.concierge-member-count', data.concierge_memberships || 0);
             updateElement('.corporate-member-count', data.corporate_memberships || 0);
             
-            // For combination memberships that are not tracked separately, show '--' with tooltip
-            updateElement('.family-concierge-members', data.family_concierge_memberships > 0 ? data.family_concierge_memberships : '--');
-            updateElement('.drip-concierge-members', data.drip_concierge_memberships > 0 ? data.drip_concierge_memberships : '--');
+            // For combination memberships that are not tracked separately, show '--' or 0
+            updateElement('.family-concierge-members', data.family_concierge_memberships || '--');
+            updateElement('.drip-concierge-members', data.drip_concierge_memberships || '--');
             
             // Update new weekly membership signups
             updateElement('.new-individual-members', data.new_individual_members_weekly || 0);
