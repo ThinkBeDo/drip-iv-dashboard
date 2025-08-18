@@ -1228,6 +1228,10 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.classList.add('active');
+                // Auto-hide after 10 seconds to prevent stuck overlay
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                }, 10000);
             }
         }
         
@@ -1236,6 +1240,10 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.classList.remove('active');
+                // Force hide with inline styles as fallback
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
             }
         }
         
@@ -1776,10 +1784,35 @@
         // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🌟 Drip IV Dashboard initializing...');
-            setupFileUpload();
-            addInteractiveEffects();
-            initializeDateFilters();
-            loadDashboardData();
+            
+            // Ensure main content is visible immediately
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.display = 'block';
+                mainContent.style.visibility = 'visible';
+                mainContent.style.opacity = '1';
+            }
+            
+            // Hide any stuck loading overlay from previous session
+            hideLoadingOverlay();
+            
+            try {
+                setupFileUpload();
+                addInteractiveEffects();
+                initializeDateFilters();
+                
+                // Load dashboard data with error handling
+                loadDashboardData().catch(error => {
+                    console.error('Failed to load initial dashboard data:', error);
+                    hideLoadingOverlay();
+                    // Ensure dashboard structure is visible even without data
+                    showNoDataState('Dashboard ready. Upload data to view analytics.');
+                });
+            } catch (error) {
+                console.error('Dashboard initialization error:', error);
+                hideLoadingOverlay();
+                showAlert('Dashboard initialized. Some features may be limited.', 'info');
+            }
         });
         
         // Auto-refresh data every 5 minutes (with current filters)
