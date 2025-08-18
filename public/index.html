@@ -16,6 +16,8 @@
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         .container {
@@ -24,7 +26,9 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.15);
-            overflow: hidden;
+            overflow: visible;
+            position: relative;
+            z-index: 1;
         }
         
         .header {
@@ -33,6 +37,8 @@
             padding: 40px 30px;
             text-align: center;
             position: relative;
+            max-height: none;
+            overflow: visible;
         }
         
         .header::before {
@@ -136,6 +142,7 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            margin-bottom: 20px;
         }
         
         .upload-button {
@@ -183,6 +190,9 @@
         
         .main-content {
             padding: 40px 30px;
+            position: relative;
+            z-index: 1;
+            background: white;
         }
         
         .metrics-grid {
@@ -236,6 +246,10 @@
         
         .section {
             margin-bottom: 50px;
+            display: block !important;
+            visibility: visible !important;
+            position: relative;
+            z-index: 1;
         }
         
         .section-title {
@@ -510,6 +524,8 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
         }
         
         .date-filter-controls {
@@ -671,7 +687,7 @@
             right: 0;
             bottom: 0;
             background: rgba(30, 60, 114, 0.9);
-            display: flex;
+            display: none; /* Changed from flex to none */
             justify-content: center;
             align-items: center;
             z-index: 9999;
@@ -681,6 +697,7 @@
         }
         
         .loading-overlay.active {
+            display: flex; /* Show flex when active */
             opacity: 1;
             visibility: visible;
         }
@@ -852,7 +869,7 @@
             </div>
         </div>
         
-        <div class="main-content">
+        <div class="main-content" style="display: block !important; visibility: visible !important;">
             <!-- Drip IV Wellness Memberships -->
             <div class="section">
                 <h2 class="section-title">🏆 Drip IV Wellness Memberships</h2>
