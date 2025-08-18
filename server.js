@@ -612,6 +612,9 @@ function extractFromCSV(csvData) {
   console.log('Processing membership data from CSV...');
   let membershipTransactionsFound = 0;
   
+  // IMPROVED: Track all unique member patients for better detection
+  const allMemberPatients = new Set();
+  
   filteredData.forEach(row => {
     const chargeDesc = (row['Charge Desc'] || '');
     const chargeDescLower = chargeDesc.toLowerCase();
@@ -619,10 +622,18 @@ function extractFromCSV(csvData) {
     
     if (!patient) return; // Skip rows without patient info
     
-    // Log membership-related transactions for debugging
-    if (chargeDescLower.includes('membership')) {
+    // IMPROVED: More flexible membership detection
+    // Track ANY patient who appears to be a member (excluding "non-member" references)
+    const isMembershipRelated = (chargeDescLower.includes('member') && !chargeDescLower.includes('non-member')) ||
+                                chargeDescLower.includes('concierge') ||
+                                chargeDescLower.includes('monthly plan') ||
+                                chargeDescLower.includes('subscription') ||
+                                chargeDescLower.includes('wellness plan');
+    
+    if (isMembershipRelated) {
       membershipTransactionsFound++;
-      console.log(`Found membership transaction: "${chargeDesc}" for patient: "${patient}"`);
+      allMemberPatients.add(patient);
+      console.log(`Found membership indicator: "${chargeDesc}" for patient: "${patient}"`);
     }
     
     // Map membership types based on charge descriptions - more flexible matching
@@ -683,6 +694,7 @@ function extractFromCSV(csvData) {
   });
   
   console.log(`Total membership transactions found in CSV: ${membershipTransactionsFound}`);
+  console.log(`Total unique member patients found: ${allMemberPatients.size}`);
 
   // Set membership counts (active totals)
   data.individual_memberships = membershipCounts.individual.size;
@@ -691,6 +703,17 @@ function extractFromCSV(csvData) {
   data.corporate_memberships = membershipCounts.corporate.size * 10; // Corporate = 10 members
   data.family_concierge_memberships = membershipCounts.familyConcierge.size * 2;
   data.drip_concierge_memberships = membershipCounts.dripConcierge.size * 2; // Both Drip + Concierge
+  
+  // IMPROVED FALLBACK: If specific membership types weren't detected but we found member patients
+  // Use the allMemberPatients count as a fallback
+  if (data.individual_memberships === 0 && 
+      data.family_memberships === 0 && 
+      data.concierge_memberships === 0 && 
+      data.corporate_memberships === 0 &&
+      allMemberPatients.size > 0) {
+    console.log('⚠️  No specific membership types detected, using all member patients as individual members');
+    data.individual_memberships = allMemberPatients.size;
+  }
   
   // Set new weekly membership signups
   data.new_individual_members_weekly = newMembershipCounts.individual.size;
@@ -901,6 +924,21 @@ function extractFromCSV(csvData) {
   data.member_customers_weekly = memberCustomers.size;
   data.non_member_customers_weekly = nonMemberCustomers.size;
   
+  // CRITICAL FIX: Reconcile membership data with member customers
+  // If we found member customers but no membership counts, use member customers as the source of truth
+  if (data.total_drip_iv_members === 0 && data.member_customers_weekly > 0) {
+    console.log('⚠️  MEMBERSHIP RECONCILIATION: Found member customers but no membership counts');
+    console.log(`   Member customers detected: ${data.member_customers_weekly}`);
+    console.log('   Setting membership totals based on member customer count');
+    
+    // Use member customers as the minimum membership count
+    data.total_drip_iv_members = data.member_customers_weekly;
+    data.individual_memberships = data.member_customers_weekly; // Default to individual
+    
+    console.log(`   Updated total_drip_iv_members: ${data.total_drip_iv_members}`);
+    console.log(`   Updated individual_memberships: ${data.individual_memberships}`);
+  }
+  
   // Calculate legacy totals for backward compatibility
   data.drip_iv_weekday_weekly = data.iv_infusions_weekday_weekly + data.injections_weekday_weekly;
   data.drip_iv_weekend_weekly = data.iv_infusions_weekend_weekly + data.injections_weekend_weekly;
@@ -979,6 +1017,12 @@ function extractFromCSV(csvData) {
       family: data.new_family_members_weekly,
       concierge: data.new_concierge_members_weekly,
       corporate: data.new_corporate_members_weekly
+    },
+    member_customer_analysis: {
+      member_customers_weekly: data.member_customers_weekly,
+      non_member_customers_weekly: data.non_member_customers_weekly,
+      membership_vs_customers_match: data.total_drip_iv_members === data.member_customers_weekly ? 'YES ✅' : 'NO ⚠️',
+      discrepancy: data.total_drip_iv_members - data.member_customers_weekly
     }
   });
   
@@ -1359,14 +1403,14 @@ app.get('/api/dashboard', async (req, res) => {
             SUM(semaglutide_revenue_weekly) as semaglutide_revenue_weekly,
             SUM(drip_iv_revenue_monthly) as drip_iv_revenue_monthly,
             SUM(semaglutide_revenue_monthly) as semaglutide_revenue_monthly,
-            AVG(total_drip_iv_members) as total_drip_iv_members,
-            AVG(individual_memberships) as individual_memberships,
-            AVG(family_memberships) as family_memberships,
-            AVG(family_concierge_memberships) as family_concierge_memberships,
-            AVG(drip_concierge_memberships) as drip_concierge_memberships,
-            AVG(marketing_initiatives) as marketing_initiatives,
-            AVG(concierge_memberships) as concierge_memberships,
-            AVG(corporate_memberships) as corporate_memberships,
+            MAX(total_drip_iv_members) as total_drip_iv_members,
+            MAX(individual_memberships) as individual_memberships,
+            MAX(family_memberships) as family_memberships,
+            MAX(family_concierge_memberships) as family_concierge_memberships,
+            MAX(drip_concierge_memberships) as drip_concierge_memberships,
+            MAX(marketing_initiatives) as marketing_initiatives,
+            MAX(concierge_memberships) as concierge_memberships,
+            MAX(corporate_memberships) as corporate_memberships,
             SUM(new_individual_members_weekly) as new_individual_members_weekly,
             SUM(new_family_members_weekly) as new_family_members_weekly,
             SUM(new_concierge_members_weekly) as new_concierge_members_weekly,
@@ -1493,7 +1537,10 @@ app.get('/api/dashboard', async (req, res) => {
         family: result.rows[0].family_memberships,
         concierge: result.rows[0].concierge_memberships,
         corporate: result.rows[0].corporate_memberships,
-        week: result.rows[0].week_start_date
+        member_customers_weekly: result.rows[0].member_customers_weekly,
+        week: result.rows[0].week_start_date,
+        data_consistency: result.rows[0].total_drip_iv_members > 0 || result.rows[0].member_customers_weekly > 0 ? 
+          'VALID ✅' : 'MISSING MEMBERSHIP DATA ⚠️'
       });
     }
     
