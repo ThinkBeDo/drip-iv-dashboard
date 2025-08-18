@@ -1,0 +1,26 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.pgweb"
+  },
+  "deploy": {
+    "startCommand": "sh -c \"pgweb --bind=0.0.0.0 --listen=${PORT:-8081} --url=\\\"${PGWEB_DATABASE_URL:-$DATABASE_URL}\\\"\"",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 30
+  },
+  "environments": {
+    "production": {
+      "build": {
+        "dockerfilePath": "Dockerfile.pgweb"
+      },
+      "deploy": {
+        "startCommand": "sh -c \"pgweb --bind=0.0.0.0 --listen=${PORT:-8081} --url=\\\"${PGWEB_DATABASE_URL:-$DATABASE_URL}\\\"\"",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 3
+      }
+    }
+  }
+}

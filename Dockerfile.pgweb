@@ -1,0 +1,40 @@
+# Use the official pgweb image
+FROM sosedoff/pgweb:latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy the start script if it exists
+COPY start-pgweb.sh* ./
+
+# Make the script executable if it exists
+RUN if [ -f start-pgweb.sh ]; then chmod +x start-pgweb.sh; fi
+
+# Expose the port (Railway will override this with PORT env var)
+EXPOSE 8081
+
+# Set environment variables for pgweb
+# Railway provides DATABASE_URL, but pgweb needs PGWEB_DATABASE_URL
+ENV PGWEB_DATABASE_URL=$DATABASE_URL
+
+# Enable read-only mode for safety
+ENV PGWEB_READONLY=1
+
+# Bind to all interfaces (required for Railway)
+ENV PGWEB_BIND=0.0.0.0
+
+# Use Railway's PORT variable (defaults to 8081 if not set)
+ENV PGWEB_LISTEN=8081
+
+# Disable SSL mode for internal connections (Railway handles SSL at the edge)
+ENV PGWEB_SSL_MODE=disable
+
+# Set session timeout to 12 hours
+ENV PGWEB_SESSION_TIMEOUT=43200
+
+# Enable bookmarks
+ENV PGWEB_BOOKMARKS=1
+
+# Set the default command
+# Use shell form to allow environment variable substitution
+CMD sh -c "pgweb --bind=0.0.0.0 --listen=${PORT:-8081} --url=\"${PGWEB_DATABASE_URL:-$DATABASE_URL}\""
