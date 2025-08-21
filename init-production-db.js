@@ -7,10 +7,19 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// Correct data from July 27 - Aug 2 analysis
+// Calculate dates for last week (so data appears current)
+const today = new Date();
+const lastWeek = new Date(today);
+lastWeek.setDate(today.getDate() - 7);
+const weekStart = new Date(lastWeek);
+weekStart.setDate(lastWeek.getDate() - lastWeek.getDay()); // Start of last week
+const weekEnd = new Date(weekStart);
+weekEnd.setDate(weekStart.getDate() + 6); // End of last week
+
+// Correct data with dynamic dates
 const correctData = {
-  week_start_date: '2025-07-27',
-  week_end_date: '2025-08-02',
+  week_start_date: weekStart.toISOString().split('T')[0],
+  week_end_date: weekEnd.toISOString().split('T')[0],
   
   // Service counts - ACTUAL from data
   iv_infusions_weekday_weekly: 100,

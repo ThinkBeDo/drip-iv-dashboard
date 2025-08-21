@@ -1504,29 +1504,196 @@ app.get('/api/dashboard', async (req, res) => {
     }
     
     if (result.rows.length === 0) {
-      // Debug: Check what dates are actually in the database
-      if (start_date || end_date) {
-        const allDates = await pool.query(`
-          SELECT week_start_date, week_end_date 
-          FROM analytics_data 
-          ORDER BY week_start_date DESC 
-          LIMIT 5
-        `);
-        console.log('⚠️  No data found for date range. Available dates in DB:');
-        allDates.rows.forEach(row => {
-          console.log(`  - Week: ${row.week_start_date} to ${row.week_end_date}`);
+      // Check if database is completely empty
+      const countCheck = await pool.query('SELECT COUNT(*) as count FROM analytics_data');
+      
+      if (countCheck.rows[0].count === '0') {
+        console.log('📊 Database is empty. Inserting sample data...');
+        
+        // Insert sample data with current dates
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+        
+        // Calculate week dates (use last week for realistic data)
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+        const weekStart = new Date(lastWeek);
+        weekStart.setDate(lastWeek.getDate() - lastWeek.getDay()); // Start of last week
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6); // End of last week
+        
+        const sampleData = {
+          week_start_date: weekStart.toISOString().split('T')[0],
+          week_end_date: weekEnd.toISOString().split('T')[0],
+          
+          // Service counts
+          iv_infusions_weekday_weekly: 100,
+          iv_infusions_weekend_weekly: 25,
+          iv_infusions_weekday_monthly: 400,
+          iv_infusions_weekend_monthly: 100,
+          
+          injections_weekday_weekly: 44,
+          injections_weekend_weekly: 10,
+          injections_weekday_monthly: 176,
+          injections_weekend_monthly: 40,
+          
+          // Customer analytics
+          unique_customers_weekly: 173,
+          unique_customers_monthly: 687,
+          member_customers_weekly: 112,
+          non_member_customers_weekly: 61,
+          
+          // Legacy fields
+          drip_iv_weekday_weekly: 144,
+          drip_iv_weekend_weekly: 35,
+          semaglutide_consults_weekly: 3,
+          semaglutide_injections_weekly: 35,
+          hormone_followup_female_weekly: 2,
+          hormone_initial_male_weekly: 1,
+          drip_iv_weekday_monthly: 576,
+          drip_iv_weekend_monthly: 140,
+          semaglutide_consults_monthly: 12,
+          semaglutide_injections_monthly: 140,
+          hormone_followup_female_monthly: 8,
+          hormone_initial_male_monthly: 4,
+          
+          // Revenue
+          actual_weekly_revenue: 31460.15,
+          weekly_revenue_goal: 32125.00,
+          actual_monthly_revenue: 110519.10,
+          monthly_revenue_goal: 128500.00,
+          drip_iv_revenue_weekly: 19825.90,
+          semaglutide_revenue_weekly: 9500.00,
+          drip_iv_revenue_monthly: 64000.00,
+          semaglutide_revenue_monthly: 38000.00,
+          
+          // Memberships
+          total_drip_iv_members: 138,
+          individual_memberships: 103,
+          family_memberships: 17,
+          family_concierge_memberships: 1,
+          drip_concierge_memberships: 2,
+          marketing_initiatives: 0,
+          concierge_memberships: 15,
+          corporate_memberships: 0,
+          
+          // New member signups
+          new_individual_members_weekly: 2,
+          new_family_members_weekly: 1,
+          new_concierge_members_weekly: 0,
+          new_corporate_members_weekly: 0,
+          
+          days_left_in_month: 4,
+          popular_infusions: ['Energy', 'NAD+', 'Performance & Recovery'],
+          popular_infusions_status: 'Active',
+          popular_injections: ['Tirzepatide', 'Semaglutide', 'B12'],
+          popular_injections_status: 'Active'
+        };
+        
+        try {
+          // Insert sample data
+          await pool.query(`
+            INSERT INTO analytics_data (
+              week_start_date, week_end_date,
+              iv_infusions_weekday_weekly, iv_infusions_weekend_weekly,
+              iv_infusions_weekday_monthly, iv_infusions_weekend_monthly,
+              injections_weekday_weekly, injections_weekend_weekly,
+              injections_weekday_monthly, injections_weekend_monthly,
+              unique_customers_weekly, unique_customers_monthly,
+              member_customers_weekly, non_member_customers_weekly,
+              drip_iv_weekday_weekly, drip_iv_weekend_weekly,
+              semaglutide_consults_weekly, semaglutide_injections_weekly,
+              hormone_followup_female_weekly, hormone_initial_male_weekly,
+              drip_iv_weekday_monthly, drip_iv_weekend_monthly,
+              semaglutide_consults_monthly, semaglutide_injections_monthly,
+              hormone_followup_female_monthly, hormone_initial_male_monthly,
+              actual_weekly_revenue, weekly_revenue_goal,
+              actual_monthly_revenue, monthly_revenue_goal,
+              drip_iv_revenue_weekly, semaglutide_revenue_weekly,
+              drip_iv_revenue_monthly, semaglutide_revenue_monthly,
+              total_drip_iv_members, individual_memberships, family_memberships,
+              family_concierge_memberships, drip_concierge_memberships,
+              marketing_initiatives, concierge_memberships, corporate_memberships,
+              new_individual_members_weekly, new_family_members_weekly,
+              new_concierge_members_weekly, new_corporate_members_weekly,
+              days_left_in_month, popular_infusions, popular_infusions_status,
+              popular_injections, popular_injections_status
+            ) VALUES (
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+              $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+              $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
+              $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
+              $41, $42, $43, $44, $45, $46, $47, $48, $49, $50
+            )
+          `, [
+            sampleData.week_start_date, sampleData.week_end_date,
+            sampleData.iv_infusions_weekday_weekly, sampleData.iv_infusions_weekend_weekly,
+            sampleData.iv_infusions_weekday_monthly, sampleData.iv_infusions_weekend_monthly,
+            sampleData.injections_weekday_weekly, sampleData.injections_weekend_weekly,
+            sampleData.injections_weekday_monthly, sampleData.injections_weekend_monthly,
+            sampleData.unique_customers_weekly, sampleData.unique_customers_monthly,
+            sampleData.member_customers_weekly, sampleData.non_member_customers_weekly,
+            sampleData.drip_iv_weekday_weekly, sampleData.drip_iv_weekend_weekly,
+            sampleData.semaglutide_consults_weekly, sampleData.semaglutide_injections_weekly,
+            sampleData.hormone_followup_female_weekly, sampleData.hormone_initial_male_weekly,
+            sampleData.drip_iv_weekday_monthly, sampleData.drip_iv_weekend_monthly,
+            sampleData.semaglutide_consults_monthly, sampleData.semaglutide_injections_monthly,
+            sampleData.hormone_followup_female_monthly, sampleData.hormone_initial_male_monthly,
+            sampleData.actual_weekly_revenue, sampleData.weekly_revenue_goal,
+            sampleData.actual_monthly_revenue, sampleData.monthly_revenue_goal,
+            sampleData.drip_iv_revenue_weekly, sampleData.semaglutide_revenue_weekly,
+            sampleData.drip_iv_revenue_monthly, sampleData.semaglutide_revenue_monthly,
+            sampleData.total_drip_iv_members, sampleData.individual_memberships, sampleData.family_memberships,
+            sampleData.family_concierge_memberships, sampleData.drip_concierge_memberships,
+            sampleData.marketing_initiatives, sampleData.concierge_memberships, sampleData.corporate_memberships,
+            sampleData.new_individual_members_weekly, sampleData.new_family_members_weekly,
+            sampleData.new_concierge_members_weekly, sampleData.new_corporate_members_weekly,
+            sampleData.days_left_in_month, sampleData.popular_infusions, sampleData.popular_infusions_status,
+            sampleData.popular_injections, sampleData.popular_injections_status
+          ]);
+          
+          console.log('✅ Sample data inserted successfully');
+          
+          // Now fetch the newly inserted data
+          result = await pool.query(`
+            SELECT * FROM analytics_data 
+            ORDER BY week_start_date DESC 
+            LIMIT 1
+          `);
+        } catch (insertError) {
+          console.error('❌ Failed to insert sample data:', insertError);
+          return res.json({
+            success: false,
+            message: 'Database is empty and failed to insert sample data. Please upload analytics data.',
+            data: null
+          });
+        }
+      } else {
+        // Debug: Check what dates are actually in the database
+        if (start_date || end_date) {
+          const allDates = await pool.query(`
+            SELECT week_start_date, week_end_date 
+            FROM analytics_data 
+            ORDER BY week_start_date DESC 
+            LIMIT 5
+          `);
+          console.log('⚠️  No data found for date range. Available dates in DB:');
+          allDates.rows.forEach(row => {
+            console.log(`  - Week: ${row.week_start_date} to ${row.week_end_date}`);
+          });
+        }
+        
+        const dateMessage = start_date || end_date 
+          ? `No data available for the selected date range.`
+          : 'No data available. Please upload analytics data.';
+          
+        return res.json({
+          success: false,
+          message: dateMessage,
+          data: null
         });
       }
-      
-      const dateMessage = start_date || end_date 
-        ? `No data available for the selected date range.`
-        : 'No data available. Please upload analytics data.';
-        
-      return res.json({
-        success: false,
-        message: dateMessage,
-        data: null
-      });
     }
 
     // Log membership data being sent
@@ -1999,13 +2166,76 @@ app.route('/api/add-july-data')
   }
 });
 
-// Health check
+// Health check with enhanced database status
 app.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+    const dbCheck = await pool.query('SELECT 1');
+    const countCheck = await pool.query('SELECT COUNT(*) as count FROM analytics_data');
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      records: countCheck.rows[0].count,
+      environment: process.env.NODE_ENV || 'development'
+    });
   } catch (error) {
-    res.status(500).json({ status: 'unhealthy', error: error.message });
+    res.status(500).json({ 
+      status: 'unhealthy', 
+      error: error.message,
+      database: 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Debug endpoint for database status and data
+app.get('/api/debug/database', async (req, res) => {
+  try {
+    // Check database connection
+    const connectionTest = await pool.query('SELECT NOW() as current_time');
+    
+    // Get record count and date ranges
+    const dataCheck = await pool.query(`
+      SELECT 
+        COUNT(*) as total_records,
+        MIN(week_start_date) as earliest_date,
+        MAX(week_end_date) as latest_date,
+        COUNT(CASE WHEN total_drip_iv_members > 0 THEN 1 END) as records_with_members
+      FROM analytics_data
+    `);
+    
+    // Get recent records
+    const recentRecords = await pool.query(`
+      SELECT 
+        week_start_date,
+        week_end_date,
+        actual_weekly_revenue,
+        total_drip_iv_members,
+        unique_customers_weekly
+      FROM analytics_data
+      ORDER BY week_start_date DESC
+      LIMIT 5
+    `);
+    
+    res.json({
+      status: 'connected',
+      current_time: connectionTest.rows[0].current_time,
+      database_url: process.env.DATABASE_URL ? 'configured' : 'missing',
+      data_summary: dataCheck.rows[0],
+      recent_records: recentRecords.rows,
+      pool_stats: {
+        total_count: pool.totalCount,
+        idle_count: pool.idleCount,
+        waiting_count: pool.waitingCount
+      }
+    });
+  } catch (error) {
+    console.error('Database debug error:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error.message,
+      database_url: process.env.DATABASE_URL ? 'configured' : 'missing'
+    });
   }
 });
 

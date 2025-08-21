@@ -1,7 +1,8 @@
 -- Test data for missing weeks in Drip IV Dashboard
 -- This SQL can be executed in your Railway PostgreSQL database
+-- Using current year dates (2024)
 
--- Week 1: July 1-7, 2025
+-- Week 1: July 1-7, 2024
 INSERT INTO analytics_data (
   week_start_date, week_end_date,
   actual_weekly_revenue, weekly_revenue_goal,
@@ -18,7 +19,7 @@ INSERT INTO analytics_data (
   member_customers_weekly, non_member_customers_weekly,
   upload_date
 ) VALUES (
-  '2025-07-01', '2025-07-07',
+  '2024-07-01', '2024-07-07',
   28500, 32000, 114000, 128000,
   17100, 11400, 68400, 45600,
   42, 18, 168, 72,
@@ -28,7 +29,7 @@ INSERT INTO analytics_data (
   NOW()
 );
 
--- Week 2: July 8-14, 2025
+-- Week 2: July 8-14, 2024
 INSERT INTO analytics_data (
   week_start_date, week_end_date,
   actual_weekly_revenue, weekly_revenue_goal,
@@ -45,7 +46,7 @@ INSERT INTO analytics_data (
   member_customers_weekly, non_member_customers_weekly,
   upload_date
 ) VALUES (
-  '2025-07-08', '2025-07-14',
+  '2024-07-08', '2024-07-14',
   31200, 32000, 124800, 128000,
   18720, 12480, 74880, 49920,
   45, 20, 180, 80,
@@ -55,7 +56,7 @@ INSERT INTO analytics_data (
   NOW()
 );
 
--- Week 3: July 15-21, 2025
+-- Week 3: July 15-21, 2024
 INSERT INTO analytics_data (
   week_start_date, week_end_date,
   actual_weekly_revenue, weekly_revenue_goal,
@@ -72,7 +73,7 @@ INSERT INTO analytics_data (
   member_customers_weekly, non_member_customers_weekly,
   upload_date
 ) VALUES (
-  '2025-07-15', '2025-07-21',
+  '2024-07-15', '2024-07-21',
   29800, 32000, 119200, 128000,
   17880, 11920, 71520, 47680,
   48, 22, 192, 88,
@@ -82,7 +83,7 @@ INSERT INTO analytics_data (
   NOW()
 );
 
--- Week 4: July 22-28, 2025
+-- Week 4: July 22-28, 2024
 INSERT INTO analytics_data (
   week_start_date, week_end_date,
   actual_weekly_revenue, weekly_revenue_goal,
@@ -99,7 +100,7 @@ INSERT INTO analytics_data (
   member_customers_weekly, non_member_customers_weekly,
   upload_date
 ) VALUES (
-  '2025-07-22', '2025-07-28',
+  '2024-07-22', '2024-07-28',
   32500, 32000, 130000, 128000,
   19500, 13000, 78000, 52000,
   50, 25, 200, 100,

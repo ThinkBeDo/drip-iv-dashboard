@@ -500,6 +500,24 @@
             color: white;
         }
         
+        .debug-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .debug-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
         .alert.success {
             background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
             color: white;
@@ -1115,6 +1133,26 @@
             aggregate: false
         };
         
+        // Check database health
+        async function checkDatabaseHealth() {
+            try {
+                const response = await fetch('/health');
+                const health = await response.json();
+                
+                if (health.status === 'unhealthy') {
+                    showAlert('Database connection issue detected. Please check the connection.', 'error');
+                    return false;
+                } else if (health.records === 0) {
+                    showAlert('Database is empty. Sample data will be created automatically.', 'info');
+                }
+                return true;
+            } catch (error) {
+                console.error('Health check failed:', error);
+                showAlert('Unable to connect to server. Please check if the server is running.', 'error');
+                return false;
+            }
+        }
+        
         // Load dashboard data with optional date filtering
         async function loadDashboardData(startDate = null, endDate = null, aggregate = false, showLoading = true) {
             try {
@@ -1165,7 +1203,28 @@
                 }
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
-                showAlert('Failed to load dashboard data. Please try again.', 'error');
+                
+                // More detailed error handling
+                if (error.message.includes('Failed to fetch')) {
+                    showAlert('Cannot connect to server. Please ensure the server is running.', 'error');
+                    
+                    // Try to get debug info
+                    setTimeout(async () => {
+                        try {
+                            const debugResponse = await fetch('/api/debug/database');
+                            const debug = await debugResponse.json();
+                            console.log('Database debug info:', debug);
+                            
+                            if (debug.status === 'error') {
+                                showAlert(`Database error: ${debug.error}. Check DATABASE_URL configuration.`, 'error');
+                            }
+                        } catch (debugError) {
+                            console.error('Debug endpoint not available');
+                        }
+                    }, 1000);
+                } else {
+                    showAlert(`Error loading data: ${error.message}. Please refresh and try again.`, 'error');
+                }
             } finally {
                 // Hide loading overlay
                 if (showLoading) {
@@ -1801,12 +1860,29 @@
                 addInteractiveEffects();
                 initializeDateFilters();
                 
-                // Load dashboard data with error handling
-                loadDashboardData().catch(error => {
-                    console.error('Failed to load initial dashboard data:', error);
-                    hideLoadingOverlay();
-                    // Ensure dashboard structure is visible even without data
-                    showNoDataState('Dashboard ready. Upload data to view analytics.');
+                // First check database health
+                checkDatabaseHealth().then(isHealthy => {
+                    if (isHealthy) {
+                        // Load dashboard data with error handling
+                        loadDashboardData().catch(error => {
+                            console.error('Failed to load initial dashboard data:', error);
+                            hideLoadingOverlay();
+                            // Ensure dashboard structure is visible even without data
+                            showNoDataState('Dashboard ready. Upload data to view analytics.');
+                        });
+                    } else {
+                        // Show database status button
+                        const statusBtn = document.createElement('button');
+                        statusBtn.textContent = 'Check Database Status';
+                        statusBtn.className = 'debug-button';
+                        statusBtn.onclick = async () => {
+                            const response = await fetch('/api/debug/database');
+                            const debug = await response.json();
+                            console.log('Database Status:', debug);
+                            alert('Database status logged to console. Check browser console for details.');
+                        };
+                        document.querySelector('.header').appendChild(statusBtn);
+                    }
                 });
             } catch (error) {
                 console.error('Dashboard initialization error:', error);
