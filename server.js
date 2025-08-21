@@ -1495,12 +1495,26 @@ app.get('/api/dashboard', async (req, res) => {
         console.log(`📊 Query returned ${result.rows.length} rows`);
       }
     } else {
-      // No date filtering - get most recent record (default behavior)
+      // No date filtering - get most recent record with meaningful data
+      // First try to get the most recent record with membership data
       result = await pool.query(`
         SELECT * FROM analytics_data 
+        WHERE total_drip_iv_members > 0 OR actual_weekly_revenue > 1000
         ORDER BY week_start_date DESC 
         LIMIT 1
       `);
+      
+      // If no records with membership data, fall back to most recent record
+      if (result.rows.length === 0) {
+        console.log('⚠️ No records with membership data found, falling back to most recent record');
+        result = await pool.query(`
+          SELECT * FROM analytics_data 
+          ORDER BY week_start_date DESC 
+          LIMIT 1
+        `);
+      } else {
+        console.log(`✅ Loading dashboard data from week with members: ${result.rows[0].week_start_date}`);
+      }
     }
     
     if (result.rows.length === 0) {
