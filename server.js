@@ -1513,7 +1513,7 @@ app.get('/api/dashboard', async (req, res) => {
           LIMIT 1
         `);
       } else {
-        console.log(`✅ Loading dashboard data from week with members: ${result.rows[0].week_start_date}`);
+        console.log(`✅ Loading dashboard data from week with ${result.rows[0].total_drip_iv_members} members: ${result.rows[0].week_start_date}`);
       }
     }
     
