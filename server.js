@@ -1496,7 +1496,8 @@ app.get('/api/dashboard', async (req, res) => {
       }
     } else {
       // No date filtering - get most recent record with meaningful data
-      // First try to get the most recent record with membership data
+      // ALWAYS prioritize records with membership data
+      console.log('🔍 Fetching dashboard data - prioritizing records with members...');
       result = await pool.query(`
         SELECT * FROM analytics_data 
         WHERE total_drip_iv_members > 0 OR actual_weekly_revenue > 1000
