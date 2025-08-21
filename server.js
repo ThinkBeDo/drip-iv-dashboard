@@ -20,7 +20,7 @@ let pool;
 
 if (process.env.DATABASE_URL) {
   // PostgreSQL for production and development
-  console.log('🐘 Connecting to PostgreSQL database...');
+  console.log('🐘 Connecting to PostgreSQL database... v2.0 with membership data fix');
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
