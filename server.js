@@ -1306,6 +1306,81 @@ app.post('/api/fix-week-dates', async (req, res) => {
   }
 });
 
+// Version endpoint to verify deployment
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '2.0.0',
+    deployment: 'membership-fix-2024',
+    timestamp: new Date().toISOString(),
+    features: {
+      membershipEndpoint: true,
+      priorityScoring: true,
+      separateDataStreams: true
+    }
+  });
+});
+
+// Get membership data - always returns most recent record with members
+app.get('/api/membership', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({
+        success: false,
+        error: 'Database connection not available'
+      });
+    }
+
+    console.log('📊 Fetching membership data...');
+    
+    // Get the most recent record with membership data
+    const result = await pool.query(`
+      SELECT 
+        week_start_date,
+        week_end_date,
+        total_drip_iv_members,
+        individual_memberships,
+        family_memberships,
+        concierge_memberships,
+        corporate_memberships,
+        family_concierge_memberships,
+        drip_concierge_memberships,
+        new_individual_members_weekly,
+        new_family_members_weekly,
+        new_concierge_members_weekly,
+        new_corporate_members_weekly,
+        member_customers_weekly,
+        non_member_customers_weekly
+      FROM analytics_data 
+      WHERE total_drip_iv_members > 0
+      ORDER BY week_start_date DESC 
+      LIMIT 1
+    `);
+
+    if (result.rows.length === 0) {
+      console.log('⚠️ No membership data found in database');
+      return res.json({
+        success: false,
+        message: 'No membership data available',
+        data: null
+      });
+    }
+
+    console.log(`✅ Membership data found: ${result.rows[0].total_drip_iv_members} total members`);
+    
+    res.json({
+      success: true,
+      data: result.rows[0],
+      source: 'most_recent_with_members'
+    });
+  } catch (error) {
+    console.error('Error fetching membership data:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch membership data' 
+    });
+  }
+});
+
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -1495,26 +1570,31 @@ app.get('/api/dashboard', async (req, res) => {
         console.log(`📊 Query returned ${result.rows.length} rows`);
       }
     } else {
-      // No date filtering - get most recent record with meaningful data
-      // ALWAYS prioritize records with membership data
-      console.log('🔍 Fetching dashboard data - prioritizing records with members...');
+      // No date filtering - use priority scoring to get best record
+      console.log('🔍 Fetching dashboard data with priority scoring...');
+      
+      // Priority scoring: Prefer records with membership data, then most recent
       result = await pool.query(`
-        SELECT * FROM analytics_data 
-        WHERE total_drip_iv_members > 0 OR actual_weekly_revenue > 1000
-        ORDER BY week_start_date DESC 
+        WITH scored_data AS (
+          SELECT *,
+            CASE 
+              WHEN total_drip_iv_members > 0 THEN 1000000
+              WHEN actual_weekly_revenue > 5000 THEN 500000
+              WHEN actual_weekly_revenue > 1000 THEN 100000
+              ELSE 0
+            END + EXTRACT(EPOCH FROM week_start_date) AS priority_score
+          FROM analytics_data
+        )
+        SELECT * FROM scored_data
+        ORDER BY priority_score DESC
         LIMIT 1
       `);
       
-      // If no records with membership data, fall back to most recent record
       if (result.rows.length === 0) {
-        console.log('⚠️ No records with membership data found, falling back to most recent record');
-        result = await pool.query(`
-          SELECT * FROM analytics_data 
-          ORDER BY week_start_date DESC 
-          LIMIT 1
-        `);
+        console.log('⚠️ No data found in database');
       } else {
-        console.log(`✅ Loading dashboard data from week with ${result.rows[0].total_drip_iv_members} members: ${result.rows[0].week_start_date}`);
+        const data = result.rows[0];
+        console.log(`✅ Loading dashboard data: Week ${data.week_start_date} with ${data.total_drip_iv_members} members, $${data.actual_weekly_revenue} revenue`);
       }
     }
     

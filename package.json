@@ -1,13 +1,14 @@
 {
   "name": "drip-iv-dashboard",
-  "version": "1.0.1",
-  "description": "Drip IV Wellness Center Analytics Dashboard",
+  "version": "2.0.0",
+  "description": "Drip IV Wellness Center Analytics Dashboard - Membership Fix",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --max-old-space-size=512 server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'Build complete'",
-    "test": "echo 'No tests specified'"
+    "build": "echo 'Build complete - v2.0.0 with membership fix'",
+    "test": "echo 'No tests specified'",
+    "postinstall": "echo 'Dependencies installed for v2.0.0'"
   },
   "dependencies": {
     "axios": "^1.11.0",

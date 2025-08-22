@@ -903,6 +903,7 @@
                     <div class="summary-card" style="background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 25px;">
                         <div style="font-size: 3rem; font-weight: bold;" class="total-members">--</div>
                         <div style="font-size: 1.2rem; opacity: 0.95;">Total Active Members</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 5px;" class="membership-data-source">Loading...</div>
                     </div>
                 </div>
                 
@@ -1155,6 +1156,79 @@
                 console.error('Health check failed:', error);
                 showAlert('Unable to connect to server. Please check if the server is running.', 'error');
                 return false;
+            }
+        }
+        
+        // Fetch membership data separately
+        async function loadMembershipData() {
+            try {
+                console.log('📊 Loading membership data...');
+                const response = await fetch('/api/membership');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    console.log('✅ Membership data loaded:', {
+                        total: result.data.total_drip_iv_members,
+                        individual: result.data.individual_memberships,
+                        family: result.data.family_memberships,
+                        source: result.source
+                    });
+                    
+                    // Update membership UI
+                    updateMembershipDisplay(result.data);
+                    return true;
+                } else {
+                    console.log('⚠️ No membership data available');
+                    updateMembershipDisplay(null);
+                    return false;
+                }
+            } catch (error) {
+                console.error('Failed to load membership data:', error);
+                updateMembershipDisplay(null);
+                return false;
+            }
+        }
+        
+        // Update membership display
+        function updateMembershipDisplay(data) {
+            if (data) {
+                // Update membership counts
+                updateElement('.total-members', data.total_drip_iv_members || 0);
+                updateElement('.individual-members', data.individual_memberships || 0);
+                updateElement('.family-members', data.family_memberships || 0);
+                updateElement('.concierge-member-count', data.concierge_memberships || 0);
+                updateElement('.corporate-member-count', data.corporate_memberships || 0);
+                updateElement('.family-concierge-members', data.family_concierge_memberships || 0);
+                updateElement('.drip-concierge-members', data.drip_concierge_memberships || 0);
+                
+                // Update new member signups
+                updateElement('.new-individual-members', data.new_individual_members_weekly || 0);
+                updateElement('.new-family-members', data.new_family_members_weekly || 0);
+                updateElement('.new-concierge-members', data.new_concierge_members_weekly || 0);
+                updateElement('.new-corporate-members', data.new_corporate_members_weekly || 0);
+                
+                // Update member customers
+                updateElement('.member-customers-weekly', data.member_customers_weekly || 0);
+                updateElement('.non-member-customers-weekly', data.non_member_customers_weekly || 0);
+                
+                // Add membership data source indicator
+                const membershipDate = data.week_start_date ? 
+                    `Data from: ${new Date(data.week_start_date).toLocaleDateString()}` : '';
+                updateElement('.membership-data-source', membershipDate);
+            } else {
+                // Set all to zero if no data
+                updateElement('.total-members', '0');
+                updateElement('.individual-members', '0');
+                updateElement('.family-members', '0');
+                updateElement('.concierge-member-count', '0');
+                updateElement('.corporate-member-count', '0');
+                updateElement('.family-concierge-members', '0');
+                updateElement('.drip-concierge-members', '0');
+                updateElement('.new-individual-members', '0');
+                updateElement('.new-family-members', '0');
+                updateElement('.new-concierge-members', '0');
+                updateElement('.new-corporate-members', '0');
+                updateElement('.membership-data-source', 'No membership data available');
             }
         }
         
@@ -1879,8 +1953,22 @@
                 initializeDateFilters();
                 
                 // First check database health
-                checkDatabaseHealth().then(isHealthy => {
+                checkDatabaseHealth().then(async isHealthy => {
                     if (isHealthy) {
+                        // Check deployment version
+                        try {
+                            const versionResponse = await fetch('/api/version');
+                            const version = await versionResponse.json();
+                            console.log('🚀 Deployment version:', version);
+                        } catch (error) {
+                            console.log('⚠️ Version endpoint not available (old deployment)');
+                        }
+                        
+                        // Load membership data separately (independent of weekly data)
+                        loadMembershipData().then(hasMembership => {
+                            console.log('Membership data loaded:', hasMembership);
+                        });
+                        
                         // Load dashboard data with error handling
                         loadDashboardData().catch(error => {
                             console.error('Failed to load initial dashboard data:', error);
