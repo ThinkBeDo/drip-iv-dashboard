@@ -2334,6 +2334,174 @@ app.get('/api/debug/database', async (req, res) => {
   }
 });
 
+// Import membership Excel file and update database with membership counts
+app.post('/api/import-membership-excel', upload.single('membershipFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'Membership Excel file is required' 
+      });
+    }
+
+    console.log(`📊 Processing membership Excel: ${req.file.originalname}`);
+    
+    // Read Excel file
+    const workbook = XLSX.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+    
+    console.log(`Found ${data.length} membership records`);
+    
+    // Process membership data
+    const membershipsByWeek = processMembershipData(data);
+    
+    // Update database for each week
+    let updatedWeeks = 0;
+    for (const [weekKey, weekData] of Object.entries(membershipsByWeek)) {
+      const { start_date, end_date, memberships } = weekData;
+      
+      // Check if record exists
+      const existing = await pool.query(
+        'SELECT id FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
+        [start_date, end_date]
+      );
+      
+      if (existing.rows.length > 0) {
+        // Update existing record with membership data
+        await pool.query(`
+          UPDATE analytics_data SET
+            total_drip_iv_members = $3,
+            individual_memberships = $4,
+            family_memberships = $5,
+            concierge_memberships = $6,
+            corporate_memberships = $7,
+            family_concierge_memberships = $8,
+            drip_concierge_memberships = $9,
+            updated_at = NOW()
+          WHERE week_start_date = $1 AND week_end_date = $2
+        `, [
+          start_date, end_date,
+          memberships.total,
+          memberships.individual,
+          memberships.family,
+          memberships.concierge,
+          memberships.corporate,
+          memberships.family_concierge,
+          memberships.drip_concierge
+        ]);
+      } else {
+        // Insert new record with membership data
+        await pool.query(`
+          INSERT INTO analytics_data (
+            week_start_date, week_end_date,
+            total_drip_iv_members, individual_memberships, family_memberships,
+            concierge_memberships, corporate_memberships,
+            family_concierge_memberships, drip_concierge_memberships,
+            actual_weekly_revenue, weekly_revenue_goal,
+            upload_date
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, 0, NOW())
+        `, [
+          start_date, end_date,
+          memberships.total,
+          memberships.individual,
+          memberships.family,
+          memberships.concierge,
+          memberships.corporate,
+          memberships.family_concierge,
+          memberships.drip_concierge
+        ]);
+      }
+      updatedWeeks++;
+    }
+    
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+    
+    res.json({
+      success: true,
+      message: `Successfully imported membership data for ${updatedWeeks} weeks`,
+      weeksUpdated: updatedWeeks,
+      summary: membershipsByWeek
+    });
+    
+  } catch (error) {
+    console.error('Error importing membership Excel:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ 
+      error: 'Failed to import membership data',
+      details: error.message 
+    });
+  }
+});
+
+// Helper function to process membership data and group by week
+function processMembershipData(data) {
+  const membershipsByWeek = {};
+  
+  // Define July 2025 weeks
+  const weeks = [
+    { start: '2025-07-01', end: '2025-07-07', key: 'week1' },
+    { start: '2025-07-08', end: '2025-07-14', key: 'week2' },
+    { start: '2025-07-15', end: '2025-07-21', key: 'week3' },
+    { start: '2025-07-22', end: '2025-07-28', key: 'week4' },
+    { start: '2025-07-29', end: '2025-07-31', key: 'week5' }
+  ];
+  
+  // Initialize weeks
+  weeks.forEach(week => {
+    membershipsByWeek[week.key] = {
+      start_date: week.start,
+      end_date: week.end,
+      memberships: {
+        total: 0,
+        individual: 0,
+        family: 0,
+        concierge: 0,
+        corporate: 0,
+        family_concierge: 0,
+        drip_concierge: 0
+      }
+    };
+  });
+  
+  // Count active memberships for each week
+  weeks.forEach(week => {
+    const weekEnd = new Date(week.end);
+    
+    // Count memberships active as of this week's end date
+    data.forEach(row => {
+      const startDate = row['Start Date'] ? new Date(row['Start Date']) : null;
+      const title = row['Title'] || '';
+      
+      // Only count if membership started before or during this week
+      if (startDate && startDate <= weekEnd) {
+        const weekData = membershipsByWeek[week.key].memberships;
+        weekData.total++;
+        
+        // Categorize by membership type
+        if (title.includes('Individual')) {
+          weekData.individual++;
+        } else if (title.includes('Family')) {
+          weekData.family++;
+        } else if (title === 'Concierge Membership') {
+          weekData.concierge++;
+        } else if (title.includes('Corporate')) {
+          weekData.corporate++;
+        } else if (title.includes('Concierge & Drip')) {
+          weekData.drip_concierge++;
+        } else if (title.includes('Family & Concierge')) {
+          weekData.family_concierge++;
+        }
+      }
+    });
+  });
+  
+  return membershipsByWeek;
+}
+
 // Import weekly data endpoint - handles both revenue CSV and membership Excel files
 app.post('/api/import-weekly-data', upload.fields([
   { name: 'revenueFile', maxCount: 1 },
