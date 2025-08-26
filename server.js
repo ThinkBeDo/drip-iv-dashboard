@@ -765,17 +765,45 @@ function extractFromCSV(csvData) {
     }
   });
 
+  // CRITICAL FIX: Calculate proper date ranges for filtering
+  let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
+  
   if (minDate && maxDate) {
-    data.week_start_date = minDate.toISOString().split('T')[0];
-    data.week_end_date = maxDate.toISOString().split('T')[0];
+    // Use actual data range for weekly (typically 7 days)
+    weekStartDate = new Date(minDate);
+    weekEndDate = new Date(maxDate);
+    
+    // For monthly, use the full month of the max date
+    monthStartDate = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+    monthEndDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
+    
+    data.week_start_date = weekStartDate.toISOString().split('T')[0];
+    data.week_end_date = weekEndDate.toISOString().split('T')[0];
   } else {
-    // Default to current week
+    // Default to current week and month
     const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    const endOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 6));
-    data.week_start_date = startOfWeek.toISOString().split('T')[0];
-    data.week_end_date = endOfWeek.toISOString().split('T')[0];
+    weekStartDate = new Date(now);
+    weekStartDate.setDate(weekStartDate.getDate() - weekStartDate.getDay());
+    weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekEndDate.getDate() + 6);
+    
+    monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    monthEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    data.week_start_date = weekStartDate.toISOString().split('T')[0];
+    data.week_end_date = weekEndDate.toISOString().split('T')[0];
   }
+  
+  // Set hour to start/end of day for proper comparison
+  weekStartDate.setHours(0, 0, 0, 0);
+  weekEndDate.setHours(23, 59, 59, 999);
+  monthStartDate.setHours(0, 0, 0, 0);
+  monthEndDate.setHours(23, 59, 59, 999);
+  
+  console.log('Date Ranges for Revenue Calculation:', {
+    weekly: { start: weekStartDate.toISOString().split('T')[0], end: weekEndDate.toISOString().split('T')[0] },
+    monthly: { start: monthStartDate.toISOString().split('T')[0], end: monthEndDate.toISOString().split('T')[0] }
+  });
 
   // CRITICAL FIX 2: Proper visit counting by grouping patient + date
   const visitMap = new Map(); // key: "patient|date", value: visit data
@@ -847,34 +875,46 @@ function extractFromCSV(csvData) {
     const { patient, date, isMember, hasBaseInfusion, hasStandaloneInjection, services, totalAmount } = visit;
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     
-    // Track customers
+    // CRITICAL FIX: Check if date falls within weekly/monthly ranges
+    const dateTime = date.getTime();
+    const isWithinWeek = dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime();
+    const isWithinMonth = dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime();
+    
+    // Track customers based on date range
     if (!isNaN(date.getTime())) {
-      weeklyCustomers.add(patient);
-      monthlyCustomers.add(patient);
-      
-      if (isMember) {
-        memberCustomers.add(patient);
-      } else {
-        nonMemberCustomers.add(patient);
+      if (isWithinWeek) {
+        weeklyCustomers.add(patient);
+        if (isMember) {
+          memberCustomers.add(patient);
+        } else {
+          nonMemberCustomers.add(patient);
+        }
+      }
+      if (isWithinMonth) {
+        monthlyCustomers.add(patient);
       }
     }
     
-    // Add to total revenue
-    totalWeeklyRevenue += totalAmount;
-    totalMonthlyRevenue += totalAmount;
+    // CRITICAL FIX: Only add revenue if within date range
+    if (isWithinWeek) {
+      totalWeeklyRevenue += totalAmount;
+    }
+    if (isWithinMonth) {
+      totalMonthlyRevenue += totalAmount;
+    }
     
     // Count IV infusion visits (base infusion + any addons = 1 visit)
     if (hasBaseInfusion) {
       if (isWeekend) {
-        data.iv_infusions_weekend_weekly++;
-        data.iv_infusions_weekend_monthly++;
+        if (isWithinWeek) data.iv_infusions_weekend_weekly++;
+        if (isWithinMonth) data.iv_infusions_weekend_monthly++;
       } else {
-        data.iv_infusions_weekday_weekly++;
-        data.iv_infusions_weekday_monthly++;
+        if (isWithinWeek) data.iv_infusions_weekday_weekly++;
+        if (isWithinMonth) data.iv_infusions_weekday_monthly++;
       }
       
-      infusionWeeklyRevenue += totalAmount;
-      infusionMonthlyRevenue += totalAmount;
+      if (isWithinWeek) infusionWeeklyRevenue += totalAmount;
+      if (isWithinMonth) infusionMonthlyRevenue += totalAmount;
       
       // Track popular infusions (base service only)
       const baseService = services.find(s => isBaseInfusionService(s));
@@ -887,17 +927,17 @@ function extractFromCSV(csvData) {
     // Count standalone injection visits separately
     if (hasStandaloneInjection) {
       if (isWeekend) {
-        data.injections_weekend_weekly++;
-        data.injections_weekend_monthly++;
+        if (isWithinWeek) data.injections_weekend_weekly++;
+        if (isWithinMonth) data.injections_weekend_monthly++;
       } else {
-        data.injections_weekday_weekly++;
-        data.injections_weekday_monthly++;
+        if (isWithinWeek) data.injections_weekday_weekly++;
+        if (isWithinMonth) data.injections_weekday_monthly++;
       }
       
       // Only count injection revenue if no base infusion
       if (!hasBaseInfusion) {
-        injectionWeeklyRevenue += totalAmount;
-        injectionMonthlyRevenue += totalAmount;
+        if (isWithinWeek) injectionWeeklyRevenue += totalAmount;
+        if (isWithinMonth) injectionMonthlyRevenue += totalAmount;
       }
       
       // Track popular injections
@@ -912,8 +952,8 @@ function extractFromCSV(csvData) {
     if (!hasBaseInfusion && !hasStandaloneInjection) {
       const hasAdminService = services.some(s => isMembershipOrAdminService(s));
       if (hasAdminService) {
-        membershipWeeklyRevenue += totalAmount;
-        membershipMonthlyRevenue += totalAmount;
+        if (isWithinWeek) membershipWeeklyRevenue += totalAmount;
+        if (isWithinMonth) membershipMonthlyRevenue += totalAmount;
       }
     }
   });
@@ -978,6 +1018,31 @@ function extractFromCSV(csvData) {
   data.popular_infusions_status = 'Active';
   data.popular_injections_status = 'Active';
 
+  // CRITICAL FIX LOGGING: Show how many transactions were filtered
+  let transactionsInWeek = 0;
+  let transactionsInMonth = 0;
+  let totalTransactions = visitMap.size;
+  
+  visitMap.forEach((visit) => {
+    const dateTime = visit.date.getTime();
+    if (dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime()) {
+      transactionsInWeek++;
+    }
+    if (dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime()) {
+      transactionsInMonth++;
+    }
+  });
+  
+  console.log('🔧 CRITICAL FIX - Transaction Filtering:', {
+    totalTransactions,
+    transactionsInWeek,
+    transactionsInMonth,
+    weeklyRange: `${weekStartDate.toISOString().split('T')[0]} to ${weekEndDate.toISOString().split('T')[0]}`,
+    monthlyRange: `${monthStartDate.toISOString().split('T')[0]} to ${monthEndDate.toISOString().split('T')[0]}`,
+    weeklyRevenue: `$${totalWeeklyRevenue.toFixed(2)}`,
+    monthlyRevenue: `$${totalMonthlyRevenue.toFixed(2)}`
+  });
+  
   console.log('CSV Service Analysis (FIXED):', {
     infusions: {
       weekday: data.iv_infusions_weekday_weekly,
@@ -997,10 +1062,18 @@ function extractFromCSV(csvData) {
       nonMembers: data.non_member_customers_weekly
     },
     revenue: {
-      total: data.actual_weekly_revenue,
-      infusions: data.infusion_revenue_weekly,
-      injections: data.injection_revenue_weekly,
-      memberships: data.membership_revenue_weekly
+      weekly: {
+        total: `$${data.actual_weekly_revenue.toFixed(2)}`,
+        infusions: `$${data.infusion_revenue_weekly.toFixed(2)}`,
+        injections: `$${data.injection_revenue_weekly.toFixed(2)}`,
+        memberships: `$${data.membership_revenue_weekly.toFixed(2)}`
+      },
+      monthly: {
+        total: `$${data.actual_monthly_revenue.toFixed(2)}`,
+        infusions: `$${data.infusion_revenue_monthly.toFixed(2)}`,
+        injections: `$${data.injection_revenue_monthly.toFixed(2)}`,
+        memberships: `$${data.membership_revenue_monthly.toFixed(2)}`
+      }
     }
   });
 
