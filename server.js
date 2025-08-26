@@ -2782,6 +2782,155 @@ app.post('/api/integrate-july-august', upload.fields([
   }
 });
 
+// FIX REVENUE DATA ENDPOINT - Re-imports data with corrected calculations
+app.get('/api/fix-revenue-data', async (req, res) => {
+  try {
+    console.log('🔧 FIX REVENUE DATA ENDPOINT TRIGGERED');
+    console.log('=' .repeat(60));
+    
+    // Check database connection
+    if (!pool) {
+      return res.status(503).json({
+        error: 'Database connection not available',
+        message: 'Cannot fix revenue data without database connection'
+      });
+    }
+    
+    // Check if CSV file exists
+    const csvPath = path.join(__dirname, 'revenue-july-august.csv');
+    if (!fs.existsSync(csvPath)) {
+      return res.status(404).json({
+        error: 'Revenue CSV file not found',
+        message: 'revenue-july-august.csv must exist on the server',
+        path: csvPath
+      });
+    }
+    
+    console.log('📊 Found revenue CSV file:', csvPath);
+    
+    // Get current (incorrect) values from database
+    const beforeResult = await pool.query(`
+      SELECT 
+        week_start_date,
+        week_end_date,
+        actual_weekly_revenue,
+        actual_monthly_revenue,
+        unique_customers_weekly,
+        unique_customers_monthly,
+        upload_date
+      FROM analytics_data 
+      ORDER BY week_end_date DESC 
+      LIMIT 5
+    `);
+    
+    const beforeData = beforeResult.rows.map(row => ({
+      week: `${row.week_start_date} to ${row.week_end_date}`,
+      weeklyRevenue: parseFloat(row.actual_weekly_revenue),
+      monthlyRevenue: parseFloat(row.actual_monthly_revenue),
+      weeklyCustomers: row.unique_customers_weekly,
+      monthlyCustomers: row.unique_customers_monthly
+    }));
+    
+    console.log('📈 Current Database Values (BEFORE fix):');
+    beforeData.forEach(data => {
+      console.log(`  Week ${data.week}:`);
+      console.log(`    Weekly Revenue: $${data.weeklyRevenue}`);
+      console.log(`    Monthly Revenue: $${data.monthlyRevenue}`);
+    });
+    
+    // Re-import with FIXED calculation logic
+    console.log('\n🔄 Re-importing data with corrected revenue calculations...');
+    
+    const importedData = await importWeeklyData(csvPath, null);
+    
+    console.log('\n✨ Import completed with fixed calculations!');
+    console.log('📊 New Calculated Values:');
+    console.log(`  Week: ${importedData.week_start_date} to ${importedData.week_end_date}`);
+    console.log(`  Weekly Revenue: $${importedData.actual_weekly_revenue.toFixed(2)}`);
+    console.log(`  Monthly Revenue: $${importedData.actual_monthly_revenue.toFixed(2)}`);
+    console.log(`  Weekly Customers: ${importedData.unique_customers_weekly}`);
+    console.log(`  Monthly Customers: ${importedData.unique_customers_monthly}`);
+    
+    // Get updated values from database
+    const afterResult = await pool.query(`
+      SELECT 
+        week_start_date,
+        week_end_date,
+        actual_weekly_revenue,
+        actual_monthly_revenue,
+        unique_customers_weekly,
+        unique_customers_monthly,
+        upload_date
+      FROM analytics_data 
+      ORDER BY week_end_date DESC 
+      LIMIT 5
+    `);
+    
+    const afterData = afterResult.rows.map(row => ({
+      week: `${row.week_start_date} to ${row.week_end_date}`,
+      weeklyRevenue: parseFloat(row.actual_weekly_revenue),
+      monthlyRevenue: parseFloat(row.actual_monthly_revenue),
+      weeklyCustomers: row.unique_customers_weekly,
+      monthlyCustomers: row.unique_customers_monthly,
+      uploadDate: row.upload_date
+    }));
+    
+    console.log('\n📈 Current Database Values (AFTER fix):');
+    afterData.forEach(data => {
+      console.log(`  Week ${data.week}:`);
+      console.log(`    Weekly Revenue: $${data.weeklyRevenue}`);
+      console.log(`    Monthly Revenue: $${data.monthlyRevenue}`);
+    });
+    
+    // Return detailed response
+    res.json({
+      success: true,
+      message: 'Revenue data has been fixed successfully!',
+      fixApplied: {
+        week: `${importedData.week_start_date} to ${importedData.week_end_date}`,
+        before: {
+          weeklyRevenue: beforeData[0]?.weeklyRevenue || 0,
+          monthlyRevenue: beforeData[0]?.monthlyRevenue || 0,
+          weeklyCustomers: beforeData[0]?.weeklyCustomers || 0,
+          monthlyCustomers: beforeData[0]?.monthlyCustomers || 0
+        },
+        after: {
+          weeklyRevenue: importedData.actual_weekly_revenue,
+          monthlyRevenue: importedData.actual_monthly_revenue,
+          weeklyCustomers: importedData.unique_customers_weekly,
+          monthlyCustomers: importedData.unique_customers_monthly
+        },
+        changes: {
+          weeklyRevenueChange: `$${beforeData[0]?.weeklyRevenue || 0} → $${importedData.actual_weekly_revenue.toFixed(2)}`,
+          monthlyRevenueChange: `$${beforeData[0]?.monthlyRevenue || 0} → $${importedData.actual_monthly_revenue.toFixed(2)}`,
+          weeklyRevenueIncrease: `${((importedData.actual_weekly_revenue / (beforeData[0]?.weeklyRevenue || 1) - 1) * 100).toFixed(1)}%`,
+          monthlyRevenueIncrease: `${((importedData.actual_monthly_revenue / (beforeData[0]?.monthlyRevenue || 1) - 1) * 100).toFixed(1)}%`
+        }
+      },
+      allWeeksUpdated: afterData,
+      importDetails: {
+        weekStart: importedData.week_start_date,
+        weekEnd: importedData.week_end_date,
+        uniqueCustomersWeekly: importedData.unique_customers_weekly,
+        uniqueCustomersMonthly: importedData.unique_customers_monthly,
+        infusionRevenueWeekly: importedData.infusion_revenue_weekly,
+        injectionRevenueWeekly: importedData.injection_revenue_weekly,
+        membershipRevenueWeekly: importedData.membership_revenue_weekly
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing revenue data:', error.message);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      error: 'Failed to fix revenue data',
+      details: error.message,
+      suggestion: 'Check server logs for more details'
+    });
+  }
+});
+
 // Initialize database tables and ensure correct data
 async function initializeDatabase() {
   try {
