@@ -2811,6 +2811,7 @@ app.get('/api/fix-revenue-data', async (req, res) => {
     // Get current (incorrect) values from database
     const beforeResult = await pool.query(`
       SELECT 
+        id,
         week_start_date,
         week_end_date,
         actual_weekly_revenue,
@@ -2824,6 +2825,9 @@ app.get('/api/fix-revenue-data', async (req, res) => {
     `);
     
     const beforeData = beforeResult.rows.map(row => ({
+      id: row.id,
+      week_start: row.week_start_date,
+      week_end: row.week_end_date,
       week: `${row.week_start_date} to ${row.week_end_date}`,
       weeklyRevenue: parseFloat(row.actual_weekly_revenue),
       monthlyRevenue: parseFloat(row.actual_monthly_revenue),
@@ -2838,10 +2842,89 @@ app.get('/api/fix-revenue-data', async (req, res) => {
       console.log(`    Monthly Revenue: $${data.monthlyRevenue}`);
     });
     
-    // Re-import with FIXED calculation logic
-    console.log('\n🔄 Re-importing data with corrected revenue calculations...');
+    // Process CSV with FIXED calculation logic
+    console.log('\n🔄 Processing CSV with corrected revenue calculations...');
     
-    const importedData = await importWeeklyData(csvPath, null);
+    // Parse CSV file
+    const csvContent = fs.readFileSync(csvPath, 'utf8');
+    const { parse } = require('csv-parse/sync');
+    const csvData = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
+    });
+    
+    console.log(`Parsed ${csvData.length} rows from CSV`);
+    
+    // Use the fixed extractFromCSV function to process the data
+    const importedData = extractFromCSV(csvData);
+    
+    // Update the database with corrected values
+    const recordToUpdate = beforeData[0]; // Update the most recent record
+    
+    if (recordToUpdate && recordToUpdate.id) {
+      const updateQuery = `
+        UPDATE analytics_data SET
+          actual_weekly_revenue = $1,
+          actual_monthly_revenue = $2,
+          unique_customers_weekly = $3,
+          unique_customers_monthly = $4,
+          drip_iv_revenue_weekly = $5,
+          semaglutide_revenue_weekly = $6,
+          drip_iv_revenue_monthly = $7,
+          semaglutide_revenue_monthly = $8,
+          infusion_revenue_weekly = $9,
+          infusion_revenue_monthly = $10,
+          injection_revenue_weekly = $11,
+          injection_revenue_monthly = $12,
+          membership_revenue_weekly = $13,
+          membership_revenue_monthly = $14,
+          iv_infusions_weekday_weekly = $15,
+          iv_infusions_weekend_weekly = $16,
+          iv_infusions_weekday_monthly = $17,
+          iv_infusions_weekend_monthly = $18,
+          injections_weekday_weekly = $19,
+          injections_weekend_weekly = $20,
+          injections_weekday_monthly = $21,
+          injections_weekend_monthly = $22,
+          member_customers_weekly = $23,
+          non_member_customers_weekly = $24,
+          updated_at = NOW()
+        WHERE id = $25
+      `;
+      
+      await pool.query(updateQuery, [
+        importedData.actual_weekly_revenue,
+        importedData.actual_monthly_revenue,
+        importedData.unique_customers_weekly,
+        importedData.unique_customers_monthly,
+        importedData.drip_iv_revenue_weekly || 0,
+        importedData.semaglutide_revenue_weekly || 0,
+        importedData.drip_iv_revenue_monthly || 0,
+        importedData.semaglutide_revenue_monthly || 0,
+        importedData.infusion_revenue_weekly || 0,
+        importedData.infusion_revenue_monthly || 0,
+        importedData.injection_revenue_weekly || 0,
+        importedData.injection_revenue_monthly || 0,
+        importedData.membership_revenue_weekly || 0,
+        importedData.membership_revenue_monthly || 0,
+        importedData.iv_infusions_weekday_weekly || 0,
+        importedData.iv_infusions_weekend_weekly || 0,
+        importedData.iv_infusions_weekday_monthly || 0,
+        importedData.iv_infusions_weekend_monthly || 0,
+        importedData.injections_weekday_weekly || 0,
+        importedData.injections_weekend_weekly || 0,
+        importedData.injections_weekday_monthly || 0,
+        importedData.injections_weekend_monthly || 0,
+        importedData.member_customers_weekly || 0,
+        importedData.non_member_customers_weekly || 0,
+        recordToUpdate.id
+      ]);
+      
+      console.log(`✅ Updated record ID ${recordToUpdate.id} with corrected revenue values`);
+    } else {
+      throw new Error('No existing record found to update');
+    }
     
     console.log('\n✨ Import completed with fixed calculations!');
     console.log('📊 New Calculated Values:');
