@@ -2863,6 +2863,7 @@ app.get('/api/fix-revenue-data', async (req, res) => {
     const recordToUpdate = beforeData[0]; // Update the most recent record
     
     if (recordToUpdate && recordToUpdate.id) {
+      // Update only the columns that exist in the production database
       const updateQuery = `
         UPDATE analytics_data SET
           actual_weekly_revenue = $1,
@@ -2873,41 +2874,36 @@ app.get('/api/fix-revenue-data', async (req, res) => {
           semaglutide_revenue_weekly = $6,
           drip_iv_revenue_monthly = $7,
           semaglutide_revenue_monthly = $8,
-          infusion_revenue_weekly = $9,
-          infusion_revenue_monthly = $10,
-          injection_revenue_weekly = $11,
-          injection_revenue_monthly = $12,
-          membership_revenue_weekly = $13,
-          membership_revenue_monthly = $14,
-          iv_infusions_weekday_weekly = $15,
-          iv_infusions_weekend_weekly = $16,
-          iv_infusions_weekday_monthly = $17,
-          iv_infusions_weekend_monthly = $18,
-          injections_weekday_weekly = $19,
-          injections_weekend_weekly = $20,
-          injections_weekday_monthly = $21,
-          injections_weekend_monthly = $22,
-          member_customers_weekly = $23,
-          non_member_customers_weekly = $24,
+          iv_infusions_weekday_weekly = $9,
+          iv_infusions_weekend_weekly = $10,
+          iv_infusions_weekday_monthly = $11,
+          iv_infusions_weekend_monthly = $12,
+          injections_weekday_weekly = $13,
+          injections_weekend_weekly = $14,
+          injections_weekday_monthly = $15,
+          injections_weekend_monthly = $16,
+          member_customers_weekly = $17,
+          non_member_customers_weekly = $18,
+          drip_iv_weekday_weekly = $19,
+          drip_iv_weekend_weekly = $20,
+          drip_iv_weekday_monthly = $21,
+          drip_iv_weekend_monthly = $22,
           updated_at = NOW()
-        WHERE id = $25
+        WHERE id = $23
       `;
       
+      // Map the calculated values to existing database columns
       await pool.query(updateQuery, [
         importedData.actual_weekly_revenue,
         importedData.actual_monthly_revenue,
         importedData.unique_customers_weekly,
         importedData.unique_customers_monthly,
-        importedData.drip_iv_revenue_weekly || 0,
-        importedData.semaglutide_revenue_weekly || 0,
-        importedData.drip_iv_revenue_monthly || 0,
-        importedData.semaglutide_revenue_monthly || 0,
-        importedData.infusion_revenue_weekly || 0,
-        importedData.infusion_revenue_monthly || 0,
-        importedData.injection_revenue_weekly || 0,
-        importedData.injection_revenue_monthly || 0,
-        importedData.membership_revenue_weekly || 0,
-        importedData.membership_revenue_monthly || 0,
+        // Use infusion revenue for drip_iv revenue (existing columns)
+        importedData.infusion_revenue_weekly || importedData.drip_iv_revenue_weekly || 0,
+        importedData.injection_revenue_weekly || importedData.semaglutide_revenue_weekly || 0,
+        importedData.infusion_revenue_monthly || importedData.drip_iv_revenue_monthly || 0,
+        importedData.injection_revenue_monthly || importedData.semaglutide_revenue_monthly || 0,
+        // Service counts
         importedData.iv_infusions_weekday_weekly || 0,
         importedData.iv_infusions_weekend_weekly || 0,
         importedData.iv_infusions_weekday_monthly || 0,
@@ -2918,6 +2914,11 @@ app.get('/api/fix-revenue-data', async (req, res) => {
         importedData.injections_weekend_monthly || 0,
         importedData.member_customers_weekly || 0,
         importedData.non_member_customers_weekly || 0,
+        // Legacy combined counts (drip_iv = infusions + injections)
+        (importedData.iv_infusions_weekday_weekly || 0) + (importedData.injections_weekday_weekly || 0),
+        (importedData.iv_infusions_weekend_weekly || 0) + (importedData.injections_weekend_weekly || 0),
+        (importedData.iv_infusions_weekday_monthly || 0) + (importedData.injections_weekday_monthly || 0),
+        (importedData.iv_infusions_weekend_monthly || 0) + (importedData.injections_weekend_monthly || 0),
         recordToUpdate.id
       ]);
       
