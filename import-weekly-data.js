@@ -286,6 +286,19 @@ function analyzeRevenueData(csvData) {
     console.log(`  End: ${weekEnd.toISOString().split('T')[0]} (${weekEnd.getDay() === 6 ? 'Saturday' : 'Error'})`);
   }
   
+  // CRITICAL FIX: Calculate proper month boundaries for filtering
+  let monthStart = null;
+  let monthEnd = null;
+  
+  if (metrics.monthEndDate) {
+    // Use the month of the most recent date in the data
+    monthStart = new Date(metrics.monthEndDate.getFullYear(), metrics.monthEndDate.getMonth(), 1);
+    monthEnd = new Date(metrics.monthEndDate.getFullYear(), metrics.monthEndDate.getMonth() + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+    
+    console.log(`Month range for revenue calculation: ${monthStart.toISOString().split('T')[0]} to ${monthEnd.toISOString().split('T')[0]}`);
+  }
+  
   // Second pass: Process service counts and revenue with proper week detection
   for (const row of csvData) {
     if (!row.Date || row.Date === 'Total') continue;
@@ -312,16 +325,21 @@ function analyzeRevenueData(csvData) {
     const isNonMemberService = chargeDesc.toLowerCase().includes('(non-member)') || 
                               chargeDesc.toLowerCase().includes('non member');
     
-    // Determine if this row is from the current week vs the full month
+    // CRITICAL FIX: Properly check if transaction is within week AND month ranges
     const isCurrentWeek = metrics.weekStartDate && metrics.weekEndDate && 
                          date >= metrics.weekStartDate && date <= metrics.weekEndDate;
+    const isCurrentMonth = monthStart && monthEnd && 
+                          date >= monthStart && date <= monthEnd;
     
     // Get service category
     const serviceCategory = getServiceCategory(chargeDesc);
     
     // Track unique customers
     if (patient) {
-      metrics.unique_customers_monthly.add(patient);
+      // CRITICAL FIX: Only count monthly customers if within month range
+      if (isCurrentMonth) {
+        metrics.unique_customers_monthly.add(patient);
+      }
       if (isCurrentWeek) {
         metrics.unique_customers_weekly.add(patient);
         
@@ -343,10 +361,13 @@ function analyzeRevenueData(csvData) {
         }
       }
       
-      if (isWeekendDay) {
-        metrics.iv_infusions_weekend_monthly++;
-      } else {
-        metrics.iv_infusions_weekday_monthly++;
+      // CRITICAL FIX: Only count monthly services if within month range
+      if (isCurrentMonth) {
+        if (isWeekendDay) {
+          metrics.iv_infusions_weekend_monthly++;
+        } else {
+          metrics.iv_infusions_weekday_monthly++;
+        }
       }
     } else if (serviceCategory === 'injection') {
       if (isCurrentWeek) {
@@ -357,10 +378,13 @@ function analyzeRevenueData(csvData) {
         }
       }
       
-      if (isWeekendDay) {
-        metrics.injections_weekend_monthly++;
-      } else {
-        metrics.injections_weekday_monthly++;
+      // CRITICAL FIX: Only count monthly services if within month range
+      if (isCurrentMonth) {
+        if (isWeekendDay) {
+          metrics.injections_weekend_monthly++;
+        } else {
+          metrics.injections_weekday_monthly++;
+        }
       }
     }
     
@@ -382,19 +406,21 @@ function analyzeRevenueData(csvData) {
         }
       }
       
-      // Monthly revenue
-      metrics.actual_monthly_revenue += chargeAmount;
-      
-      if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
-        metrics.infusion_revenue_monthly += chargeAmount;
-        metrics.drip_iv_revenue_monthly += chargeAmount;
-      } else if (serviceCategory === 'injection') {
-        metrics.injection_revenue_monthly += chargeAmount;
-        if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
-          metrics.semaglutide_revenue_monthly += chargeAmount;
+      // CRITICAL FIX: Only add to monthly revenue if within month range
+      if (isCurrentMonth) {
+        metrics.actual_monthly_revenue += chargeAmount;
+        
+        if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
+          metrics.infusion_revenue_monthly += chargeAmount;
+          metrics.drip_iv_revenue_monthly += chargeAmount;
+        } else if (serviceCategory === 'injection') {
+          metrics.injection_revenue_monthly += chargeAmount;
+          if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
+            metrics.semaglutide_revenue_monthly += chargeAmount;
+          }
+        } else if (serviceCategory === 'membership') {
+          metrics.membership_revenue_monthly += chargeAmount;
         }
-      } else if (serviceCategory === 'membership') {
-        metrics.membership_revenue_monthly += chargeAmount;
       }
     }
   }
