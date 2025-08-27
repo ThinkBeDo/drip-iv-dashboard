@@ -225,10 +225,19 @@ function isInfusionAddon(chargeDesc) {
 function isStandaloneInjection(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
   
-  // Standalone Injections (count separately)
+  // Standalone Injections (excluding weight management medications)
   const standaloneInjections = [
-    'semaglutide', 'tirzepatide', 'b12 injection', 'metabolism boost injection'
+    'b12 injection', 'metabolism boost injection', 'vitamin d injection', 
+    'glutathione injection', 'biotin injection'
   ];
+  
+  // Weight management medications (tracked separately)
+  const weightManagementMeds = ['semaglutide', 'tirzepatide'];
+  
+  // Return true for standalone injections, but false for weight management
+  if (weightManagementMeds.some(med => lowerDesc.includes(med))) {
+    return true; // Still counted as injection for service counting, but categorized separately
+  }
   
   return standaloneInjections.some(service => lowerDesc.includes(service)) ||
          (lowerDesc.includes('b12') && lowerDesc.includes('injection') && !lowerDesc.includes('vitamin'));
@@ -813,6 +822,7 @@ function extractFromCSV(csvData) {
   const nonMemberCustomers = new Set();
   const infusionServices = {};
   const injectionServices = {};
+  const weightManagementServices = {};
   
   // Revenue tracking by service category
   let totalWeeklyRevenue = 0;
@@ -940,11 +950,16 @@ function extractFromCSV(csvData) {
         if (isWithinMonth) injectionMonthlyRevenue += totalAmount;
       }
       
-      // Track popular injections
+      // Track popular injections and weight management services separately
       const injectionService = services.find(s => isStandaloneInjection(s));
       if (injectionService) {
         const serviceName = injectionService.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
-        injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
+        // Separate weight management medications from regular injections
+        if (serviceName.toLowerCase().includes('semaglutide') || serviceName.toLowerCase().includes('tirzepatide')) {
+          weightManagementServices[serviceName] = (weightManagementServices[serviceName] || 0) + 1;
+        } else {
+          injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
+        }
       }
     }
     
@@ -1014,9 +1029,16 @@ function extractFromCSV(csvData) {
     .map(([name]) => name);
   
   data.popular_infusions = topInfusions.length > 0 ? topInfusions : ['Energy', 'Performance & Recovery', 'Saline 1L'];
-  data.popular_injections = topInjections.length > 0 ? topInjections : ['Tirzepatide', 'Semaglutide', 'B12 Injection'];
+  data.popular_injections = topInjections.length > 0 ? topInjections : ['B12 Injection', 'Vitamin D', 'Metabolism Boost'];
   data.popular_infusions_status = 'Active';
   data.popular_injections_status = 'Active';
+  
+  // Track weight management medications separately for proper categorization
+  const topWeightManagement = Object.entries(weightManagementServices)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 3)
+    .map(([name]) => name);
+  data.popular_weight_management = topWeightManagement.length > 0 ? topWeightManagement : ['Tirzepatide', 'Semaglutide'];
 
   // CRITICAL FIX LOGGING: Show how many transactions were filtered
   let transactionsInWeek = 0;
@@ -1755,7 +1777,7 @@ app.get('/api/dashboard', async (req, res) => {
           days_left_in_month: 4,
           popular_infusions: ['Energy', 'NAD+', 'Performance & Recovery'],
           popular_infusions_status: 'Active',
-          popular_injections: ['Tirzepatide', 'Semaglutide', 'B12'],
+          popular_injections: ['B12', 'Vitamin D', 'Metabolism Boost'],
           popular_injections_status: 'Active'
         };
         
@@ -3076,7 +3098,7 @@ async function initializeDatabase() {
         
         await pool.query(`
           ALTER TABLE analytics_data 
-          ADD COLUMN IF NOT EXISTS popular_injections TEXT[] DEFAULT ARRAY['Tirzepatide', 'Semaglutide', 'B12']
+          ADD COLUMN IF NOT EXISTS popular_injections TEXT[] DEFAULT ARRAY['B12', 'Vitamin D', 'Metabolism Boost']
         `);
         
         await pool.query(`

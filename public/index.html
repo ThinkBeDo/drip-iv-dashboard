@@ -1327,15 +1327,15 @@
             // Create a combined data object
             const combinedData = { ...filteredData };
             
-            // Override revenue data with latest (unfiltered) values (FIXED: Swapped weekly/monthly values)
-            combinedData.actual_weekly_revenue = latestData.actual_monthly_revenue;  // FIXED: Was swapped
+            // Override revenue data with latest (unfiltered) values - now correctly mapped
+            combinedData.actual_weekly_revenue = latestData.actual_weekly_revenue;
             combinedData.weekly_revenue_goal = latestData.weekly_revenue_goal;
-            combinedData.actual_monthly_revenue = latestData.actual_weekly_revenue;  // FIXED: Was swapped
+            combinedData.actual_monthly_revenue = latestData.actual_monthly_revenue;
             combinedData.monthly_revenue_goal = latestData.monthly_revenue_goal;
-            combinedData.drip_iv_revenue_weekly = latestData.drip_iv_revenue_monthly;  // FIXED: Was swapped
-            combinedData.semaglutide_revenue_weekly = latestData.semaglutide_revenue_monthly;  // FIXED: Was swapped
-            combinedData.drip_iv_revenue_monthly = latestData.drip_iv_revenue_weekly;  // FIXED: Was swapped
-            combinedData.semaglutide_revenue_monthly = latestData.semaglutide_revenue_weekly;  // FIXED: Was swapped
+            combinedData.drip_iv_revenue_weekly = latestData.drip_iv_revenue_weekly;
+            combinedData.semaglutide_revenue_weekly = latestData.semaglutide_revenue_weekly;
+            combinedData.drip_iv_revenue_monthly = latestData.drip_iv_revenue_monthly;
+            combinedData.semaglutide_revenue_monthly = latestData.semaglutide_revenue_monthly
             
             // Override membership data with latest (unfiltered) values - ensure all fields are included
             combinedData.total_drip_iv_members = latestData.total_drip_iv_members || 0;
@@ -1616,20 +1616,20 @@
             updateElement('.concierge-memberships', data.concierge_memberships || 0);
             updateElement('.corporate-memberships', data.corporate_memberships || 0);
             
-            // Update revenue information (FIXED: Swapped weekly/monthly values)
-            updateElement('.weekly-actual', `$${formatCurrency(data.actual_monthly_revenue || 0)}`);  // FIXED: Was swapped
+            // Update revenue information - now correctly mapped
+            updateElement('.weekly-actual', `$${formatCurrency(data.actual_weekly_revenue || 0)}`);
             updateElement('.weekly-goal', `$${formatCurrency(data.weekly_revenue_goal || 0)}`);
-            updateElement('.monthly-actual', `$${formatCurrency(data.actual_weekly_revenue || 0)}`);  // FIXED: Was swapped
+            updateElement('.monthly-actual', `$${formatCurrency(data.actual_monthly_revenue || 0)}`);
             updateElement('.monthly-goal', `$${formatCurrency(data.monthly_revenue_goal || 0)}`);
             
-            updateElement('.iv-revenue-weekly', `$${formatCurrency(data.drip_iv_revenue_monthly || 0)}`);  // FIXED: Was swapped
-            updateElement('.sema-revenue-weekly', `$${formatCurrency(data.semaglutide_revenue_monthly || 0)}`);  // FIXED: Was swapped  
-            updateElement('.iv-revenue-monthly', `$${formatCurrency(data.drip_iv_revenue_weekly || 0)}`);  // FIXED: Was swapped
-            updateElement('.sema-revenue-monthly', `$${formatCurrency(data.semaglutide_revenue_weekly || 0)}`);  // FIXED: Was swapped
+            updateElement('.iv-revenue-weekly', `$${formatCurrency(data.drip_iv_revenue_weekly || 0)}`);
+            updateElement('.sema-revenue-weekly', `$${formatCurrency(data.semaglutide_revenue_weekly || 0)}`);
+            updateElement('.iv-revenue-monthly', `$${formatCurrency(data.drip_iv_revenue_monthly || 0)}`);
+            updateElement('.sema-revenue-monthly', `$${formatCurrency(data.semaglutide_revenue_monthly || 0)}`);
             
-            // Update progress bars (FIXED: Swapped weekly/monthly values)
-            const weeklyPercent = calculatePercentage(data.actual_monthly_revenue, data.weekly_revenue_goal);  // FIXED: Was swapped
-            const monthlyPercent = calculatePercentage(data.actual_weekly_revenue, data.monthly_revenue_goal);  // FIXED: Was swapped
+            // Update progress bars - now correctly calculated
+            const weeklyPercent = calculatePercentage(data.actual_weekly_revenue, data.weekly_revenue_goal);
+            const monthlyPercent = calculatePercentage(data.actual_monthly_revenue, data.monthly_revenue_goal);
             
             const weeklyProgressBar = document.querySelector('.weekly-progress-fill');
             const monthlyProgressBar = document.querySelector('.monthly-progress-fill');
