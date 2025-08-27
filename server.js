@@ -313,7 +313,7 @@ function extractFromPDF(pdfText) {
     'weekly_revenue': /ACTUAL WEEKLY REVENUE\s+\$([0-9,]+\.?\d*)/,
     'weekly_goal': /WEEKLY REVENUE GOAL\s+\$([0-9,]+\.?\d*)/,
     'monthly_revenue': /ACTUAL MONTHLY REVENUE\s+\$([0-9,]+\.?\d*)/,
-    'monthly_goal': /MONTHLY REVENUE GOAL\s+\$([0-9,]+)/,
+    'monthly_goal': /MONTHLY REVENUE GOAL\s+\$([0-9,]+\.?\d*)/,
     'total_members': /Total Drip IV Members.*?(\d+)/,
     'marketing_initiatives': /Marketing Initiatives.*?(\d+)/,
     'concierge_memberships': /Concierge Memberships.*?(\d+)/,
@@ -534,7 +534,7 @@ function extractFromCSV(csvData) {
     // New service-specific revenue fields
     infusion_revenue_weekly: 0,
     infusion_revenue_monthly: 0,
-    injection_revenue_weekly: 0,
+    injection_revenue_weekly: 0,  
     injection_revenue_monthly: 0,
     membership_revenue_weekly: 0,
     membership_revenue_monthly: 0,
@@ -778,13 +778,14 @@ function extractFromCSV(csvData) {
   let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
   
   if (minDate && maxDate) {
-    // Use actual data range for weekly (typically 7 days)
-    weekStartDate = new Date(minDate);
-    weekEndDate = new Date(maxDate);
-    
     // For monthly, use the full month of the max date
     monthStartDate = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
     monthEndDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
+    
+    // FIXED: For weekly, use the last 7 days of the data range, not the entire range
+    weekEndDate = new Date(maxDate);
+    weekStartDate = new Date(maxDate);
+    weekStartDate.setDate(weekStartDate.getDate() - 6); // 7-day window ending on maxDate
     
     data.week_start_date = weekStartDate.toISOString().split('T')[0];
     data.week_end_date = weekEndDate.toISOString().split('T')[0];
@@ -792,9 +793,9 @@ function extractFromCSV(csvData) {
     // Default to current week and month
     const now = new Date();
     weekStartDate = new Date(now);
-    weekStartDate.setDate(weekStartDate.getDate() - weekStartDate.getDay());
+    weekStartDate.setDate(weekStartDate.getDate() - weekStartDate.getDay()); // Start of current week
     weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekEndDate.getDate() + 6);
+    weekEndDate.setDate(weekStartDate.getDate() + 6); // End of current week
     
     monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
     monthEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -1426,10 +1427,12 @@ app.get('/api/version', (req, res) => {
 // Get membership data - always returns most recent record with members
 app.get('/api/membership', async (req, res) => {
   try {
+    // Ensure database connection exists
     if (!pool) {
       return res.status(503).json({
         success: false,
-        error: 'Database connection not available'
+        error: 'Database connection not available',
+        message: 'Please ensure DATABASE_URL is properly configured'
       });
     }
 
@@ -2630,7 +2633,7 @@ function processMembershipData(data) {
           weekData.individual++;
         } else if (title.includes('Family')) {
           weekData.family++;
-        } else if (title === 'Concierge Membership') {
+        } else if (title.includes('Concierge Membership')) {
           weekData.concierge++;
         } else if (title.includes('Corporate')) {
           weekData.corporate++;
