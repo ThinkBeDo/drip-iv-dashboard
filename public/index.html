@@ -705,7 +705,7 @@
             right: 0;
             bottom: 0;
             background: rgba(30, 60, 114, 0.9);
-            display: none; /* Changed from flex to none */
+            display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
@@ -715,7 +715,6 @@
         }
         
         .loading-overlay.active {
-            display: flex; /* Show flex when active */
             opacity: 1;
             visibility: visible;
         }
@@ -1234,11 +1233,29 @@
         
         // Load dashboard data with optional date filtering
         async function loadDashboardData(startDate = null, endDate = null, aggregate = false, showLoading = true) {
+            let loadingTimeout;
             try {
                 // Show loading overlay
                 if (showLoading) {
                     showLoadingOverlay();
                 }
+                
+                // Set a 10-second timeout for data loading
+                loadingTimeout = setTimeout(() => {
+                    console.warn('⚠️ Dashboard data loading taking longer than expected...');
+                    hideLoadingOverlay();
+                    showAlert('Dashboard is taking longer to load. Data may be partially available.', 'warning');
+                }, 10000);
+                
+                // Create fetch with timeout wrapper
+                const fetchWithTimeout = (url, timeout = 8000) => {
+                    return Promise.race([
+                        fetch(url),
+                        new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timeout')), timeout)
+                        )
+                    ]);
+                };
                 
                 // When filters are applied, we need to fetch data twice:
                 // 1. Latest data for revenue and membership sections (unfiltered)
@@ -1246,8 +1263,8 @@
                 if (startDate || endDate) {
                     // Fetch both latest and filtered data
                     const [latestResponse, filteredResponse] = await Promise.all([
-                        fetch('/api/dashboard'), // Latest data for revenue
-                        fetch(`/api/dashboard?start_date=${startDate || ''}&end_date=${endDate || ''}&aggregate=${aggregate}`) // Filtered data for services
+                        fetchWithTimeout('/api/dashboard'), // Latest data for revenue
+                        fetchWithTimeout(`/api/dashboard?start_date=${startDate || ''}&end_date=${endDate || ''}&aggregate=${aggregate}`) // Filtered data for services
                     ]);
                     
                     const latestResult = await latestResponse.json();
@@ -1268,7 +1285,7 @@
                     }
                 } else {
                     // No filters - just load latest data normally
-                    const response = await fetch('/api/dashboard');
+                    const response = await fetchWithTimeout('/api/dashboard');
                     const result = await response.json();
                     
                     if (result.success && result.data) {
@@ -1290,7 +1307,20 @@
                 console.error('Failed to load dashboard data:', error);
                 
                 // More detailed error handling
-                if (error.message.includes('Failed to fetch')) {
+                if (error.message === 'Request timeout') {
+                    showAlert('Server is taking too long to respond. The dashboard may still load shortly.', 'warning');
+                    // Try one more time with a longer timeout
+                    try {
+                        const response = await fetch('/api/dashboard');
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            updateDashboard(result.data);
+                            showAlert('Dashboard loaded successfully!', 'success');
+                        }
+                    } catch (retryError) {
+                        console.error('Retry failed:', retryError);
+                    }
+                } else if (error.message.includes('Failed to fetch')) {
                     showAlert('Cannot connect to server. Please ensure the server is running.', 'error');
                     
                     // Try to get debug info
@@ -1311,6 +1341,10 @@
                     showAlert(`Error loading data: ${error.message}. Please refresh and try again.`, 'error');
                 }
             } finally {
+                // Clear the timeout
+                if (loadingTimeout) {
+                    clearTimeout(loadingTimeout);
+                }
                 // Hide loading overlay
                 if (showLoading) {
                     hideLoadingOverlay();
@@ -1372,10 +1406,6 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.classList.add('active');
-                // Auto-hide after 10 seconds to prevent stuck overlay
-                setTimeout(() => {
-                    hideLoadingOverlay();
-                }, 10000);
             }
         }
         

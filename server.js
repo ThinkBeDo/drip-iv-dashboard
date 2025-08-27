@@ -994,6 +994,14 @@ function extractFromCSV(csvData) {
     console.log(`   Updated individual_memberships: ${data.individual_memberships}`);
   }
   
+  // Additional validation: If we have very low membership counts but high member revenue
+  if (data.total_drip_iv_members < 10 && data.membership_revenue_weekly > 1000) {
+    console.log('⚠️  DATA VALIDATION WARNING: Low membership count but high revenue detected');
+    console.log(`   Current total_drip_iv_members: ${data.total_drip_iv_members}`);
+    console.log(`   Weekly membership revenue: $${data.membership_revenue_weekly}`);
+    console.log('   Consider uploading membership Excel file for accurate counts');
+  }
+  
   // Calculate legacy totals for backward compatibility
   data.drip_iv_weekday_weekly = data.iv_infusions_weekday_weekly + data.injections_weekday_weekly;
   data.drip_iv_weekend_weekly = data.iv_infusions_weekend_weekly + data.injections_weekend_weekly;
@@ -1476,6 +1484,44 @@ app.get('/api/membership', async (req, res) => {
   }
 });
 
+// Data validation function to ensure realistic values
+function validateDashboardData(data) {
+  const validated = { ...data };
+  
+  // Validate membership counts (reasonable range: 0-1000)
+  if (validated.total_drip_iv_members > 1000) {
+    console.warn(`⚠️ Unrealistic membership count detected: ${validated.total_drip_iv_members}, capping at 1000`);
+    validated.total_drip_iv_members = 1000;
+  }
+  
+  // Validate revenue (reasonable weekly range: $0 - $500,000)
+  if (validated.actual_weekly_revenue > 500000) {
+    console.warn(`⚠️ Unrealistic weekly revenue detected: $${validated.actual_weekly_revenue}, capping at $500,000`);
+    validated.actual_weekly_revenue = 500000;
+  }
+  
+  // Ensure monthly revenue is greater than or equal to weekly
+  if (validated.actual_monthly_revenue < validated.actual_weekly_revenue) {
+    console.warn(`⚠️ Monthly revenue ($${validated.actual_monthly_revenue}) less than weekly ($${validated.actual_weekly_revenue}), adjusting`);
+    validated.actual_monthly_revenue = validated.actual_weekly_revenue * 4;
+  }
+  
+  // Ensure membership subcategories don't exceed total
+  const subcategoryTotal = (validated.individual_memberships || 0) + 
+                          (validated.family_memberships || 0) + 
+                          (validated.concierge_memberships || 0) + 
+                          (validated.corporate_memberships || 0) +
+                          (validated.family_concierge_memberships || 0) +
+                          (validated.drip_concierge_memberships || 0);
+  
+  if (subcategoryTotal > validated.total_drip_iv_members) {
+    console.warn(`⚠️ Membership subcategories (${subcategoryTotal}) exceed total (${validated.total_drip_iv_members}), adjusting total`);
+    validated.total_drip_iv_members = subcategoryTotal;
+  }
+  
+  return validated;
+}
+
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -1901,9 +1947,12 @@ app.get('/api/dashboard', async (req, res) => {
       });
     }
     
+    // Apply validation to ensure realistic values
+    const validatedData = validateDashboardData(result.rows[0]);
+    
     res.json({
       success: true,
-      data: result.rows[0]
+      data: validatedData
     });
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
