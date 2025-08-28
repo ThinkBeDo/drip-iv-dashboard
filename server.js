@@ -778,11 +778,22 @@ function extractFromCSV(csvData) {
   let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
   
   if (minDate && maxDate) {
+    // FIX: Check for unrealistic future dates (likely data error)
+    const now = new Date();
+    const oneYearFromNow = new Date(now);
+    oneYearFromNow.setFullYear(now.getFullYear() + 1);
+    
+    // If maxDate is more than 1 year in the future, it's likely a data error
+    if (maxDate > oneYearFromNow) {
+      console.warn(`⚠️ Data contains future date: ${maxDate.toISOString()}. Using current date instead.`);
+      maxDate = now;
+    }
+    
     // For monthly, use the full month of the max date
     monthStartDate = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
     monthEndDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 0);
     
-    // FIXED: For weekly, use the last 7 days of the data range, not the entire range
+    // For weekly, use the last 7 days ending on maxDate
     weekEndDate = new Date(maxDate);
     weekStartDate = new Date(maxDate);
     weekStartDate.setDate(weekStartDate.getDate() - 6); // 7-day window ending on maxDate
@@ -2404,6 +2415,72 @@ app.route('/api/add-july-data')
     res.status(500).json({ 
       error: 'Failed to add July data',
       details: error.message 
+    });
+  }
+});
+
+// Fix revenue data endpoint
+app.post('/api/fix-revenue-data', async (req, res) => {
+  try {
+    console.log('🔧 Starting revenue data fix...');
+    
+    // Check current data
+    const checkResult = await pool.query(`
+      SELECT 
+        id,
+        week_start_date,
+        week_end_date,
+        actual_weekly_revenue,
+        actual_monthly_revenue,
+        drip_iv_revenue_weekly,
+        drip_iv_revenue_monthly,
+        semaglutide_revenue_weekly,
+        semaglutide_revenue_monthly
+      FROM analytics_data 
+      WHERE actual_weekly_revenue > actual_monthly_revenue
+      ORDER BY week_start_date DESC
+    `);
+    
+    if (checkResult.rows.length === 0) {
+      console.log('✅ No revenue data issues found');
+      return res.json({
+        success: true,
+        message: 'No revenue data issues found',
+        recordsFixed: 0
+      });
+    }
+    
+    console.log(`⚠️ Found ${checkResult.rows.length} records with swapped revenue values`);
+    
+    // Fix the swapped values
+    const fixResult = await pool.query(`
+      UPDATE analytics_data 
+      SET 
+        actual_weekly_revenue = actual_monthly_revenue,
+        actual_monthly_revenue = actual_weekly_revenue,
+        drip_iv_revenue_weekly = drip_iv_revenue_monthly,
+        drip_iv_revenue_monthly = drip_iv_revenue_weekly,
+        semaglutide_revenue_weekly = semaglutide_revenue_monthly,
+        semaglutide_revenue_monthly = semaglutide_revenue_weekly
+      WHERE actual_weekly_revenue > actual_monthly_revenue
+      RETURNING id, week_start_date, actual_weekly_revenue, actual_monthly_revenue
+    `);
+    
+    console.log(`✅ Fixed ${fixResult.rowCount} records`);
+    
+    res.json({
+      success: true,
+      message: `Successfully fixed ${fixResult.rowCount} records with swapped revenue values`,
+      recordsFixed: fixResult.rowCount,
+      fixedRecords: fixResult.rows
+    });
+    
+  } catch (error) {
+    console.error('Error fixing revenue data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fix revenue data',
+      message: error.message
     });
   }
 });
