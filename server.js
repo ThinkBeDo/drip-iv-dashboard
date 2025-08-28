@@ -570,11 +570,23 @@ function extractFromCSV(csvData) {
     return data;
   }
   
-  // Validate CSV columns
-  const requiredColumns = ['Charge Desc', 'Patient', 'Date', 'Calculated Payment (Line)'];
+  // Validate CSV columns - Accept either 'Date' or 'Date Of Payment' column
+  const requiredColumnsBase = ['Charge Desc', 'Patient', 'Calculated Payment (Line)'];
+  const dateColumnOptions = ['Date', 'Date Of Payment'];
   const optionalColumns = ['Charge Type'];
   const headers = Object.keys(csvData[0] || {});
-  const missingColumns = requiredColumns.filter(col => !headers.includes(col));
+  
+  // Check if at least one date column exists
+  const hasDateColumn = dateColumnOptions.some(col => headers.includes(col));
+  const availableDateColumn = dateColumnOptions.find(col => headers.includes(col));
+  
+  // Check for missing base columns
+  const missingBaseColumns = requiredColumnsBase.filter(col => !headers.includes(col));
+  const missingColumns = [...missingBaseColumns];
+  
+  if (!hasDateColumn) {
+    missingColumns.push('Date or Date Of Payment');
+  }
   
   if (missingColumns.length > 0) {
     console.error('⚠️  WARNING: Missing required CSV columns:', missingColumns);
@@ -582,6 +594,11 @@ function extractFromCSV(csvData) {
     console.log('This may cause incomplete data extraction!');
   } else {
     console.log('✅ All required CSV columns found');
+    console.log(`📊 Using date column: "${availableDateColumn || 'No date column found'}"`);
+    if (availableDateColumn) {
+      console.log(`   Sample dates from ${availableDateColumn}:`, 
+        filteredData.slice(0, 3).map(row => row[availableDateColumn] || 'empty').join(', '));
+    }
   }
 
   // CRITICAL FIX 1: Filter out TOTAL_TIPS entries immediately
@@ -624,6 +641,9 @@ function extractFromCSV(csvData) {
   // Extract date range from filtered CSV data
   console.log('Sample CSV row keys:', Object.keys(filteredData[0] || {}));
   
+  let validDateCount = 0;
+  let invalidDateCount = 0;
+  
   filteredData.forEach(row => {
     // Check both Date and Date Of Payment columns
     const dateStr = row['Date'] || row['Date Of Payment'] || '';
@@ -653,12 +673,20 @@ function extractFromCSV(csvData) {
         }
       }
       
-      if (date && !isNaN(date.getTime())) {
+      if (date && !isNaN(date.getTime()) && date.getFullYear() >= 2020) {
+        validDateCount++;
         if (!minDate || date < minDate) minDate = date;
         if (!maxDate || date > maxDate) maxDate = date;
+      } else {
+        invalidDateCount++;
+        if (invalidDateCount <= 3) {
+          console.log(`⚠️  Invalid date detected: "${dateStr}"`);
+        }
       }
     }
   });
+  
+  console.log(`📅 Date parsing results: ${validDateCount} valid dates, ${invalidDateCount} invalid/missing dates`);
   
   // Calculate the week range based on the data
   let weekStart, weekEnd;
@@ -667,8 +695,12 @@ function extractFromCSV(csvData) {
     weekEnd = new Date(maxDate);
     weekStart = new Date(maxDate);
     weekStart.setDate(weekStart.getDate() - 6);
+    console.log(`✅ Date range extracted from data: ${minDate.toISOString().split('T')[0]} to ${maxDate.toISOString().split('T')[0]}`);
   } else {
     // Fallback to current week if no dates found
+    console.error('❌ WARNING: No valid dates found in CSV data! Using current week as fallback.');
+    console.error('   This may indicate a problem with the date column format.');
+    console.error('   Expected columns: "Date" or "Date Of Payment" with format MM/DD/YY or MM/DD/YYYY');
     const now = new Date();
     weekStart = new Date(now);
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -702,19 +734,30 @@ function extractFromCSV(csvData) {
     // Parse the date for "New This Week" detection
     let transactionDate = null;
     if (dateStr) {
-      // Handle various date formats: "8/18/25", "8/18/2025", etc.
-      const dateParts = dateStr.split('/');
-      if (dateParts.length === 3) {
-        let month = parseInt(dateParts[0]);
-        let day = parseInt(dateParts[1]);
-        let year = parseInt(dateParts[2]);
-        
-        // Handle 2-digit year
-        if (year < 100) {
-          year = year + 2000; // Assume 2000s
+      // Try parsing as-is first
+      transactionDate = new Date(dateStr);
+      
+      // If that fails or gives wrong year, try manual parsing
+      if (isNaN(transactionDate.getTime()) || transactionDate.getFullYear() < 2020) {
+        // Handle various date formats: "8/18/25", "8/18/2025", etc.
+        const dateParts = dateStr.split('/');
+        if (dateParts.length === 3) {
+          let month = parseInt(dateParts[0]);
+          let day = parseInt(dateParts[1]);
+          let year = parseInt(dateParts[2]);
+          
+          // Handle 2-digit year
+          if (year < 100) {
+            year = year + 2000; // Assume 2000s
+          }
+          
+          transactionDate = new Date(year, month - 1, day);
         }
-        
-        transactionDate = new Date(year, month - 1, day);
+      }
+      
+      // Validate the parsed date
+      if (isNaN(transactionDate.getTime()) || transactionDate.getFullYear() < 2020) {
+        transactionDate = null; // Invalid date, set to null
       }
     }
     
