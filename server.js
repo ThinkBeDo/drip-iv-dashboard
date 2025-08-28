@@ -609,13 +609,22 @@ function extractFromCSV(csvData) {
     dripConcierge: new Set()
   };
   
-  // Track new weekly membership signups
+  // Track new weekly membership signups - based on date within current week
   const newMembershipCounts = {
     individual: new Set(),
     family: new Set(),
     concierge: new Set(),
     corporate: new Set()
   };
+  
+  // Calculate week range for "New This Week" detection
+  const currentDate = new Date();
+  const weekStart = new Date(currentDate);
+  weekStart.setDate(currentDate.getDate() - currentDate.getDay()); // Start of current week (Sunday)
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6); // End of current week (Saturday)
+  weekEnd.setHours(23, 59, 59, 999);
 
   // Process filtered CSV data to extract membership information
   console.log('Processing membership data from CSV...');
@@ -628,8 +637,32 @@ function extractFromCSV(csvData) {
     const chargeDesc = (row['Charge Desc'] || '');
     const chargeDescLower = chargeDesc.toLowerCase();
     const patient = row['Patient'] || '';
+    const dateStr = row['Date'] || row['Date Of Payment'] || '';
     
     if (!patient) return; // Skip rows without patient info
+    
+    // Parse the date for "New This Week" detection
+    let transactionDate = null;
+    if (dateStr) {
+      // Handle various date formats: "8/18/25", "8/18/2025", etc.
+      const dateParts = dateStr.split('/');
+      if (dateParts.length === 3) {
+        let month = parseInt(dateParts[0]);
+        let day = parseInt(dateParts[1]);
+        let year = parseInt(dateParts[2]);
+        
+        // Handle 2-digit year
+        if (year < 100) {
+          year = year + 2000; // Assume 2000s
+        }
+        
+        transactionDate = new Date(year, month - 1, day);
+      }
+    }
+    
+    const isWithinCurrentWeek = transactionDate && 
+                                transactionDate >= weekStart && 
+                                transactionDate <= weekEnd;
     
     // IMPROVED: More flexible membership detection
     // Track ANY patient who appears to be a member (excluding "non-member" references)
@@ -652,8 +685,9 @@ function extractFromCSV(csvData) {
         chargeDescLower === 'individual membership' ||
         chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      if (chargeDescLower.includes('new')) {
+      if (isWithinCurrentWeek) {
         newMembershipCounts.individual.add(patient);
+        console.log(`New individual membership this week: ${patient} on ${dateStr}`);
       }
     }
     // Family membership variations (excluding concierge combos)
@@ -662,8 +696,9 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'membership family' ||
              chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      if (chargeDescLower.includes('new')) {
+      if (isWithinCurrentWeek) {
         newMembershipCounts.family.add(patient);
+        console.log(`New family membership this week: ${patient} on ${dateStr}`);
       }
     }
     // Family with Concierge combo
@@ -686,8 +721,9 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'concierge membership' ||
              chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      if (chargeDescLower.includes('new')) {
+      if (isWithinCurrentWeek) {
         newMembershipCounts.concierge.add(patient);
+        console.log(`New concierge membership this week: ${patient} on ${dateStr}`);
       }
     }
     // Corporate membership variations
@@ -696,8 +732,9 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'corporate membership' ||
              chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      if (chargeDescLower.includes('new')) {
+      if (isWithinCurrentWeek) {
         newMembershipCounts.corporate.add(patient);
+        console.log(`New corporate membership this week: ${patient} on ${dateStr}`);
       }
     }
   });
@@ -902,6 +939,41 @@ function extractFromCSV(csvData) {
     const isWithinWeek = dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime();
     const isWithinMonth = dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime();
     
+    // Track weight management and hormone services
+    services.forEach(chargeDesc => {
+      // Weight management tracking
+      if (isWeightManagementService(chargeDesc)) {
+        const lowerDesc = chargeDesc.toLowerCase();
+        if (lowerDesc.includes('semaglutide')) {
+          if (isWithinWeek) semaglutideWeeklyCount++;
+          if (isWithinMonth) semaglutideMonthlyCount++;
+          weightManagementServices['Semaglutide'] = (weightManagementServices['Semaglutide'] || 0) + 1;
+        } else if (lowerDesc.includes('tirzepatide')) {
+          if (isWithinWeek) tirzepatideWeeklyCount++;
+          if (isWithinMonth) tirzepatideMonthlyCount++;
+          weightManagementServices['Tirzepatide'] = (weightManagementServices['Tirzepatide'] || 0) + 1;
+        }
+      }
+      
+      // Hormone service tracking
+      if (isHormoneService(chargeDesc)) {
+        const lowerDesc = chargeDesc.toLowerCase();
+        if (lowerDesc.includes('initial') && lowerDesc.includes('female')) {
+          if (isWithinWeek) hormoneInitialFemaleWeekly++;
+          if (isWithinMonth) hormoneInitialFemaleMonthly++;
+        } else if (lowerDesc.includes('initial') && lowerDesc.includes('male')) {
+          if (isWithinWeek) hormoneInitialMaleWeekly++;
+          if (isWithinMonth) hormoneInitialMaleMonthly++;
+        } else if (lowerDesc.includes('followup') || lowerDesc.includes('follow up')) {
+          if (lowerDesc.includes('female')) {
+            if (isWithinWeek) hormoneFollowupFemaleWeekly++;
+            if (isWithinMonth) hormoneFollowupFemaleMonthly++;
+          }
+        }
+        hormoneServices[chargeDesc] = (hormoneServices[chargeDesc] || 0) + 1;
+      }
+    });
+    
     // Track customers based on date range
     if (!isNaN(date.getTime())) {
       if (isWithinWeek) {
@@ -962,17 +1034,13 @@ function extractFromCSV(csvData) {
         if (isWithinMonth) injectionMonthlyRevenue += totalAmount;
       }
       
-      // Track popular injections and weight management services separately
-      const injectionService = services.find(s => isStandaloneInjection(s));
-      if (injectionService) {
-        const serviceName = injectionService.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
-        // Separate weight management medications from regular injections
-        if (serviceName.toLowerCase().includes('semaglutide') || serviceName.toLowerCase().includes('tirzepatide')) {
-          weightManagementServices[serviceName] = (weightManagementServices[serviceName] || 0) + 1;
-        } else {
+      // Track popular injections (excluding weight management)
+      services.forEach(service => {
+        if (isStandaloneInjection(service)) {
+          const serviceName = service.replace(/\s*\((Member|Non-Member)\)\s*/i, '').trim();
           injectionServices[serviceName] = (injectionServices[serviceName] || 0) + 1;
         }
-      }
+      })
     }
     
     // Handle visits with only addons or admin services
