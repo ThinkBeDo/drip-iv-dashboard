@@ -829,6 +829,12 @@ function extractFromCSV(csvData) {
 
   // CRITICAL FIX: Calculate proper date ranges for filtering
   // (We already extracted minDate and maxDate above)
+  console.log('Date extraction results:', { 
+    minDate: minDate ? minDate.toISOString() : 'null',
+    maxDate: maxDate ? maxDate.toISOString() : 'null',
+    rowCount: filteredData.length
+  });
+  
   let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
   
   if (minDate && maxDate) {
