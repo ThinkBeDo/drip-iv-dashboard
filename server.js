@@ -617,16 +617,50 @@ function extractFromCSV(csvData) {
     corporate: new Set()
   };
   
-  // Calculate week range for "New This Week" detection
-  const currentDate = new Date();
-  const weekStart = new Date(currentDate);
-  weekStart.setDate(currentDate.getDate() - currentDate.getDay()); // Start of current week (Sunday)
+  // FIRST: Calculate date ranges from the data to determine "New This Week" period
+  let minDate = null;
+  let maxDate = null;
+  
+  // Extract date range from filtered CSV data
+  filteredData.forEach(row => {
+    const dateFields = ['Date', 'Service Date', 'Transaction Date', 'Created Date'];
+    for (const field of dateFields) {
+      const dateStr = row[field];
+      if (dateStr) {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          if (!minDate || date < minDate) minDate = date;
+          if (!maxDate || date > maxDate) maxDate = date;
+        }
+      }
+    }
+  });
+  
+  // Calculate the week range based on the data
+  let weekStart, weekEnd;
+  if (minDate && maxDate) {
+    // Use the last 7 days ending on maxDate as "this week"
+    weekEnd = new Date(maxDate);
+    weekStart = new Date(maxDate);
+    weekStart.setDate(weekStart.getDate() - 6);
+  } else {
+    // Fallback to current week if no dates found
+    const now = new Date();
+    weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+  }
+  
   weekStart.setHours(0, 0, 0, 0);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6); // End of current week (Saturday)
   weekEnd.setHours(23, 59, 59, 999);
+  
+  console.log('Week range for "New This Week":', {
+    start: weekStart.toISOString().split('T')[0],
+    end: weekEnd.toISOString().split('T')[0]
+  });
 
-  // Process filtered CSV data to extract membership information
+  // NOW process membership data with the correct week range
   console.log('Processing membership data from CSV...');
   let membershipTransactionsFound = 0;
   
@@ -660,9 +694,10 @@ function extractFromCSV(csvData) {
       }
     }
     
-    const isWithinCurrentWeek = transactionDate && 
-                                transactionDate >= weekStart && 
-                                transactionDate <= weekEnd;
+    // Check if membership falls within the data's week (not current week)
+    const isWithinDataWeek = transactionDate && weekStart && weekEnd &&
+                            transactionDate >= weekStart && 
+                            transactionDate <= weekEnd;
     
     // IMPROVED: More flexible membership detection
     // Track ANY patient who appears to be a member (excluding "non-member" references)
@@ -685,7 +720,7 @@ function extractFromCSV(csvData) {
         chargeDescLower === 'individual membership' ||
         chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      if (isWithinCurrentWeek) {
+      if (isWithinDataWeek) {
         newMembershipCounts.individual.add(patient);
         console.log(`New individual membership this week: ${patient} on ${dateStr}`);
       }
@@ -696,7 +731,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'membership family' ||
              chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      if (isWithinCurrentWeek) {
+      if (isWithinDataWeek) {
         newMembershipCounts.family.add(patient);
         console.log(`New family membership this week: ${patient} on ${dateStr}`);
       }
@@ -721,7 +756,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'concierge membership' ||
              chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      if (isWithinCurrentWeek) {
+      if (isWithinDataWeek) {
         newMembershipCounts.concierge.add(patient);
         console.log(`New concierge membership this week: ${patient} on ${dateStr}`);
       }
@@ -732,7 +767,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'corporate membership' ||
              chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      if (isWithinCurrentWeek) {
+      if (isWithinDataWeek) {
         newMembershipCounts.corporate.add(patient);
         console.log(`New corporate membership this week: ${patient} on ${dateStr}`);
       }
@@ -792,26 +827,8 @@ function extractFromCSV(csvData) {
     }
   });
 
-  // Extract date range from filtered CSV data
-  let minDate = null;
-  let maxDate = null;
-  
-  filteredData.forEach(row => {
-    // Try to find date fields in common column names
-    const dateFields = ['Date', 'Service Date', 'Transaction Date', 'Created Date'];
-    for (const field of dateFields) {
-      const dateStr = row[field];
-      if (dateStr) {
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-          if (!minDate || date < minDate) minDate = date;
-          if (!maxDate || date > maxDate) maxDate = date;
-        }
-      }
-    }
-  });
-
   // CRITICAL FIX: Calculate proper date ranges for filtering
+  // (We already extracted minDate and maxDate above)
   let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
   
   if (minDate && maxDate) {
