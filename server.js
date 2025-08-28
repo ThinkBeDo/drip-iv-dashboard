@@ -622,16 +622,40 @@ function extractFromCSV(csvData) {
   let maxDate = null;
   
   // Extract date range from filtered CSV data
+  console.log('Sample CSV row keys:', Object.keys(filteredData[0] || {}));
+  
   filteredData.forEach(row => {
-    const dateFields = ['Date', 'Service Date', 'Transaction Date', 'Created Date'];
-    for (const field of dateFields) {
-      const dateStr = row[field];
-      if (dateStr) {
-        const date = new Date(dateStr);
-        if (!isNaN(date.getTime())) {
-          if (!minDate || date < minDate) minDate = date;
-          if (!maxDate || date > maxDate) maxDate = date;
+    // Check both Date and Date Of Payment columns
+    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    
+    if (dateStr) {
+      // Handle various date formats
+      let date = null;
+      
+      // Try parsing as-is first
+      date = new Date(dateStr);
+      
+      // If that fails or gives wrong year, try manual parsing
+      if (isNaN(date.getTime()) || date.getFullYear() < 2020) {
+        // Handle "8/18/25" format
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const month = parseInt(parts[0]);
+          const day = parseInt(parts[1]);
+          let year = parseInt(parts[2]);
+          
+          // Convert 2-digit year to 4-digit
+          if (year < 100) {
+            year = 2000 + year;
+          }
+          
+          date = new Date(year, month - 1, day);
         }
+      }
+      
+      if (date && !isNaN(date.getTime())) {
+        if (!minDate || date < minDate) minDate = date;
+        if (!maxDate || date > maxDate) maxDate = date;
       }
     }
   });
@@ -829,10 +853,11 @@ function extractFromCSV(csvData) {
 
   // CRITICAL FIX: Calculate proper date ranges for filtering
   // (We already extracted minDate and maxDate above)
-  console.log('Date extraction results:', { 
-    minDate: minDate ? minDate.toISOString() : 'null',
-    maxDate: maxDate ? maxDate.toISOString() : 'null',
-    rowCount: filteredData.length
+  console.log('🗓️ CSV Date Extraction Results:', { 
+    minDate: minDate ? minDate.toISOString().split('T')[0] : 'null',
+    maxDate: maxDate ? maxDate.toISOString().split('T')[0] : 'null',
+    rowCount: filteredData.length,
+    sampleDates: filteredData.slice(0, 3).map(r => r['Date'] || r['Date Of Payment'] || 'no date')
   });
   
   let weekStartDate, weekEndDate, monthStartDate, monthEndDate;
@@ -861,18 +886,23 @@ function extractFromCSV(csvData) {
     data.week_start_date = weekStartDate.toISOString().split('T')[0];
     data.week_end_date = weekEndDate.toISOString().split('T')[0];
   } else {
-    // Default to current week and month
+    // NO DATES FOUND - This means parsing failed!
+    console.error('❌ NO DATES EXTRACTED FROM CSV - Using fallback dates');
     const now = new Date();
-    weekStartDate = new Date(now);
-    weekStartDate.setDate(weekStartDate.getDate() - weekStartDate.getDay()); // Start of current week
-    weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekStartDate.getDate() + 6); // End of current week
+    
+    // Use last week as fallback (more likely to be correct)
+    weekEndDate = new Date(now);
+    weekEndDate.setDate(weekEndDate.getDate() - (weekEndDate.getDay() + 1)); // Last Saturday
+    weekStartDate = new Date(weekEndDate);
+    weekStartDate.setDate(weekStartDate.getDate() - 6); // Last Sunday
     
     monthStartDate = new Date(now.getFullYear(), now.getMonth(), 1);
     monthEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     
     data.week_start_date = weekStartDate.toISOString().split('T')[0];
     data.week_end_date = weekEndDate.toISOString().split('T')[0];
+    
+    console.log('Using fallback week:', data.week_start_date, 'to', data.week_end_date);
   }
   
   // Set hour to start/end of day for proper comparison
