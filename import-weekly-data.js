@@ -667,9 +667,18 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       popular_injections_status: 'Active'
     };
     
-    // Set week start and end dates
-    combinedData.week_start_date = combinedData.weekStartDate || new Date();
-    combinedData.week_end_date = combinedData.weekEndDate || new Date();
+    // Set week start and end dates - Convert to ISO string format for PostgreSQL
+    if (combinedData.weekStartDate) {
+      combinedData.week_start_date = combinedData.weekStartDate.toISOString().split('T')[0];
+    } else {
+      combinedData.week_start_date = new Date().toISOString().split('T')[0];
+    }
+    
+    if (combinedData.weekEndDate) {
+      combinedData.week_end_date = combinedData.weekEndDate.toISOString().split('T')[0];
+    } else {
+      combinedData.week_end_date = new Date().toISOString().split('T')[0];
+    }
     
     // Clean up temporary date fields
     delete combinedData.weekStartDate;
