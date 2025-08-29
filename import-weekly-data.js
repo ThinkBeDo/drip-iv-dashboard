@@ -92,21 +92,41 @@ function cleanCurrency(value) {
   return isNaN(parsed) ? 0.0 : parsed;
 }
 
-// Date parsing function
+// Date parsing function - Enhanced to handle various formats
 function parseDate(dateStr) {
   if (!dateStr || dateStr === 'Total') return null;
   
-  // Handle format like "8/9/25" for August 9, 2025
+  // Clean the date string
+  dateStr = dateStr.trim();
+  
+  // Handle format like "8/22/25" or "8/22/2025"
   const parts = dateStr.split('/');
   if (parts.length === 3) {
     const month = parseInt(parts[0]);
     const day = parseInt(parts[1]);
-    // Fix: All 2-digit years should be 2000s (e.g., 25 = 2025, not 1925)
-    const year = parseInt(parts[2]) + 2000;
-    return new Date(year, month - 1, day);
+    let year = parseInt(parts[2]);
+    
+    // Handle 2-digit year (25 = 2025, not 1925)
+    if (year < 100) {
+      year = 2000 + year;
+    }
+    
+    const date = new Date(year, month - 1, day);
+    
+    // Validate the date
+    if (!isNaN(date.getTime()) && date.getFullYear() >= 2020) {
+      return date;
+    }
   }
   
-  return new Date(dateStr);
+  // Try parsing as ISO date or other formats
+  const date = new Date(dateStr);
+  if (!isNaN(date.getTime()) && date.getFullYear() >= 2020) {
+    return date;
+  }
+  
+  console.warn(`Unable to parse date: "${dateStr}"`);
+  return null;
 }
 
 // Check if date is weekend
@@ -149,23 +169,61 @@ async function processRevenueData(csvFilePath) {
         csvContent = buffer.toString('utf8');
       }
       
-      // Use csv-parse to properly parse the CSV content
-      // This handles embedded quotes, commas in fields, and complex CSV formatting
-      const records = parse(csvContent, {
-        columns: true, // Use first row as column headers
-        skip_empty_lines: true, // Skip empty lines
-        trim: true, // Trim whitespace from fields
-        relax_quotes: true, // Be lenient with quotes
-        relax_column_count: true, // Allow variable column counts
-        on_record: (record) => {
-          // Clean up any remaining quotes from field values
-          const cleanedRecord = {};
-          for (const [key, value] of Object.entries(record)) {
-            cleanedRecord[key] = value ? value.toString() : '';
-          }
-          return cleanedRecord;
-        }
+      // Custom parser for Drip IV CSV format
+      // The CSV has a specific structure: "field1,""value1"",""value2"",..."
+      const records = [];
+      const lines = csvContent.split(/\r?\n/);
+      
+      if (lines.length === 0) {
+        resolve([]);
+        return;
+      }
+      
+      // Parse the header line
+      const headerLine = lines[0];
+      const headers = [];
+      
+      // Remove outer quotes and split by ,""
+      const headerContent = headerLine.slice(1, -1); // Remove outer quotes
+      const headerParts = headerContent.split(',""');
+      
+      headerParts.forEach((part, index) => {
+        let header = part;
+        // Clean up quotes
+        if (index > 0) header = header.replace(/^"*/, ''); // Remove leading quotes
+        header = header.replace(/"*$/, ''); // Remove trailing quotes
+        header = header.replace(/""/g, '"'); // Replace double quotes with single
+        headers.push(header.trim());
       });
+      
+      console.log('Parsed headers:', headers.slice(0, 5), '...');
+      
+      // Parse data rows
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim()) continue;
+        
+        // Remove outer quotes and split
+        const dataContent = line.slice(1, -1); // Remove outer quotes
+        const dataParts = dataContent.split(',""');
+        
+        const values = [];
+        dataParts.forEach((part, index) => {
+          let value = part;
+          // Clean up quotes
+          if (index > 0) value = value.replace(/^"*/, ''); // Remove leading quotes
+          value = value.replace(/"*$/, ''); // Remove trailing quotes
+          value = value.replace(/""/g, '"'); // Replace double quotes with single
+          values.push(value.trim());
+        });
+        
+        // Create row object
+        const row = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        records.push(row);
+      }
       
       console.log(`Successfully parsed ${records.length} rows from CSV`);
       resolve(records);
@@ -180,6 +238,7 @@ async function processRevenueData(csvFilePath) {
 // Analyze revenue data and calculate metrics
 function analyzeRevenueData(csvData) {
   console.log('Analyzing revenue data...');
+  console.log(`Processing ${csvData.length} rows of data`);
   
   // Initialize metrics
   const metrics = {
@@ -224,10 +283,15 @@ function analyzeRevenueData(csvData) {
   
   // Process each row
   for (const row of csvData) {
-    if (!row.Date || row.Date === 'Total') continue;
+    // Try to find the date column - support both 'Date' and 'Date Of Payment'
+    const dateStr = row['Date'] || row['Date Of Payment'] || row['Date of Payment'];
+    if (!dateStr || dateStr === 'Total') continue;
     
-    const date = parseDate(row.Date);
-    if (!date || isNaN(date)) continue;
+    const date = parseDate(dateStr);
+    if (!date || isNaN(date.getTime())) {
+      console.warn(`Skipping row with invalid date: ${dateStr}`);
+      continue;
+    }
     
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
