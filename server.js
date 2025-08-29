@@ -134,70 +134,171 @@ async function parseCSVData(filePath) {
       // Handle UTF-16 encoding with proper CSV parsing
       try {
         const fullBuffer = fs.readFileSync(filePath);
-        const decoder = new TextDecoder(encoding);
-        csvContent = decoder.decode(fullBuffer);
+        // Use iconv-lite to decode UTF-16
+        const iconv = require('iconv-lite');
+        csvContent = iconv.decode(fullBuffer, encoding);
         
-        // Remove BOM if present
-        if (csvContent.charCodeAt(0) === 0xFEFF) {
-          csvContent = csvContent.substring(1);
-        }
-        
-        // Use proper CSV parsing that handles quoted fields with commas
-        const parseCSVLine = (line) => {
-          const result = [];
-          let current = '';
-          let inQuotes = false;
-          
-          for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            const nextChar = line[i + 1];
-            
-            if (char === '"') {
-              if (inQuotes && nextChar === '"') {
-                // Escaped quote
-                current += '"';
-                i++; // Skip next quote
-              } else {
-                // Toggle quote state
-                inQuotes = !inQuotes;
-              }
-            } else if (char === ',' && !inQuotes) {
-              // Field separator
-              result.push(current.trim());
-              current = '';
-            } else {
-              current += char;
-            }
-          }
-          
-          // Add last field
-          result.push(current.trim());
-          return result;
-        };
-        
-        // Parse CSV content with proper quote handling
-        const lines = csvContent.split('\n').filter(line => line.trim());
+        // Split content into lines
+        const lines = csvContent.split(/\r?\n/).filter(line => line.trim());
         if (lines.length === 0) {
           return resolve([]);
         }
         
-        // Parse headers
-        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
+        // Check if this is the special Drip IV format
+        const firstLine = lines[0];
+        const isDripIVFormat = firstLine.startsWith('"') && firstLine.includes(',""');
         
-        // Parse data rows
-        for (let i = 1; i < lines.length; i++) {
-          const values = parseCSVLine(lines[i]);
-          if (values.length === headers.length) {
-            const row = {};
-            headers.forEach((header, index) => {
-              let value = values[index] || '';
-              // Remove surrounding quotes if present
-              if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1);
+        let headers = [];
+        
+        if (isDripIVFormat) {
+          // Special Drip IV CSV format: "field1,""field2"",""field3"",..."
+          console.log('Detected special Drip IV CSV format');
+          
+          // Parse headers from special format
+          let content = firstLine;
+          if (content.startsWith('"') && content.endsWith('"')) {
+            content = content.slice(1, -1); // Remove outer quotes
+          }
+          
+          // Split by ,"" pattern but preserve structure
+          const parts = [];
+          let currentPart = '';
+          let i = 0;
+          
+          while (i < content.length) {
+            if (i < content.length - 2 && content.substring(i, i + 3) === ',""') {
+              // Found delimiter
+              parts.push(currentPart);
+              currentPart = '';
+              i += 3; // Skip ,""
+            } else if (i < content.length - 1 && content.substring(i, i + 2) === ',,') {
+              // Found empty field
+              parts.push(currentPart);
+              parts.push(''); // Empty field
+              currentPart = '';
+              i += 2; // Skip ,,
+            } else {
+              currentPart += content[i];
+              i++;
+            }
+          }
+          // Add the last part
+          if (currentPart || parts.length === 0) {
+            parts.push(currentPart);
+          }
+          
+          // Clean up each header
+          parts.forEach((part) => {
+            let header = part;
+            // Remove any quotes
+            header = header.replace(/^\"*/, '').replace(/\"*$/, '');
+            headers.push(header.trim());
+          });
+          
+          console.log('Parsed headers:', headers.slice(0, 5), '...');
+          
+          // Parse data rows
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line.trim()) continue;
+            
+            // Parse data using same logic as headers
+            let dataContent = line;
+            if (dataContent.startsWith('"') && dataContent.endsWith('"')) {
+              dataContent = dataContent.slice(1, -1); // Remove outer quotes
+            }
+            
+            // Split by ,"" pattern but preserve structure
+            const dataParts = [];
+            let currentPart = '';
+            let j = 0;
+            
+            while (j < dataContent.length) {
+              if (j < dataContent.length - 2 && dataContent.substring(j, j + 3) === ',""') {
+                // Found delimiter
+                dataParts.push(currentPart);
+                currentPart = '';
+                j += 3; // Skip ,""
+              } else if (j < dataContent.length - 1 && dataContent.substring(j, j + 2) === ',,') {
+                // Found empty field
+                dataParts.push(currentPart);
+                dataParts.push(''); // Empty field
+                currentPart = '';
+                j += 2; // Skip ,,
+              } else {
+                currentPart += dataContent[j];
+                j++;
               }
-              row[header] = value;
-            });
-            results.push(row);
+            }
+            // Add the last part
+            if (currentPart || dataParts.length === 0) {
+              dataParts.push(currentPart);
+            }
+            
+            // Clean each value and create row object
+            if (dataParts.length >= headers.length) {
+              const row = {};
+              headers.forEach((header, index) => {
+                let value = dataParts[index] || '';
+                // Remove any quotes
+                value = value.replace(/^\"*/, '').replace(/\"*$/, '');
+                row[header] = value.trim();
+              });
+              results.push(row);
+            }
+          }
+        } else {
+          // Standard CSV parsing for regular format
+          const parseCSVLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              const nextChar = line[i + 1];
+              
+              if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                  // Escaped quote
+                  current += '"';
+                  i++; // Skip next quote
+                } else {
+                  // Toggle quote state
+                  inQuotes = !inQuotes;
+                }
+              } else if (char === ',' && !inQuotes) {
+                // Field separator
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            
+            // Add last field
+            result.push(current.trim());
+            return result;
+          };
+          
+          // Parse headers
+          headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
+          
+          // Parse data rows
+          for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length === headers.length) {
+              const row = {};
+              headers.forEach((header, index) => {
+                let value = values[index] || '';
+                // Remove surrounding quotes if present
+                if (value.startsWith('"') && value.endsWith('"')) {
+                  value = value.slice(1, -1);
+                }
+                row[header] = value;
+              });
+              results.push(row);
+            }
           }
         }
         
@@ -312,6 +413,31 @@ function getServiceCategory(chargeDesc) {
   if (isBaseInfusionService(chargeDesc)) return 'base_infusion';
   if (isInfusionAddon(chargeDesc)) return 'infusion_addon';
   return 'other';
+}
+
+function isWeightManagementService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Weight management medications
+  const weightMgmtKeywords = [
+    'semaglutide', 'ozempic', 'wegovy', 'rybelsus',
+    'tirzepatide', 'mounjaro', 'zepbound',
+    'weight loss', 'weight management', 'glp-1'
+  ];
+  
+  return weightMgmtKeywords.some(keyword => lowerDesc.includes(keyword));
+}
+
+function isHormoneService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Hormone therapy services
+  const hormoneKeywords = [
+    'hormone', 'testosterone', 'estrogen', 'progesterone',
+    'hrt', 'bhrt', 'pellet', 'thyroid', 'cortisol'
+  ];
+  
+  return hormoneKeywords.some(keyword => lowerDesc.includes(keyword));
 }
 
 function extractFromPDF(pdfText) {
@@ -1021,20 +1147,60 @@ function extractFromCSV(csvData) {
   let membershipWeeklyRevenue = 0;
   let membershipMonthlyRevenue = 0;
   
+  // Weight management and hormone service counters
+  let semaglutideWeeklyCount = 0;
+  let semaglutideMonthlyCount = 0;
+  let tirzepatideWeeklyCount = 0;
+  let tirzepatideMonthlyCount = 0;
+  let hormoneInitialFemaleWeekly = 0;
+  let hormoneInitialFemaleMonthly = 0;
+  let hormoneInitialMaleWeekly = 0;
+  let hormoneInitialMaleMonthly = 0;
+  let hormoneFollowupFemaleWeekly = 0;
+  let hormoneFollowupFemaleMonthly = 0;
+  const hormoneServices = {};
+  
   // First pass: group services by patient + date
   filteredData.forEach(row => {
     const chargeType = row['Charge Type'] || '';
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row['Patient'] || '';
-    const date = new Date(row['Date'] || '');
+    
+    // CRITICAL FIX: Check both Date and Date Of Payment columns
+    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    if (!dateStr) return; // Skip rows without dates
+    
+    // Parse the date properly
+    let date = new Date(dateStr);
+    
+    // If that fails or gives wrong year, try manual parsing
+    if (isNaN(date.getTime()) || date.getFullYear() < 2020) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const month = parseInt(parts[0]);
+        const day = parseInt(parts[1]);
+        let year = parseInt(parts[2]);
+        
+        // Convert 2-digit year to 4-digit
+        if (year < 100) {
+          year = 2000 + year;
+        }
+        
+        date = new Date(year, month - 1, day);
+      }
+    }
+    
+    // Skip if date is still invalid
+    if (isNaN(date.getTime()) || date.getFullYear() < 2020) return;
+    
     const isMember = chargeDesc.toLowerCase().includes('member') && !chargeDesc.toLowerCase().includes('non-member');
     
     // Parse payment amount from "Calculated Payment (Line)" column
-    const paymentAmount = parseFloat((row['Calculated Payment (Line)'] || '0').replace(/[\$,]/g, '')) || 0;
+    const paymentAmount = parseFloat((row['Calculated Payment (Line)'] || '0').replace(/[\$,()]/g, '')) || 0;
     
-    // Skip non-procedure rows
-    if (chargeType !== 'PROCEDURE' && chargeType !== 'OFFICE_VISIT') return;
+    // CRITICAL FIX: Don't filter by charge type - include all transactions with amounts
     if (!patient || !chargeDesc) return;
+    if (paymentAmount === 0) return; // Skip zero-amount transactions
     
     // Create visit key
     const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -1266,13 +1432,15 @@ function extractFromCSV(csvData) {
     .map(([name]) => name);
   data.popular_weight_management = topWeightManagement.length > 0 ? topWeightManagement : ['Tirzepatide', 'Semaglutide'];
 
-  // CRITICAL FIX LOGGING: Show how many transactions were filtered
+  // Enhanced logging for debugging revenue calculations
   let transactionsInWeek = 0;
   let transactionsInMonth = 0;
   let totalTransactions = visitMap.size;
+  let totalAmountProcessed = 0;
   
   visitMap.forEach((visit) => {
     const dateTime = visit.date.getTime();
+    totalAmountProcessed += visit.totalAmount;
     if (dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime()) {
       transactionsInWeek++;
     }
@@ -1281,14 +1449,34 @@ function extractFromCSV(csvData) {
     }
   });
   
-  console.log('🔧 CRITICAL FIX - Transaction Filtering:', {
-    totalTransactions,
-    transactionsInWeek,
-    transactionsInMonth,
-    weeklyRange: `${weekStartDate.toISOString().split('T')[0]} to ${weekEndDate.toISOString().split('T')[0]}`,
-    monthlyRange: `${monthStartDate.toISOString().split('T')[0]} to ${monthEndDate.toISOString().split('T')[0]}`,
-    weeklyRevenue: `$${totalWeeklyRevenue.toFixed(2)}`,
-    monthlyRevenue: `$${totalMonthlyRevenue.toFixed(2)}`
+  console.log('📊 CSV Revenue Processing Complete:', {
+    dataQuality: {
+      totalRows: csvData.length,
+      rowsAfterFiltering: filteredData.length,
+      uniqueVisitsCreated: totalTransactions,
+      visitsInWeekRange: transactionsInWeek,
+      visitsInMonthRange: transactionsInMonth
+    },
+    dateRanges: {
+      weekly: `${data.week_start_date} to ${data.week_end_date}`,
+      monthly: `${monthStartDate.toISOString().split('T')[0]} to ${monthEndDate.toISOString().split('T')[0]}`
+    },
+    revenue: {
+      totalProcessed: `$${totalAmountProcessed.toFixed(2)}`,
+      weekly: `$${data.actual_weekly_revenue.toFixed(2)}`,
+      monthly: `$${data.actual_monthly_revenue.toFixed(2)}`
+    },
+    byCategory: {
+      infusion: { weekly: `$${infusionWeeklyRevenue.toFixed(2)}`, monthly: `$${infusionMonthlyRevenue.toFixed(2)}` },
+      injection: { weekly: `$${injectionWeeklyRevenue.toFixed(2)}`, monthly: `$${injectionMonthlyRevenue.toFixed(2)}` },
+      membership: { weekly: `$${membershipWeeklyRevenue.toFixed(2)}`, monthly: `$${membershipMonthlyRevenue.toFixed(2)}` }
+    },
+    serviceVolumes: {
+      infusionsWeekly: data.iv_infusions_weekday_weekly + data.iv_infusions_weekend_weekly,
+      injectionsWeekly: data.injections_weekday_weekly + data.injections_weekend_weekly,
+      customersWeekly: data.unique_customers_weekly,
+      customersMonthly: data.unique_customers_monthly
+    }
   });
   
   console.log('CSV Service Analysis (FIXED):', {
