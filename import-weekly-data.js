@@ -198,34 +198,39 @@ async function processRevenueData(csvFilePath) {
           content = content.slice(1, -1); // Remove outer quotes
         }
         
-        // Split by ,"" pattern
-        const parts = content.split(',""');
+        // Split by ,"" pattern but preserve structure
+        const parts = [];
+        let currentPart = '';
+        let i = 0;
         
-        parts.forEach((part, index) => {
-          let header = part;
-          
-          // First field won't have leading quotes
-          if (index > 0) {
-            // Remove any leading quotes
-            header = header.replace(/^\"*/, '');
-          }
-          
-          // Remove any trailing quotes
-          header = header.replace(/\"*$/, '');
-          
-          // Handle empty fields (consecutive commas)
-          if (header === ',') {
-            headers.push('');
-            headers.push(''); // Two empty fields
-          } else if (header.startsWith(',')) {
-            headers.push(''); // Empty field before
-            headers.push(header.substring(1).trim());
-          } else if (header.endsWith(',')) {
-            headers.push(header.substring(0, header.length - 1).trim());
-            // Note: empty field after will be handled by next iteration
+        while (i < content.length) {
+          if (i < content.length - 2 && content.substring(i, i + 3) === ',""') {
+            // Found delimiter
+            parts.push(currentPart);
+            currentPart = '';
+            i += 3; // Skip ,""
+          } else if (i < content.length - 1 && content.substring(i, i + 2) === ',,') {
+            // Found empty field
+            parts.push(currentPart);
+            parts.push(''); // Empty field
+            currentPart = '';
+            i += 2; // Skip ,,
           } else {
-            headers.push(header.trim());
+            currentPart += content[i];
+            i++;
           }
+        }
+        // Add the last part
+        if (currentPart || parts.length === 0) {
+          parts.push(currentPart);
+        }
+        
+        // Clean up each header
+        parts.forEach((part) => {
+          let header = part;
+          // Remove any quotes
+          header = header.replace(/^\"*/, '').replace(/\"*$/, '');
+          headers.push(header.trim());
         });
         
         console.log('Parsed headers:', headers.slice(0, 5), '...');
@@ -241,33 +246,40 @@ async function processRevenueData(csvFilePath) {
             dataContent = dataContent.slice(1, -1); // Remove outer quotes
           }
           
-          const dataParts = dataContent.split(',""');
-          const values = [];
+          // Split by ,"" pattern but preserve structure
+          const dataParts = [];
+          let currentPart = '';
+          let j = 0;
           
-          dataParts.forEach((part, index) => {
-            let value = part;
-            
-            // First field won't have leading quotes
-            if (index > 0) {
-              value = value.replace(/^\"*/, '');
-            }
-            
-            // Remove any trailing quotes
-            value = value.replace(/\"*$/, '');
-            
-            // Handle empty fields (consecutive commas)
-            if (value === ',') {
-              values.push('');
-              values.push(''); // Two empty fields
-            } else if (value.startsWith(',')) {
-              values.push(''); // Empty field before
-              values.push(value.substring(1).trim());
-            } else if (value.endsWith(',')) {
-              values.push(value.substring(0, value.length - 1).trim());
-              // Note: empty field after will be handled by next iteration
+          while (j < dataContent.length) {
+            if (j < dataContent.length - 2 && dataContent.substring(j, j + 3) === ',""') {
+              // Found delimiter
+              dataParts.push(currentPart);
+              currentPart = '';
+              j += 3; // Skip ,""
+            } else if (j < dataContent.length - 1 && dataContent.substring(j, j + 2) === ',,') {
+              // Found empty field
+              dataParts.push(currentPart);
+              dataParts.push(''); // Empty field
+              currentPart = '';
+              j += 2; // Skip ,,
             } else {
-              values.push(value.trim());
+              currentPart += dataContent[j];
+              j++;
             }
+          }
+          // Add the last part
+          if (currentPart || dataParts.length === 0) {
+            dataParts.push(currentPart);
+          }
+          
+          // Clean up each value
+          const values = [];
+          dataParts.forEach((part) => {
+            let value = part;
+            // Remove any quotes
+            value = value.replace(/^\"*/, '').replace(/\"*$/, '');
+            values.push(value.trim());
           });
           
           // Create row object
@@ -865,41 +877,39 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       if (existingCheck.rows.length > 0) {
         console.log('Data already exists for this week, updating...');
         
-        // Update existing record
+        // Update existing record - Fixed parameter numbering
         const updateQuery = `
           UPDATE analytics_data SET
-            iv_infusions_weekday_weekly = $3,
-            iv_infusions_weekend_weekly = $4,
-            iv_infusions_weekday_monthly = $5,
-            iv_infusions_weekend_monthly = $6,
-            injections_weekday_weekly = $7,
-            injections_weekend_weekly = $8,
-            injections_weekday_monthly = $9,
-            injections_weekend_monthly = $10,
-            unique_customers_weekly = $11,
-            unique_customers_monthly = $12,
-            member_customers_weekly = $13,
-            non_member_customers_weekly = $14,
-            actual_weekly_revenue = $15,
-            actual_monthly_revenue = $16,
-            drip_iv_revenue_weekly = $17,
-            semaglutide_revenue_weekly = $18,
-            drip_iv_revenue_monthly = $19,
-            semaglutide_revenue_monthly = $20,
-            total_drip_iv_members = $21,
-            individual_memberships = $22,
-            family_memberships = $23,
-            family_concierge_memberships = $24,
-            drip_concierge_memberships = $25,
-            concierge_memberships = $26,
-            corporate_memberships = $27,
+            iv_infusions_weekday_weekly = $1,
+            iv_infusions_weekend_weekly = $2,
+            iv_infusions_weekday_monthly = $3,
+            iv_infusions_weekend_monthly = $4,
+            injections_weekday_weekly = $5,
+            injections_weekend_weekly = $6,
+            injections_weekday_monthly = $7,
+            injections_weekend_monthly = $8,
+            unique_customers_weekly = $9,
+            unique_customers_monthly = $10,
+            member_customers_weekly = $11,
+            non_member_customers_weekly = $12,
+            actual_weekly_revenue = $13,
+            actual_monthly_revenue = $14,
+            drip_iv_revenue_weekly = $15,
+            semaglutide_revenue_weekly = $16,
+            drip_iv_revenue_monthly = $17,
+            semaglutide_revenue_monthly = $18,
+            total_drip_iv_members = $19,
+            individual_memberships = $20,
+            family_memberships = $21,
+            family_concierge_memberships = $22,
+            drip_concierge_memberships = $23,
+            concierge_memberships = $24,
+            corporate_memberships = $25,
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = $28
+          WHERE id = $26
         `;
         
         await client.query(updateQuery, [
-          combinedData.week_start_date,
-          combinedData.week_end_date,
           combinedData.iv_infusions_weekday_weekly,
           combinedData.iv_infusions_weekend_weekly,
           combinedData.iv_infusions_weekday_monthly,
