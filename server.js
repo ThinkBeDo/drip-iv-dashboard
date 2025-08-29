@@ -131,7 +131,7 @@ async function parseCSVData(filePath) {
         .on('end', () => resolve(results))
         .on('error', reject);
     } else {
-      // Handle UTF-16 encoding
+      // Handle UTF-16 encoding with proper CSV parsing
       try {
         const fullBuffer = fs.readFileSync(filePath);
         const decoder = new TextDecoder(encoding);
@@ -142,27 +142,69 @@ async function parseCSVData(filePath) {
           csvContent = csvContent.substring(1);
         }
         
-        // Parse CSV content manually
+        // Use proper CSV parsing that handles quoted fields with commas
+        const parseCSVLine = (line) => {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+              if (inQuotes && nextChar === '"') {
+                // Escaped quote
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              // Field separator
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          
+          // Add last field
+          result.push(current.trim());
+          return result;
+        };
+        
+        // Parse CSV content with proper quote handling
         const lines = csvContent.split('\n').filter(line => line.trim());
         if (lines.length === 0) {
           return resolve([]);
         }
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        // Parse headers
+        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
         
+        // Parse data rows
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+          const values = parseCSVLine(lines[i]);
           if (values.length === headers.length) {
             const row = {};
             headers.forEach((header, index) => {
-              row[header] = values[index] || '';
+              let value = values[index] || '';
+              // Remove surrounding quotes if present
+              if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1);
+              }
+              row[header] = value;
             });
             results.push(row);
           }
         }
         
+        console.log(`✅ Successfully parsed UTF-16 CSV: ${results.length} rows`);
         resolve(results);
       } catch (error) {
+        console.error('❌ Error parsing UTF-16 CSV:', error.message);
         reject(error);
       }
     }

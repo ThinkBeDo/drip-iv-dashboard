@@ -169,9 +169,7 @@ async function processRevenueData(csvFilePath) {
         csvContent = buffer.toString('utf8');
       }
       
-      // Custom parser for Drip IV CSV format
-      // The CSV has a specific structure: "field1,""value1"",""value2"",..."
-      const records = [];
+      // Split content into lines
       const lines = csvContent.split(/\r?\n/);
       
       if (lines.length === 0) {
@@ -179,50 +177,176 @@ async function processRevenueData(csvFilePath) {
         return;
       }
       
-      // Parse the header line
-      const headerLine = lines[0];
-      const headers = [];
+      // Check if this is the special Drip IV format
+      const firstLine = lines[0];
+      const isDripIVFormat = firstLine.startsWith('"') && firstLine.includes(',""');
       
-      // Remove outer quotes and split by ,""
-      const headerContent = headerLine.slice(1, -1); // Remove outer quotes
-      const headerParts = headerContent.split(',""');
+      let headers = [];
+      const records = [];
       
-      headerParts.forEach((part, index) => {
-        let header = part;
-        // Clean up quotes
-        if (index > 0) header = header.replace(/^"*/, ''); // Remove leading quotes
-        header = header.replace(/"*$/, ''); // Remove trailing quotes
-        header = header.replace(/""/g, '"'); // Replace double quotes with single
-        headers.push(header.trim());
-      });
-      
-      console.log('Parsed headers:', headers.slice(0, 5), '...');
-      
-      // Parse data rows
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.trim()) continue;
+      if (isDripIVFormat) {
+        // Special Drip IV CSV format: "field1,""field2"",""field3"",..."
+        console.log('Detected special Drip IV CSV format');
         
-        // Remove outer quotes and split
-        const dataContent = line.slice(1, -1); // Remove outer quotes
-        const dataParts = dataContent.split(',""');
+        // Parse headers from special format
+        // Format is: "field1,""field2"",""field3"",,""field5"",..."
+        const headerLine = firstLine;
         
-        const values = [];
-        dataParts.forEach((part, index) => {
-          let value = part;
-          // Clean up quotes
-          if (index > 0) value = value.replace(/^"*/, ''); // Remove leading quotes
-          value = value.replace(/"*$/, ''); // Remove trailing quotes
-          value = value.replace(/""/g, '"'); // Replace double quotes with single
-          values.push(value.trim());
+        // First check if entire line is wrapped in quotes
+        let content = headerLine;
+        if (content.startsWith('"') && content.endsWith('"')) {
+          content = content.slice(1, -1); // Remove outer quotes
+        }
+        
+        // Split by ,"" pattern
+        const parts = content.split(',""');
+        
+        parts.forEach((part, index) => {
+          let header = part;
+          
+          // First field won't have leading quotes
+          if (index > 0) {
+            // Remove any leading quotes
+            header = header.replace(/^\"*/, '');
+          }
+          
+          // Remove any trailing quotes
+          header = header.replace(/\"*$/, '');
+          
+          // Handle empty fields (consecutive commas)
+          if (header === ',') {
+            headers.push('');
+            headers.push(''); // Two empty fields
+          } else if (header.startsWith(',')) {
+            headers.push(''); // Empty field before
+            headers.push(header.substring(1).trim());
+          } else if (header.endsWith(',')) {
+            headers.push(header.substring(0, header.length - 1).trim());
+            // Note: empty field after will be handled by next iteration
+          } else {
+            headers.push(header.trim());
+          }
         });
         
-        // Create row object
-        const row = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
+        console.log('Parsed headers:', headers.slice(0, 5), '...');
+        
+        // Parse data rows
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          // Parse data using same logic as headers
+          let dataContent = line;
+          if (dataContent.startsWith('"') && dataContent.endsWith('"')) {
+            dataContent = dataContent.slice(1, -1); // Remove outer quotes
+          }
+          
+          const dataParts = dataContent.split(',""');
+          const values = [];
+          
+          dataParts.forEach((part, index) => {
+            let value = part;
+            
+            // First field won't have leading quotes
+            if (index > 0) {
+              value = value.replace(/^\"*/, '');
+            }
+            
+            // Remove any trailing quotes
+            value = value.replace(/\"*$/, '');
+            
+            // Handle empty fields (consecutive commas)
+            if (value === ',') {
+              values.push('');
+              values.push(''); // Two empty fields
+            } else if (value.startsWith(',')) {
+              values.push(''); // Empty field before
+              values.push(value.substring(1).trim());
+            } else if (value.endsWith(',')) {
+              values.push(value.substring(0, value.length - 1).trim());
+              // Note: empty field after will be handled by next iteration
+            } else {
+              values.push(value.trim());
+            }
+          });
+          
+          // Create row object
+          if (values.length === headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            records.push(row);
+          }
+        }
+      } else {
+        // Standard CSV format with proper quote handling
+        console.log('Processing standard CSV format');
+        
+        const parseCSVLine = (line) => {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+              if (inQuotes && nextChar === '"') {
+                // Escaped quote
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              // Field separator
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          
+          // Add last field
+          result.push(current.trim());
+          return result;
+        };
+        
+        // Parse headers
+        headers = parseCSVLine(lines[0]).map(h => {
+          // Remove surrounding quotes if present
+          if (h.startsWith('"') && h.endsWith('"')) {
+            return h.slice(1, -1);
+          }
+          return h;
         });
-        records.push(row);
+        
+        console.log('Parsed headers:', headers.slice(0, 5), '...');
+        
+        // Parse data rows
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          const values = parseCSVLine(line);
+          
+          // Only add row if it has the correct number of columns
+          if (values.length === headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+              let value = values[index] || '';
+              // Remove surrounding quotes if present
+              if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1);
+              }
+              row[header] = value;
+            });
+            records.push(row);
+          }
+        }
       }
       
       console.log(`Successfully parsed ${records.length} rows from CSV`);
@@ -668,16 +792,36 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     };
     
     // Set week start and end dates - Convert to ISO string format for PostgreSQL
+    // CRITICAL: Ensure dates are converted to strings to prevent PostgreSQL type errors
     if (combinedData.weekStartDate) {
-      combinedData.week_start_date = combinedData.weekStartDate.toISOString().split('T')[0];
+      if (combinedData.weekStartDate instanceof Date) {
+        combinedData.week_start_date = combinedData.weekStartDate.toISOString().split('T')[0];
+      } else {
+        // If it's already a string, validate it
+        combinedData.week_start_date = combinedData.weekStartDate;
+      }
     } else {
       combinedData.week_start_date = new Date().toISOString().split('T')[0];
     }
     
     if (combinedData.weekEndDate) {
-      combinedData.week_end_date = combinedData.weekEndDate.toISOString().split('T')[0];
+      if (combinedData.weekEndDate instanceof Date) {
+        combinedData.week_end_date = combinedData.weekEndDate.toISOString().split('T')[0];
+      } else {
+        // If it's already a string, validate it
+        combinedData.week_end_date = combinedData.weekEndDate;
+      }
     } else {
       combinedData.week_end_date = new Date().toISOString().split('T')[0];
+    }
+    
+    // Validate date formats before database operations
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(combinedData.week_start_date)) {
+      throw new Error(`Invalid week_start_date format: ${combinedData.week_start_date}. Expected YYYY-MM-DD`);
+    }
+    if (!dateRegex.test(combinedData.week_end_date)) {
+      throw new Error(`Invalid week_end_date format: ${combinedData.week_end_date}. Expected YYYY-MM-DD`);
     }
     
     // Clean up temporary date fields
@@ -685,6 +829,29 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     delete combinedData.weekEndDate;
     delete combinedData.monthStartDate;
     delete combinedData.monthEndDate;
+    
+    // Validate numeric fields before database operations
+    const numericFields = [
+      'iv_infusions_weekday_weekly', 'iv_infusions_weekend_weekly',
+      'injections_weekday_weekly', 'injections_weekend_weekly',
+      'unique_customers_weekly', 'unique_customers_monthly',
+      'actual_weekly_revenue', 'actual_monthly_revenue',
+      'total_drip_iv_members', 'individual_memberships',
+      'family_memberships', 'corporate_memberships'
+    ];
+    
+    for (const field of numericFields) {
+      if (combinedData[field] !== undefined) {
+        // Convert to number and ensure it's not NaN
+        const value = Number(combinedData[field]);
+        if (isNaN(value)) {
+          console.warn(`⚠️  Invalid numeric value for ${field}: ${combinedData[field]}, defaulting to 0`);
+          combinedData[field] = 0;
+        } else {
+          combinedData[field] = value;
+        }
+      }
+    }
     
     // Insert or update database
     const client = await pool.connect();
