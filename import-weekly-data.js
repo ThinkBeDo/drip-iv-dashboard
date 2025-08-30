@@ -135,23 +135,115 @@ function isWeekend(date) {
   return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
 }
 
-// Process revenue data from CSV
+// Process revenue data from CSV or MHTML
 async function processRevenueData(csvFilePath) {
   console.log('Processing revenue data from:', csvFilePath);
   
   // Validate input
   if (!csvFilePath) {
-    throw new Error('Revenue CSV file path is required');
+    throw new Error('Revenue file path is required');
   }
   
   // Check if file exists
   if (!fs.existsSync(csvFilePath)) {
-    throw new Error(`Revenue CSV file not found: ${csvFilePath}`);
+    throw new Error(`Revenue file not found: ${csvFilePath}`);
   }
   
   return new Promise((resolve, reject) => {
     try {
-      // Read the file as a buffer
+      // Check if this is an MHTML file
+      const fileContent = fs.readFileSync(csvFilePath, 'utf8');
+      
+      // Check for MHTML markers
+      if (fileContent.includes('MIME-Version:') && 
+          fileContent.includes('Content-Type:') && 
+          fileContent.includes('Content-Location:')) {
+        
+        console.log('Detected MHTML format (HTML saved as .xls)');
+        
+        // Parse MHTML file
+        const parts = fileContent.split(/--[\w-]+/);
+        
+        let tableHtml = '';
+        // Look for the part containing the actual HTML table
+        for (const part of parts) {
+          if (part.includes('<table') && (part.includes('sheet1.htm') || part.includes('<tr'))) {
+            tableHtml = part;
+            break;
+          }
+        }
+        
+        if (!tableHtml) {
+          reject(new Error('No table data found in MHTML file'));
+          return;
+        }
+        
+        // Clean up quoted-printable encoding
+        tableHtml = tableHtml.replace(/=3D/g, '=');
+        tableHtml = tableHtml.replace(/=\r?\n/g, '');
+        
+        // Extract table rows using regex
+        const rowMatches = tableHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+        
+        if (!rowMatches || rowMatches.length === 0) {
+          reject(new Error('No rows found in MHTML table'));
+          return;
+        }
+        
+        console.log(`Found ${rowMatches.length} rows in MHTML table`);
+        
+        // Parse headers from first row
+        const headerMatch = rowMatches[0].match(/<td[^>]*>([^<]*)<\/td>/g);
+        const headers = [];
+        
+        if (headerMatch) {
+          headerMatch.forEach(cell => {
+            const text = cell.replace(/<[^>]*>/g, '').trim();
+            headers.push(text);
+          });
+        }
+        
+        console.log('MHTML Headers:', headers.slice(0, 10), '...');
+        
+        // Parse data rows
+        const records = [];
+        for (let i = 1; i < rowMatches.length; i++) {
+          const rowMatch = rowMatches[i].match(/<td[^>]*>([^<]*)<\/td>/g);
+          
+          if (rowMatch) {
+            const row = {};
+            // Process all available cells, even if less than header count
+            const cellCount = Math.min(rowMatch.length, headers.length);
+            for (let j = 0; j < cellCount; j++) {
+              let value = rowMatch[j].replace(/<[^>]*>/g, '').trim();
+              // Clean HTML entities
+              value = value.replace(/&amp;/g, '&')
+                          .replace(/&lt;/g, '<')
+                          .replace(/&gt;/g, '>')
+                          .replace(/&quot;/g, '"')
+                          .replace(/&#32;/g, ' ')
+                          .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
+              row[headers[j]] = value;
+            }
+            
+            // Fill missing columns with empty strings
+            for (let j = cellCount; j < headers.length; j++) {
+              row[headers[j]] = '';
+            }
+            
+            // Only add rows that have actual data (not empty rows)
+            if (Object.values(row).some(v => v && v.trim())) {
+              records.push(row);
+            }
+          }
+        }
+        
+        console.log(`Successfully parsed ${records.length} rows from MHTML`);
+        resolve(records);
+        return;
+      }
+      
+      // If not MHTML, process as regular CSV
       const buffer = fs.readFileSync(csvFilePath);
       const firstBytes = buffer.slice(0, 4);
       

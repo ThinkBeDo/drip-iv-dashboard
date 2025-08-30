@@ -312,6 +312,113 @@ async function parseCSVData(filePath) {
   });
 }
 
+// Utility function to detect MHTML format
+function isMHTMLFile(filePath) {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    // Check for MHTML markers
+    return content.includes('MIME-Version:') && 
+           content.includes('Content-Type:') && 
+           content.includes('Content-Location:') &&
+           (content.includes('multipart/related') || content.includes('text/html'));
+  } catch (error) {
+    return false;
+  }
+}
+
+// Utility function to parse MHTML (HTML saved as .xls) files
+async function parseMHTMLData(filePath) {
+  return new Promise((resolve, reject) => {
+    try {
+      const content = fs.readFileSync(filePath, 'utf8');
+      
+      // Find the sheet boundary sections
+      const parts = content.split(/--[\w-]+/);
+      
+      let tableHtml = '';
+      // Look for the part containing the actual HTML table
+      for (const part of parts) {
+        if (part.includes('<table') && (part.includes('sheet1.htm') || part.includes('<tr'))) {
+          tableHtml = part;
+          break;
+        }
+      }
+      
+      if (!tableHtml) {
+        reject(new Error('No table data found in MHTML file'));
+        return;
+      }
+      
+      // Clean up quoted-printable encoding
+      tableHtml = tableHtml.replace(/=3D/g, '=');
+      tableHtml = tableHtml.replace(/=\r?\n/g, '');
+      
+      // Extract table rows using regex
+      const rowMatches = tableHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+      
+      if (!rowMatches || rowMatches.length === 0) {
+        reject(new Error('No rows found in MHTML table'));
+        return;
+      }
+      
+      console.log(`Found ${rowMatches.length} rows in MHTML table`);
+      
+      // Parse headers from first row
+      const headerMatch = rowMatches[0].match(/<td[^>]*>([^<]*)<\/td>/g);
+      const headers = [];
+      
+      if (headerMatch) {
+        headerMatch.forEach(cell => {
+          const text = cell.replace(/<[^>]*>/g, '').trim();
+          headers.push(text);
+        });
+      }
+      
+      console.log('MHTML Headers:', headers.slice(0, 10), '...');
+      
+      // Parse data rows
+      const results = [];
+      for (let i = 1; i < rowMatches.length; i++) {
+        const rowMatch = rowMatches[i].match(/<td[^>]*>([^<]*)<\/td>/g);
+        
+        if (rowMatch) {
+          const row = {};
+          // Process all available cells, even if less than header count
+          const cellCount = Math.min(rowMatch.length, headers.length);
+          for (let j = 0; j < cellCount; j++) {
+            let value = rowMatch[j].replace(/<[^>]*>/g, '').trim();
+            // Clean HTML entities
+            value = value.replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#32;/g, ' ')
+                        .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
+            row[headers[j]] = value;
+          }
+          
+          // Fill missing columns with empty strings
+          for (let j = cellCount; j < headers.length; j++) {
+            row[headers[j]] = '';
+          }
+          
+          // Only add rows that have actual data (not empty rows)
+          if (Object.values(row).some(v => v && v.trim())) {
+            results.push(row);
+          }
+        }
+      }
+      
+      console.log(`✅ Successfully parsed MHTML: ${results.length} data rows`);
+      resolve(results);
+      
+    } catch (error) {
+      console.error('❌ Error parsing MHTML:', error.message);
+      reject(error);
+    }
+  });
+}
+
 // Utility function to parse PDF data
 async function parsePDFData(filePath) {
   try {
@@ -2442,55 +2549,63 @@ app.post('/api/upload', upload.single('analyticsFile'), async (req, res) => {
       } else if (originalname.endsWith('.xlsx') || originalname.endsWith('.xls') || 
                  mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
                  mimetype === 'application/vnd.ms-excel') {
-        // Process Excel membership file
-        const membershipData = await parseExcelData(filePath);
         
-        // For Excel files, we only have membership data, not full analytics
-        // Create a minimal data structure with just membership information
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay()); // Start of current week
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6); // End of current week
-        
-        extractedData = {
-          week_start_date: weekStart.toISOString().split('T')[0],
-          week_end_date: weekEnd.toISOString().split('T')[0],
-          total_drip_iv_members: membershipData.total_drip_iv_members,
-          individual_memberships: membershipData.individual_memberships,
-          family_memberships: membershipData.family_memberships,
-          family_concierge_memberships: membershipData.family_concierge_memberships,
-          drip_concierge_memberships: membershipData.drip_concierge_memberships,
-          concierge_memberships: membershipData.concierge_memberships,
-          corporate_memberships: membershipData.corporate_memberships,
-          // Set other fields to 0 or null for Excel-only uploads
-          drip_iv_weekday_weekly: 0,
-          drip_iv_weekend_weekly: 0,
-          semaglutide_consults_weekly: 0,
-          semaglutide_injections_weekly: 0,
-          hormone_followup_female_weekly: 0,
-          hormone_initial_male_weekly: 0,
-          drip_iv_weekday_monthly: 0,
-          drip_iv_weekend_monthly: 0,
-          semaglutide_consults_monthly: 0,
-          semaglutide_injections_monthly: 0,
-          hormone_followup_female_monthly: 0,
-          hormone_initial_male_monthly: 0,
-          actual_weekly_revenue: 0,
-          weekly_revenue_goal: 0,
-          actual_monthly_revenue: 0,
-          monthly_revenue_goal: 0,
-          drip_iv_revenue_weekly: 0,
-          semaglutide_revenue_weekly: 0,
-          drip_iv_revenue_monthly: 0,
-          semaglutide_revenue_monthly: 0,
-          marketing_initiatives: 0,
-          new_individual_members_weekly: 0,
-          new_family_members_weekly: 0,
-          new_concierge_members_weekly: 0,
-          new_corporate_members_weekly: 0,
-          days_left_in_month: 0
-        };
+        // Check if this is an MHTML file (HTML saved as .xls)
+        if (isMHTMLFile(filePath)) {
+          console.log('📄 Detected MHTML format (HTML saved as .xls) - processing as revenue data');
+          const mhtmlData = await parseMHTMLData(filePath);
+          extractedData = extractAnalyticsData(mhtmlData, true); // Process as CSV-like data
+        } else {
+          // Process as regular Excel membership file
+          const membershipData = await parseExcelData(filePath);
+          
+          // For Excel files, we only have membership data, not full analytics
+          // Create a minimal data structure with just membership information
+          const today = new Date();
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay()); // Start of current week
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6); // End of current week
+          
+          extractedData = {
+            week_start_date: weekStart.toISOString().split('T')[0],
+            week_end_date: weekEnd.toISOString().split('T')[0],
+            total_drip_iv_members: membershipData.total_drip_iv_members,
+            individual_memberships: membershipData.individual_memberships,
+            family_memberships: membershipData.family_memberships,
+            family_concierge_memberships: membershipData.family_concierge_memberships,
+            drip_concierge_memberships: membershipData.drip_concierge_memberships,
+            concierge_memberships: membershipData.concierge_memberships,
+            corporate_memberships: membershipData.corporate_memberships,
+            // Set other fields to 0 or null for Excel-only uploads
+            drip_iv_weekday_weekly: 0,
+            drip_iv_weekend_weekly: 0,
+            semaglutide_consults_weekly: 0,
+            semaglutide_injections_weekly: 0,
+            hormone_followup_female_weekly: 0,
+            hormone_initial_male_weekly: 0,
+            drip_iv_weekday_monthly: 0,
+            drip_iv_weekend_monthly: 0,
+            semaglutide_consults_monthly: 0,
+            semaglutide_injections_monthly: 0,
+            hormone_followup_female_monthly: 0,
+            hormone_initial_male_monthly: 0,
+            actual_weekly_revenue: 0,
+            weekly_revenue_goal: 0,
+            actual_monthly_revenue: 0,
+            monthly_revenue_goal: 0,
+            drip_iv_revenue_weekly: 0,
+            semaglutide_revenue_weekly: 0,
+            drip_iv_revenue_monthly: 0,
+            semaglutide_revenue_monthly: 0,
+            marketing_initiatives: 0,
+            new_individual_members_weekly: 0,
+            new_family_members_weekly: 0,
+            new_concierge_members_weekly: 0,
+            new_corporate_members_weekly: 0,
+            days_left_in_month: 0
+          };
+        }
         
         console.log('Excel membership data processed:', {
           totalMembers: membershipData.total_drip_iv_members,

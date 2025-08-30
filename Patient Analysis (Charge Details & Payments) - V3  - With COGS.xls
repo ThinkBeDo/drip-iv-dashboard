@@ -1,0 +1,4017 @@
+MIME-Version: 1.0
+X-Document-Type: Workbook
+Content-Type: multipart/related; boundary="sheet-boundary"
+
+
+--sheet-boundary
+Content-Location: file:///C:/temp/book.htm
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="unicode"
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml"
+xmlns:o=3D"urn:schemas-microsoft-com:office:office"
+xmlns:x=3D"urn:schemas-microsoft-com:office:excel"
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>Patient Analysis (Charge Detail</x:Name>
+    <x:WorksheetSource HRef=3D"sheet1.htm"/>
+    <x:WorksheetOptions>
+     <x:DefaultRowHeight>264</x:DefaultRowHeight>
+     <x:ProtectContents>False</x:ProtectContents>
+     <x:ProtectObjects>False</x:ProtectObjects>
+     <x:ProtectScenarios>False</x:ProtectScenarios>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+  <x:WindowHeight>9120</x:WindowHeight>
+  <x:WindowWidth>11715</x:WindowWidth>
+  <x:WindowTopX>240</x:WindowTopX>
+  <x:WindowTopY>90</x:WindowTopY>
+  <x:ProtectStructure>False</x:ProtectStructure>
+  <x:ProtectWindows>False</x:ProtectWindows>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+</head>
+</html>
+
+--sheet-boundary
+Content-Location: file:///C:/temp/sheet1.htm
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="unicode"
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml"
+xmlns:o=3D"urn:schemas-microsoft-com:office:office"
+xmlns:x=3D"urn:schemas-microsoft-com:office:excel"
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Dutf-8">
+<meta name=3DProgId content=3DExcel.Sheet>
+<style>
+<!--table 
+br
+	{mso-data-placement:same-cell;}
+@page
+	{margin: 0.50in 0.50in 0.50in 0.50in;
+	}
+.style21
+	{color:blue;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:underline;
+	text-underline-style:single;
+	font-family:Arial;
+	mso-generic-font-family:auto;
+	mso-font-charset:0;
+	mso-style-name:Hyperlink;
+	mso-style-id:8;}
+.style0
+	{mso-number-format:General;
+	text-align:general;
+	vertical-align:bottom;
+	white-space:nowrap;
+	mso-rotate:0;
+	mso-background-source:auto;
+	mso-pattern:auto;
+	color:windowtext;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:Arial;
+	mso-generic-font-family:auto;
+	mso-font-charset:0;
+	border:none;
+	mso-protection:locked visible;
+	mso-style-name:Normal;
+	mso-style-id:0;}
+td
+	{mso-style-parent:style0;
+	padding-top:1px;
+	padding-right:1px;
+	padding-left:1px;
+	mso-ignore:padding;
+	color:windowtext;
+	font-size:10.0pt;
+	font-weight:400;
+	font-style:normal;
+	text-decoration:none;
+	font-family:Arial;
+	mso-generic-font-family:auto;
+	mso-number-format:General;
+	text-align:general;
+	vertical-align:bottom;
+	border:none;
+	white-space:nowrap;
+	mso-rotate:0;}
+.xl24
+	{mso-style-parent:style0;
+	 white-space:normal;}
+.xl30
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	background:#f0f0f0;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:.5pt solid #c0c0c0;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl31
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	background:#f0f0f0;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:.5pt solid #c0c0c0;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl32
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	background:#f0f0f0;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:.5pt solid #c0c0c0;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl33
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:center;
+	background:#f0f0f0;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:.5pt solid #c0c0c0;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl34
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:center;
+	background:#f0f0f0;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:.5pt solid #c0c0c0;
+	border-right:.5pt solid #c0c0c0;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl35
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl36
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"m\\/d\\/yy";
+	}
+.xl37
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"M/d/yyyy h\\:mm\\:ss AM/PM";
+	}
+.xl38
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"General";
+	}
+.xl39
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl40
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl41
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00";
+	}
+.xl42
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+.xl43
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl44
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+.xl46
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	white-space:normal;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl47
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	text-align:right;
+	vertical-align:middle;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:.5pt solid #c0c0c0;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+.xl56
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl57
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:left;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	}
+.xl58
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl59
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl60
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00";
+	}
+.xl61
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+.xl62
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"\"$\"#,##0.00;(\"$\"#,##0.00)";
+	}
+.xl63
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:none;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+.xl64
+	{mso-style-parent:style0;
+	font-size:8.0pt;
+	font-weight:700;
+	color:#25396e;
+	text-align:right;
+	vertical-align:middle;
+	background:#f0f0f0;
+	border-left:.5pt solid #c0c0c0;
+	border-top:none;
+	border-right:.5pt solid #c0c0c0;
+	border-bottom:.5pt solid #c0c0c0;
+	mso-number-format:"#,##0.00;(#,##0.00)";
+	}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+    <x:WorksheetOptions>
+     <x:DoNotDisplayGridlines/>
+     <x:NoSummaryRowsBelowDetail/>
+    </x:WorksheetOptions>
+</xml><![endif]-->
+</head>
+<body link=3Dblue vlink=3Dpurple>
+<table x:str border=3D0 cellpadding=3D0 cellspacing=3D0>
+<tr>
+ <td class=3Dxl30>Practitioner</td>
+ <td class=3Dxl31>Date</td>
+ <td class=3Dxl31>Date Of Payment</td>
+ <td colspan=3D2 class=3Dxl31>Patient</td>
+ <td class=3Dxl31>Patient State</td>
+ <td class=3Dxl31>Super Bill</td>
+ <td class=3Dxl31>Charge Type</td>
+ <td class=3Dxl31>Charge Desc</td>
+ <td class=3Dxl32>Metrics</td>
+ <td class=3Dxl33>Charges</td>
+ <td class=3Dxl33>Total Discount</td>
+ <td class=3Dxl33>Tax</td>
+ <td class=3Dxl33>Charges - Discount</td>
+ <td class=3Dxl33>Calculated Payment (Line)</td>
+ <td class=3Dxl33>COGS</td>
+ <td class=3Dxl34>Qty</td>
+</tr>
+<tr>
+ <td class=3Dxl46>Courtney Habetz, PA-C</td>
+ <td class=3Dxl36 x:num=3D"45891">8/22/25</td>
+ <td class=3Dxl37 x:num=3D"45891">8/22/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Roland Delahoussaye</td>
+ <td class=3Dxl38 x:num=3D"4481825">4481825</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8049270">8049270</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl46>Lauren&#32; White, RN</td>
+ <td rowspan=3D2 class=3Dxl36 x:num=3D"45891">8/22/25</td>
+ <td rowspan=3D2 class=3Dxl37 x:num=3D"45891">8/22/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Troy Thompson&#32;</td>
+ <td class=3Dxl38 x:num=3D"3567194">3567194</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8049350">8049350</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Angela Obryan</td>
+ <td class=3Dxl38 x:num=3D"3567109">3567109</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8049358">8049358</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D264 class=3Dxl46>Megan Gaspard, MSN, APRN, FNP-C</td>
+ <td rowspan=3D2 class=3Dxl36 x:num=3D"45861">7/23/25</td>
+ <td rowspan=3D2 class=3Dxl37 x:num=3D"45888">8/19/2025 12:00:00 AM</td>
+ <td rowspan=3D2 class=3Dxl35>Jasmine Rojas</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3729490">3729490</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7734180">7734180</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"45">45.00</td>
+ <td class=3Dxl43 x:num=3D"45">$45.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"2">$2.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"2">2.00</td>
+ <td class=3Dxl43 x:num=3D"2">$2.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl36 x:num=3D"45884">8/15/25</td>
+ <td rowspan=3D2 class=3Dxl37 x:num=3D"45888">8/19/2025 12:00:00 AM</td>
+ <td rowspan=3D2 class=3Dxl35>Katie Latiolois</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4749813">4749813</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7976582">7976582</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"60">$60.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"60">60.00</td>
+ <td class=3Dxl43 x:num=3D"52.4050632911392">$52.41</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"2">2.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zofran (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"16.5949367088608">$16.59</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D31 class=3Dxl36 x:num=3D"45887">8/18/25</td>
+ <td rowspan=3D31 class=3Dxl37 x:num=3D"45887">8/18/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Alicia Mendoza</td>
+ <td class=3Dxl38 x:num=3D"4205300">4205300</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7993123">7993123</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Kylie Foti</td>
+ <td class=3Dxl38 x:num=3D"3778912">3778912</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7993322">7993322</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Crystal Olivier</td>
+ <td class=3Dxl38 x:num=3D"3872205">3872205</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7993342">7993342</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Keith Reed</td>
+ <td class=3Dxl38 x:num=3D"3567150">3567150</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7994061">7994061</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Roland Delahoussaye</td>
+ <td class=3Dxl38 x:num=3D"4481825">4481825</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"7994074">7994074</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Kathy DeJacques</td>
+ <td class=3Dxl38 x:num=3D"4793295">4793295</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7994851">7994851</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Sharla Aloisio</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4740936">4740936</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"7995047">7995047</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Vita-Complex</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28.000000829282">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Biotin (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28.000000829282">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"8.39999961853027">$8.40</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"8.39999961853027">8.40</td>
+ <td class=3Dxl43 x:num=3D"8.39999986731487">$8.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jeremy Webb</td>
+ <td class=3Dxl38 x:num=3D"3957608">3957608</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7995146">7995146</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge Membership</td>
+ <td class=3Dxl39 x:num=3D"50">$50.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"50">50.00</td>
+ <td class=3Dxl43 x:num=3D"50">$50.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Chris Roy</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3567115">3567115</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7995776">7995776</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 200mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"125">$125.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"125">125.00</td>
+ <td class=3Dxl43 x:num=3D"125">$125.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Dylan Meche</td>
+ <td class=3Dxl38 x:num=3D"4293690">4293690</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7995794">7995794</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Darline Broussard</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4754936">4754936</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7996178">7996178</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lisa Broussard</td>
+ <td class=3Dxl38 x:num=3D"4918879">4918879</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"7997493">7997493</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Amy Wilder-helmes</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4974358">4974358</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"7997792">7997792</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174">174.00</td>
+ <td class=3Dxl43 x:num=3D"173.999997012793">$174.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"27.9999995193001">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"20.2000007629395">$20.20</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"20.2000007629395">20.20</td>
+ <td class=3Dxl43 x:num=3D"20.2000004161488">$20.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Kim Holleman</td>
+ <td class=3Dxl38 x:num=3D"3953834">3953834</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7998742">7998742</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Sidney Guidry</td>
+ <td class=3Dxl38 x:num=3D"4808249">4808249</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"7998795">7998795</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Heather Thibodeaux</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3751844">3751844</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7998841">7998841</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Mineral Blend</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"25">$25.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30">30.00</td>
+ <td class=3Dxl43 x:num=3D"30">$30.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Jordan Green&#32;</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3567146">3567146</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"7999310">7999310</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150.000002861023">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lacy Bernard</td>
+ <td class=3Dxl38 x:num=3D"4975164">4975164</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8001403">8001403</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"45">45.00</td>
+ <td class=3Dxl43 x:num=3D"45">$45.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Janet Guerrini</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4975337">4975337</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8001548">8001548</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"144">$144.00</td>
+ <td class=3Dxl40 x:num=3D"21.6">$21.60</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"122.4">122.40</td>
+ <td class=3Dxl43 x:num=3D"122.399999653209">$122.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"12.2399997711182">$12.24</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"12.2399997711182">12.24</td>
+ <td class=3Dxl43 x:num=3D"12.2399997364391">$12.24</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Jude Lalonde</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4975645">4975645</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8002625">8002625</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"194">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Toradol (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D44 class=3Dxl36 x:num=3D"45888">8/19/25</td>
+ <td rowspan=3D44 class=3Dxl37 x:num=3D"45888">8/19/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Jennifer Savage</td>
+ <td class=3Dxl38 x:num=3D"3875142">3875142</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8006876">8006876</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lance Beal</td>
+ <td class=3Dxl38 x:num=3D"3567154">3567154</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8006920">8006920</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge &amp; Drip Membership</td>
+ <td class=3Dxl39 x:num=3D"269">$269.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"269">269.00</td>
+ <td class=3Dxl43 x:num=3D"269">$269.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Keith Reed</td>
+ <td class=3Dxl38 x:num=3D"3567150">3567150</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8006941">8006941</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Darryl Myers</td>
+ <td class=3Dxl38 x:num=3D"3656704">3656704</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8008076">8008076</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Niki Hebert</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3963199">3963199</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8008281">8008281</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione Infusion (Member)</td>
+ <td class=3Dxl39 x:num=3D"72">$72.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"72">72.00</td>
+ <td class=3Dxl43 x:num=3D"72">$72.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Metabolism Boost Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lena Myers</td>
+ <td class=3Dxl38 x:num=3D"3656733">3656733</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8008288">8008288</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Allison Keller</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4819803">4819803</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8008343">8008343</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 250mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"325">$325.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"325">325.00</td>
+ <td class=3Dxl43 x:num=3D"325">$325.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Mallory Champagne</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4819835">4819835</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8008348">8008348</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 250mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"325">$325.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"325">325.00</td>
+ <td class=3Dxl43 x:num=3D"325">$325.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Butcher AC</td>
+ <td class=3Dxl38 x:num=3D"3567113">3567113</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8008443">8008443</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (member)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Suzanne Wadsworth</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"3860779">3860779</td>
+ <td rowspan=3D4 class=3Dxl35>LA</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8008578">8008578</td>
+ <td rowspan=3D2 class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Lab Draw Fee</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10.000000091947">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Lipid Panel Lab</td>
+ <td class=3Dxl39 x:num=3D"5.09999990463257">$5.10</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"5.09999990463257">5.10</td>
+ <td class=3Dxl43 x:num=3D"5.09999995152554">$5.10</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30">30.00</td>
+ <td class=3Dxl43 x:num=3D"30.000000275841">$30.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"6.76000022888184">$6.76</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"6.76000022888184">6.76</td>
+ <td class=3Dxl43 x:num=3D"6.76000029103801">$6.76</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Virgil Blanchard</td>
+ <td class=3Dxl38 x:num=3D"4041143">4041143</td>
+ <td class=3Dxl35>MT</td>
+ <td class=3Dxl38 x:num=3D"8009343">8009343</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>katherine Roberts</td>
+ <td class=3Dxl38 x:num=3D"4810325">4810325</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8009883">8009883</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Gabe Camalo</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3567127">3567127</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8010782">8010782</td>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 500mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"490">$490.00</td>
+ <td class=3Dxl40 x:num=3D"73.5">$73.50</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"416.5">416.50</td>
+ <td class=3Dxl43 x:num=3D"416.499994124317">$416.50</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"2.85">$2.85</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"16.15">16.15</td>
+ <td class=3Dxl43 x:num=3D"16.1499997721674">$16.15</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Carl Bell</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3656689">3656689</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8010910">8010910</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Brittany Daigle</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4779263">4779263</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8011515">8011515</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Immunity (Member)</td>
+ <td class=3Dxl39 x:num=3D"139">$139.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"139">139.00</td>
+ <td class=3Dxl43 x:num=3D"139">$139.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Kylie Foti</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3778912">3778912</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8011585">8011585</td>
+ <td rowspan=3D2 class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Magnesium (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 100mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"85">$85.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"85">85.00</td>
+ <td class=3Dxl43 x:num=3D"85">$85.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"30">$30.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Tammy Dore</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4930094">4930094</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8012163">8012163</td>
+ <td class=3Dxl35>LAB</td>
+ <td colspan=3D2 class=3Dxl35>Weight Loss Program Lab Bundle</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Camille Mahtook</td>
+ <td class=3Dxl38 x:num=3D"4978245">4978245</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8013895">8013895</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"10.2">$10.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"57.8">57.80</td>
+ <td class=3Dxl43 x:num=3D"57.7999992370605">$57.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jacob Lusby</td>
+ <td class=3Dxl38 x:num=3D"4894115">4894115</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8015278">8015278</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Metabolism Boost Injections</td>
+ <td class=3Dxl39 x:num=3D"210">$210.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"210">210.00</td>
+ <td class=3Dxl43 x:num=3D"210">$210.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Dennis Hall</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3567123">3567123</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8015732">8015732</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (member)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"108.999997175258">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zofran (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"18.9999995076138">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"19.2000007629395">$19.20</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19.2000007629395">19.20</td>
+ <td class=3Dxl43 x:num=3D"19.2000002653702">$19.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Butcher AC</td>
+ <td class=3Dxl38 x:num=3D"3567113">3567113</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8015768">8015768</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (member)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Countice Leblanc</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3567117">3567117</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8016533">8016533</td>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Biotin (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Glutathione Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"32">$32.00</td>
+ <td class=3Dxl40 x:num=3D"32">$32.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Summer Campbell</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3778281">3778281</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8016863">8016863</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"2.85">$2.85</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"16.15">16.15</td>
+ <td class=3Dxl43 x:num=3D"16.1499997566554">$16.15</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"3.75">$3.75</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"21.25">21.25</td>
+ <td class=3Dxl43 x:num=3D"21.2499996798098">$21.25</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"3.74000000953674">$3.74</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"3.74000000953674">3.74</td>
+ <td class=3Dxl43 x:num=3D"3.73999995318326">$3.74</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Ashly Morgan</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3835619">3835619</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8017016">8017016</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Family (NEW)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl38 x:num=3D"8017050">8017050</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Alleviate (Member)</td>
+ <td class=3Dxl39 x:num=3D"145">$145.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"145">145.00</td>
+ <td class=3Dxl43 x:num=3D"145">$145.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D61 class=3Dxl36 x:num=3D"45889">8/20/25</td>
+ <td rowspan=3D61 class=3Dxl37 x:num=3D"45889">8/20/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Stacy Dardar</td>
+ <td class=3Dxl38 x:num=3D"3752107">3752107</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8020744">8020744</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Niki Hebert</td>
+ <td class=3Dxl38 x:num=3D"3963199">3963199</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8020764">8020764</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Alexandra Desormeaux</td>
+ <td class=3Dxl38 x:num=3D"3744238">3744238</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8020776">8020776</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Santi Sarrica</td>
+ <td class=3Dxl38 x:num=3D"4531933">4531933</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8020906">8020906</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Family (NEW)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Gina Sarrica</td>
+ <td class=3Dxl38 x:num=3D"4531944">4531944</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8020910">8020910</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Family (NEW)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lacie Lafleur</td>
+ <td class=3Dxl38 x:num=3D"4982450">4982450</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8021797">8021797</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Labs</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Taelor Duhon</td>
+ <td class=3Dxl38 x:num=3D"4704016">4704016</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8021866">8021866</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Mark Tucker</td>
+ <td class=3Dxl38 x:num=3D"4691613">4691613</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8022118">8022118</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge Membership</td>
+ <td class=3Dxl39 x:num=3D"50">$50.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"50">50.00</td>
+ <td class=3Dxl43 x:num=3D"50">$50.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jordan Green&#32;</td>
+ <td class=3Dxl38 x:num=3D"3567146">3567146</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8022162">8022162</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge &amp; Drip Membership</td>
+ <td class=3Dxl39 x:num=3D"169">$169.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"169">169.00</td>
+ <td class=3Dxl43 x:num=3D"169">$169.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Ronald Fremin</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"3567171">3567171</td>
+ <td rowspan=3D4 class=3Dxl35>LA</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8023384">8023384</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 200mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"125">$125.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"125">125.00</td>
+ <td class=3Dxl43 x:num=3D"125">$125.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30">30.00</td>
+ <td class=3Dxl43 x:num=3D"30">$30.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Kyle Broussard</td>
+ <td class=3Dxl38 x:num=3D"4881348">4881348</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8023647">8023647</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Ronald Fremin</td>
+ <td class=3Dxl38 x:num=3D"3567171">3567171</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8024186">8024186</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Robert Aguillard</td>
+ <td class=3Dxl38 x:num=3D"4710369">4710369</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8025076">8025076</td>
+ <td class=3Dxl35>LAB</td>
+ <td colspan=3D2 class=3Dxl35>GI MAP Stool Testing Lab</td>
+ <td class=3Dxl39 x:num=3D"500">$500.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"500">500.00</td>
+ <td class=3Dxl43 x:num=3D"500">$500.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Francis Perez</td>
+ <td class=3Dxl38 x:num=3D"4022747">4022747</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8025251">8025251</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Chris Allard</td>
+ <td class=3Dxl38 x:num=3D"3774642">3774642</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8025262">8025262</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jonathan Diaz</td>
+ <td class=3Dxl38 x:num=3D"4702474">4702474</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8025472">8025472</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>NAD 200mg (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"153">$153.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"153">153.00</td>
+ <td class=3Dxl43 x:num=3D"153">$153.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Mitzi Guidry</td>
+ <td class=3Dxl38 x:num=3D"4456168">4456168</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8026271">8026271</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D5 class=3Dxl35>Sydney Babineaux</td>
+ <td rowspan=3D5 class=3Dxl38 x:num=3D"4456178">4456178</td>
+ <td rowspan=3D5 class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8026471">8026471</td>
+ <td class=3Dxl35>referral</td>
+ <td colspan=3D2 class=3Dxl35>ADJUSTMENT_CREDIT</td>
+ <td class=3Dxl39 x:num=3D"-144">($144.00)</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"-144">(144.00)</td>
+ <td class=3Dxl43 x:num=3D"-144">($144.00)</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8026783">8026783</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"193.999998216572">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"68">68.00</td>
+ <td class=3Dxl43 x:num=3D"67.9999993748809">$68.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"10">$10.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"35">35.00</td>
+ <td class=3Dxl43 x:num=3D"34.9999996782475">$35.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"14.2200002670288">$14.22</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"14.2200002670288">14.22</td>
+ <td class=3Dxl43 x:num=3D"14.2200001363054">$14.22</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Madeline Guidry</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"4983578">4983578</td>
+ <td rowspan=3D4 class=3Dxl35></td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8026802">8026802</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"17.4">$17.40</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"156.6">156.60</td>
+ <td class=3Dxl43 x:num=3D"156.599995859804">$156.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"14.5">$14.50</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30.5">30.50</td>
+ <td class=3Dxl43 x:num=3D"30.49999919364">$30.50</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"2.8">$2.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25.2">25.20</td>
+ <td class=3Dxl43 x:num=3D"25.1999993337615">$25.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"31.9899997711182">$31.99</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"31.9899997711182">31.99</td>
+ <td class=3Dxl43 x:num=3D"31.9899989253655">$31.99</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Nick Daigle</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4779286">4779286</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8027220">8027220</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"194">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"33">$33.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"33">33.00</td>
+ <td class=3Dxl43 x:num=3D"33">$33.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Delia Rivere</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4920111">4920111</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8028642">8028642</td>
+ <td class=3Dxl35>LAB</td>
+ <td colspan=3D2 class=3Dxl35>Weight Loss Program Lab Bundle</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Sol Gamez</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4920123">4920123</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8028653">8028653</td>
+ <td class=3Dxl35>LAB</td>
+ <td colspan=3D2 class=3Dxl35>Weight Loss Program Lab Bundle</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Frank&#32; Gerami</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3716027">3716027</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8028835">8028835</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30">30.00</td>
+ <td class=3Dxl43 x:num=3D"30">$30.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Shannon Vidrine</td>
+ <td class=3Dxl38 x:num=3D"3567180">3567180</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8028861">8028861</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione Infusion (Member)</td>
+ <td class=3Dxl39 x:num=3D"72">$72.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"72">72.00</td>
+ <td class=3Dxl43 x:num=3D"72">$72.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Harold&#32; Burkenstock</td>
+ <td class=3Dxl38 x:num=3D"3714757">3714757</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8029249">8029249</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"264">$264.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"264">264.00</td>
+ <td class=3Dxl43 x:num=3D"264">$264.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Shannen Ivey</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4035710">4035710</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8029587">8029587</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Partner Tirzepatide</td>
+ <td class=3Dxl39 x:num=3D"300">$300.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"300">300.00</td>
+ <td class=3Dxl43 x:num=3D"300">$300.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Member)</td>
+ <td class=3Dxl39 x:num=3D"229">$229.00</td>
+ <td class=3Dxl40 x:num=3D"229">$229.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Marilyn Green</td>
+ <td class=3Dxl38 x:num=3D"4113472">4113472</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8029594">8029594</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Randy Norris</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4665143">4665143</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8030116">8030116</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zofran (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Sarah Davidson</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3567175">3567175</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8030208">8030208</td>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Lux Beauty (Member)</td>
+ <td class=3Dxl39 x:num=3D"145">$145.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"145">145.00</td>
+ <td class=3Dxl43 x:num=3D"145">$145.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jeffrey Louviere</td>
+ <td class=3Dxl38 x:num=3D"4098960">4098960</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8030213">8030213</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Member)</td>
+ <td class=3Dxl39 x:num=3D"229">$229.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"229">229.00</td>
+ <td class=3Dxl43 x:num=3D"229">$229.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Charlene Boudreaux</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3979693">3979693</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8030609">8030609</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (member)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"25">$25.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Dane Rochon</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4983624">4983624</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8030672">8030672</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Alleviate (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"26.1">$26.10</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"147.9">147.90</td>
+ <td class=3Dxl43 x:num=3D"147.900002598508">$147.90</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"16.75">$16.75</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28.25">28.25</td>
+ <td class=3Dxl43 x:num=3D"28.2500004963343">$28.25</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"17.7600002288818">$17.76</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"17.7600002288818">17.76</td>
+ <td class=3Dxl43 x:num=3D"17.7600005409136">$17.76</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D5 class=3Dxl35>Jonathan Haygood</td>
+ <td rowspan=3D5 class=3Dxl38 x:num=3D"3567145">3567145</td>
+ <td rowspan=3D5 class=3Dxl35>LA</td>
+ <td rowspan=3D5 class=3Dxl38 x:num=3D"8031262">8031262</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 100mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"85">$85.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"85">85.00</td>
+ <td class=3Dxl43 x:num=3D"85">$85.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Member)</td>
+ <td class=3Dxl39 x:num=3D"229">$229.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"229">229.00</td>
+ <td class=3Dxl43 x:num=3D"229">$229.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zofran (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Tamara Byrnes</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4984738">4984738</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8031385">8031385</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Alleviate (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174">174.00</td>
+ <td class=3Dxl43 x:num=3D"174">$174.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"15">$15.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"15">15.00</td>
+ <td class=3Dxl43 x:num=3D"15">$15.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D33 class=3Dxl36 x:num=3D"45890">8/21/25</td>
+ <td rowspan=3D33 class=3Dxl37 x:num=3D"45890">8/21/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Dennis Pitre</td>
+ <td class=3Dxl38 x:num=3D"3567124">3567124</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8035045">8035045</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge Membership</td>
+ <td class=3Dxl39 x:num=3D"50">$50.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"50">50.00</td>
+ <td class=3Dxl43 x:num=3D"50">$50.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Melissa Carper</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3656741">3656741</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8036271">8036271</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Christa Pellegrin</td>
+ <td class=3Dxl38 x:num=3D"4745559">4745559</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8036291">8036291</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Cameron&#32; Mears</td>
+ <td class=3Dxl38 x:num=3D"3838604">3838604</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8036314">8036314</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"60">$60.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"60">60.00</td>
+ <td class=3Dxl43 x:num=3D"60">$60.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"2">2.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Philip Pratt</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4849833">4849833</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8036616">8036616</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Alleviate (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174">174.00</td>
+ <td class=3Dxl43 x:num=3D"173.99999479814">$174.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"17.3999996185303">$17.40</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"17.3999996185303">17.40</td>
+ <td class=3Dxl43 x:num=3D"17.3999990983443">$17.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jeanne Cloutier</td>
+ <td class=3Dxl38 x:num=3D"4037938">4037938</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8037299">8037299</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Deborah Tibbs</td>
+ <td class=3Dxl38 x:num=3D"3881234">3881234</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8037939">8037939</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Member)</td>
+ <td class=3Dxl39 x:num=3D"139">$139.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"139">139.00</td>
+ <td class=3Dxl43 x:num=3D"139">$139.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Margot Hasha</td>
+ <td class=3Dxl38 x:num=3D"4166325">4166325</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8038162">8038162</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 150mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"105">$105.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"105">105.00</td>
+ <td class=3Dxl43 x:num=3D"105">$105.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D6 class=3Dxl35>Scott Johnson</td>
+ <td rowspan=3D6 class=3Dxl38 x:num=3D"3567176">3567176</td>
+ <td rowspan=3D6 class=3Dxl35>LA</td>
+ <td rowspan=3D6 class=3Dxl38 x:num=3D"8039357">8039357</td>
+ <td rowspan=3D3 class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Normal Saline (500 ML) (NON MEMBER)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"14.5">$14.50</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"30.5">30.50</td>
+ <td class=3Dxl43 x:num=3D"30.5000007525609">$30.50</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"19.4">$19.40</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174.6">174.60</td>
+ <td class=3Dxl43 x:num=3D"174.600004308103">$174.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zinc (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"2.8">$2.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25.2">25.20</td>
+ <td class=3Dxl43 x:num=3D"25.200000621788">$25.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"6.8">$6.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"61.2">61.20</td>
+ <td class=3Dxl43 x:num=3D"61.2000015100566">$61.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 200mg (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"153">$153.00</td>
+ <td class=3Dxl40 x:num=3D"15.3">$15.30</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"137.7">137.70</td>
+ <td class=3Dxl43 x:num=3D"137.700003397627">$137.70</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"64.5299987792969">$64.53</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"64.5299987792969">64.53</td>
+ <td class=3Dxl43 x:num=3D"64.5300003715183">$64.53</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Russell Cryer</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4993939">4993939</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8040092">8040092</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"194">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"68">68.00</td>
+ <td class=3Dxl43 x:num=3D"68">$68.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Jennifer Handschin</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4412924">4412924</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8040638">8040638</td>
+ <td rowspan=3D2 class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>HgbA1c Lab</td>
+ <td class=3Dxl39 x:num=3D"4.59999990463257">$4.60</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"4.59999990463257">4.60</td>
+ <td class=3Dxl43 x:num=3D"4.59999998738028">$4.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340.000006116135">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Nicki Davenport</td>
+ <td class=3Dxl38 x:num=3D"3567165">3567165</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8040977">8040977</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Labs</td>
+ <td class=3Dxl39 x:num=3D"387">$387.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"387">387.00</td>
+ <td class=3Dxl43 x:num=3D"387">$387.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Joseph Stephens</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"4652283">4652283</td>
+ <td rowspan=3D4 class=3Dxl35></td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8041656">8041656</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 200mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"125">$125.00</td>
+ <td class=3Dxl40 x:num=3D"12.5">$12.50</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"112.5">112.50</td>
+ <td class=3Dxl43 x:num=3D"112.500002318965">$112.50</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"5.5">$5.50</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"49.5">49.50</td>
+ <td class=3Dxl43 x:num=3D"49.5000010203446">$49.50</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"14.9">$14.90</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"134.1">134.10</td>
+ <td class=3Dxl43 x:num=3D"134.100002764206">$134.10</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Member)</td>
+ <td class=3Dxl39 x:num=3D"30">$30.00</td>
+ <td class=3Dxl40 x:num=3D"30">$30.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Tim Boudreaux</td>
+ <td class=3Dxl38 x:num=3D"3656765">3656765</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8041870">8041870</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Denikia Livingston</td>
+ <td class=3Dxl38 x:num=3D"3704349">3704349</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8042795">8042795</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Sidney Guidry</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4808249">4808249</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8043074">8043074</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 100mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"85">$85.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"85">85.00</td>
+ <td class=3Dxl43 x:num=3D"84.999997454708">$85.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"32">$32.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"32">32.00</td>
+ <td class=3Dxl43 x:num=3D"31.9999990417724">$32.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"23.3299999237061">$23.33</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"23.3299999237061">23.33</td>
+ <td class=3Dxl43 x:num=3D"23.3299992250983">$23.33</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Julie White</td>
+ <td class=3Dxl38 x:num=3D"3656720">3656720</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8044042">8044042</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Tina Hargrave</td>
+ <td class=3Dxl38 x:num=3D"3786139">3786139</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8044589">8044589</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Andrew Thom</td>
+ <td class=3Dxl38 x:num=3D"3656675">3656675</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8045738">8045738</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D54 class=3Dxl36 x:num=3D"45891">8/22/25</td>
+ <td rowspan=3D54 class=3Dxl37 x:num=3D"45891">8/22/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Soniya Banoth</td>
+ <td class=3Dxl38 x:num=3D"3819971">3819971</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8049351">8049351</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Melissa Taylor</td>
+ <td class=3Dxl38 x:num=3D"3828440">3828440</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8049353">8049353</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Brittany Breaux</td>
+ <td class=3Dxl38 x:num=3D"3656686">3656686</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8050648">8050648</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Thomas Leblanc</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4477533">4477533</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8050927">8050927</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>NAD 250mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"325">$325.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"325">325.00</td>
+ <td class=3Dxl43 x:num=3D"325.00000539659">$325.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"19.6000003814697">$19.60</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19.6000003814697">19.60</td>
+ <td class=3Dxl43 x:num=3D"19.6000007069256">$19.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Alaina Montet</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4888507">4888507</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8050930">8050930</td>
+ <td rowspan=3D2 class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Hormones - Initial Visit FEMALES</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Labs FEMALE Initial Visit BHRT</td>
+ <td class=3Dxl39 x:num=3D"200">$200.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"200">200.00</td>
+ <td class=3Dxl43 x:num=3D"200">$200.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Larry Besse</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3567156">3567156</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8051532">8051532</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (member)</td>
+ <td class=3Dxl39 x:num=3D"109">$109.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"109">109.00</td>
+ <td class=3Dxl43 x:num=3D"109">$109.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Julie Faulk</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4778494">4778494</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8051601">8051601</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Energy (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"134">$134.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"134">134.00</td>
+ <td class=3Dxl43 x:num=3D"134.000004975692">$134.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"20.1000003814697">$20.10</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"20.1000003814697">20.10</td>
+ <td class=3Dxl43 x:num=3D"20.1000011278236">$20.10</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Juli Young</td>
+ <td class=3Dxl38 x:num=3D"3836172">3836172</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8051651">8051651</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Hydration (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"144">$144.00</td>
+ <td class=3Dxl40 x:num=3D"14.4">$14.40</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129.6">129.60</td>
+ <td class=3Dxl43 x:num=3D"129.600006103516">$129.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lena Myers</td>
+ <td class=3Dxl38 x:num=3D"3656733">3656733</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8052284">8052284</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Darryl Myers</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3656704">3656704</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8052289">8052289</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Dennis Pitre</td>
+ <td class=3Dxl38 x:num=3D"3567124">3567124</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8052598">8052598</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Dwayne Johnson</td>
+ <td class=3Dxl38 x:num=3D"4290064">4290064</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8052818">8052818</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Leslie Whittington</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3975284">3975284</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8052992">8052992</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Nancy Whittington</td>
+ <td class=3Dxl38 x:num=3D"4718397">4718397</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8053156">8053156</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Darlene Lemoine</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3765963">3765963</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8053369">8053369</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Monthly</td>
+ <td class=3Dxl39 x:num=3D"340">$340.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"340">340.00</td>
+ <td class=3Dxl43 x:num=3D"340">$340.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Larry Graffeo</td>
+ <td class=3Dxl38 x:num=3D"3567155">3567155</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8053376">8053376</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Eric Macicek</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4998932">4998932</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8053593">8053593</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"193.99999479814">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"19.3999996185303">$19.40</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19.3999996185303">19.40</td>
+ <td class=3Dxl43 x:num=3D"19.3999990983443">$19.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Claire Guidry</td>
+ <td class=3Dxl38 x:num=3D"3656698">3656698</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8054242">8054242</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lindsay Hollier</td>
+ <td class=3Dxl38 x:num=3D"3729967">3729967</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8054344">8054344</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Monthly</td>
+ <td class=3Dxl39 x:num=3D"575">$575.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"575">575.00</td>
+ <td class=3Dxl43 x:num=3D"575">$575.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Jared Sere</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4042238">4042238</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8054492">8054492</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"193.99999479814">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"19.3999996185303">$19.40</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19.3999996185303">19.40</td>
+ <td class=3Dxl43 x:num=3D"19.3999990983443">$19.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Martha Bertrand</td>
+ <td class=3Dxl38 x:num=3D"4335883">4335883</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8054500">8054500</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"45">45.00</td>
+ <td class=3Dxl43 x:num=3D"45">$45.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Andy Naquin</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"5002852">5002852</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8054820">8054820</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"193.99999479814">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"19.3999996185303">$19.40</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19.3999996185303">19.40</td>
+ <td class=3Dxl43 x:num=3D"19.3999990983443">$19.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Alison East</td>
+ <td class=3Dxl38 x:num=3D"3865284">3865284</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8054885">8054885</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Candice Brown</td>
+ <td class=3Dxl38 x:num=3D"3656687">3656687</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8055710">8055710</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Semaglutide Weekly</td>
+ <td class=3Dxl39 x:num=3D"100">$100.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"100">100.00</td>
+ <td class=3Dxl43 x:num=3D"100">$100.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Yvette Freeman</td>
+ <td class=3Dxl38 x:num=3D"3656767">3656767</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8055773">8055773</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>James Holmes</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4328925">4328925</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8055940">8055940</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Stephanie Labbe&#32;</td>
+ <td class=3Dxl38 x:num=3D"4803758">4803758</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8056015">8056015</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Monet David</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3883581">3883581</td>
+ <td rowspan=3D2 class=3Dxl35>Louisiana</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8056067">8056067</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"27.9999988079071">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"5.59999990463257">$5.60</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"5.59999990463257">5.60</td>
+ <td class=3Dxl43 x:num=3D"5.59999966621399">$5.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Lisa&#32; Orlando</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3703334">3703334</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8056632">8056632</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Member)</td>
+ <td class=3Dxl39 x:num=3D"55">$55.00</td>
+ <td class=3Dxl40 x:num=3D"55">$55.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Katrina Winder</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4921364">4921364</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8056688">8056688</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 100mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"85">$85.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"85">85.00</td>
+ <td class=3Dxl43 x:num=3D"85">$85.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Dennis Pitre</td>
+ <td class=3Dxl38 x:num=3D"3567124">3567124</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8056793">8056793</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Member)</td>
+ <td class=3Dxl39 x:num=3D"149">$149.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"149">149.00</td>
+ <td class=3Dxl43 x:num=3D"149">$149.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Cody Gielin</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"4317837">4317837</td>
+ <td rowspan=3D3 class=3Dxl35></td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8056797">8056797</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"264">$264.00</td>
+ <td class=3Dxl40 x:num=3D"39.6">$39.60</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"224.4">224.40</td>
+ <td class=3Dxl43 x:num=3D"224.399991220971">$224.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"4.2">$4.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"23.8">23.80</td>
+ <td class=3Dxl43 x:num=3D"23.7999990688908">$23.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"24.8199996948242">$24.82</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"24.8199996948242">24.82</td>
+ <td class=3Dxl43 x:num=3D"24.8199987238104">$24.82</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Anganette Fike</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3836182">3836182</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8057297">8057297</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Saline 1L (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"45">$45.00</td>
+ <td class=3Dxl40 x:num=3D"6.75">$6.75</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"38.25">38.25</td>
+ <td class=3Dxl43 x:num=3D"38.2500016201213">$38.25</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"4.2">$4.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"23.8">23.80</td>
+ <td class=3Dxl43 x:num=3D"23.8000010080754">$23.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"10">$10.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"10">10.00</td>
+ <td class=3Dxl43 x:num=3D"10.0000004235611">$10.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Jordan Green&#32;</td>
+ <td class=3Dxl38 x:num=3D"3567146">3567146</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8057550">8057550</td>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tirzepatide Weekly</td>
+ <td class=3Dxl39 x:num=3D"150">$150.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"150">150.00</td>
+ <td class=3Dxl43 x:num=3D"150">$150.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D29 class=3Dxl36 x:num=3D"45892">8/23/25</td>
+ <td rowspan=3D29 class=3Dxl37 x:num=3D"45892">8/23/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Susan Cox</td>
+ <td class=3Dxl38 x:num=3D"3567185">3567185</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8060773">8060773</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Deanna Rodriguez</td>
+ <td class=3Dxl38 x:num=3D"3567121">3567121</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8061301">8061301</td>
+ <td class=3Dxl35>referral</td>
+ <td colspan=3D2 class=3Dxl35>ADJUSTMENT_CREDIT</td>
+ <td class=3Dxl39 x:num=3D"-109">($109.00)</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"-109">(109.00)</td>
+ <td class=3Dxl43 x:num=3D"-109">($109.00)</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Grant Rodriguez</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"5004511">5004511</td>
+ <td rowspan=3D4 class=3Dxl35></td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8061302">8061302</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"17.4">$17.40</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"156.6">156.60</td>
+ <td class=3Dxl43 x:num=3D"156.600006413114">$156.60</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"6.8">$6.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"61.2">61.20</td>
+ <td class=3Dxl43 x:num=3D"61.2000025062745">$61.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"2.8">$2.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25.2">25.20</td>
+ <td class=3Dxl43 x:num=3D"25.2000010319954">$25.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"36.4500007629395">$36.45</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"36.4500007629395">36.45</td>
+ <td class=3Dxl43 x:num=3D"36.4500022556471">$36.45</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Brian Dupont</td>
+ <td class=3Dxl38 x:num=3D"5004538">5004538</td>
+ <td class=3Dxl35></td>
+ <td class=3Dxl38 x:num=3D"8061374">8061374</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174">174.00</td>
+ <td class=3Dxl43 x:num=3D"174">$174.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D5 class=3Dxl35>Bridget Hargrave</td>
+ <td rowspan=3D5 class=3Dxl38 x:num=3D"5004535">5004535</td>
+ <td rowspan=3D5 class=3Dxl35></td>
+ <td rowspan=3D5 class=3Dxl38 x:num=3D"8061377">8061377</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"26.1">$26.10</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"147.9">147.90</td>
+ <td class=3Dxl43 x:num=3D"147.89999362718">$147.90</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"10.2">$10.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"57.8">57.80</td>
+ <td class=3Dxl43 x:num=3D"57.7999975094726">$57.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"33">$33.00</td>
+ <td class=3Dxl40 x:num=3D"4.95">$4.95</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28.05">28.05</td>
+ <td class=3Dxl43 x:num=3D"28.0499987913617">$28.05</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"4.2">$4.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"23.8">23.80</td>
+ <td class=3Dxl43 x:num=3D"23.7999989744887">$23.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"25.75">$25.75</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25.75">25.75</td>
+ <td class=3Dxl43 x:num=3D"25.7499988904657">$25.75</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Tiffany Williams</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3901172">3901172</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8061617">8061617</td>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>All Inclusive (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"264">$264.00</td>
+ <td class=3Dxl40 x:num=3D"39.6">$39.60</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"224.4">224.40</td>
+ <td class=3Dxl43 x:num=3D"224.4">$224.40</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Tri-Immune (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"53">$53.00</td>
+ <td class=3Dxl40 x:num=3D"7.95">$7.95</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"45.05">45.05</td>
+ <td class=3Dxl43 x:num=3D"45.05">$45.05</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"4.2">$4.20</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"23.8">23.80</td>
+ <td class=3Dxl43 x:num=3D"23.8">$23.80</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Stephanie Bourque</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4091524">4091524</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8061729">8061729</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"194">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Metabolism Boost Injection (non-member)</td>
+ <td class=3Dxl39 x:num=3D"35">$35.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"35">35.00</td>
+ <td class=3Dxl43 x:num=3D"35">$35.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Melissa Dupre</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"3833903">3833903</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8061737">8061737</td>
+ <td rowspan=3D3 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Alleviate (Member)</td>
+ <td class=3Dxl39 x:num=3D"145">$145.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"145">145.00</td>
+ <td class=3Dxl43 x:num=3D"145">$145.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Zofran (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D4 class=3Dxl35>Cynthia Duncan&#32;</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"3567119">3567119</td>
+ <td rowspan=3D4 class=3Dxl35>LA</td>
+ <td rowspan=3D4 class=3Dxl38 x:num=3D"8061767">8061767</td>
+ <td rowspan=3D4 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Member)</td>
+ <td class=3Dxl39 x:num=3D"139">$139.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"139">139.00</td>
+ <td class=3Dxl43 x:num=3D"139">$139.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Toradol (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"19">19.00</td>
+ <td class=3Dxl43 x:num=3D"19">$19.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Member)</td>
+ <td class=3Dxl39 x:num=3D"19">$19.00</td>
+ <td class=3Dxl40 x:num=3D"19">$19.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"0">0.00</td>
+ <td class=3Dxl43 x:num=3D"0">$0.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Leonard Franques III</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3772173">3772173</td>
+ <td rowspan=3D2 class=3Dxl35></td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8061863">8061863</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Tri-Immune (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"53">$53.00</td>
+ <td class=3Dxl40 x:num=3D"5.3">$5.30</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"47.7">47.70</td>
+ <td class=3Dxl43 x:num=3D"47.7000009984146">$47.70</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin D3 (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"2.8">$2.80</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25.2">25.20</td>
+ <td class=3Dxl43 x:num=3D"25.2000005274643">$25.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Lawrence Williams</td>
+ <td class=3Dxl38 x:num=3D"3862853">3862853</td>
+ <td class=3Dxl35>LA - Louisiana</td>
+ <td class=3Dxl38 x:num=3D"8061884">8061884</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Amino Acids</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Joycelin Francis</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"3567147">3567147</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8061999">8061999</td>
+ <td rowspan=3D2 class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Member)</td>
+ <td class=3Dxl39 x:num=3D"139">$139.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"139">139.00</td>
+ <td class=3Dxl43 x:num=3D"139">$139.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td colspan=3D2 class=3Dxl35>Vitamin B12 Injection (Member)</td>
+ <td class=3Dxl39 x:num=3D"25">$25.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"25">25.00</td>
+ <td class=3Dxl43 x:num=3D"25">$25.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D8 class=3Dxl36 x:num=3D"45893">8/24/25</td>
+ <td rowspan=3D8 class=3Dxl37 x:num=3D"45893">8/24/2025 12:00:00 AM</td>
+ <td class=3Dxl35>Pamela Wimberly</td>
+ <td class=3Dxl38 x:num=3D"4819136">4819136</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8063830">8063830</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Concierge Membership</td>
+ <td class=3Dxl39 x:num=3D"50">$50.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"50">50.00</td>
+ <td class=3Dxl43 x:num=3D"50">$50.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>David Wahlen</td>
+ <td class=3Dxl38 x:num=3D"4261656">4261656</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8063923">8063923</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Membership - Individual</td>
+ <td class=3Dxl39 x:num=3D"129">$129.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"129">129.00</td>
+ <td class=3Dxl43 x:num=3D"129">$129.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D2 class=3Dxl35>Tim Zaunbrecher</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"4255504">4255504</td>
+ <td rowspan=3D2 class=3Dxl35>LA</td>
+ <td rowspan=3D2 class=3Dxl38 x:num=3D"8064240">8064240</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Performance &amp; Recovery (Non-member)</td>
+ <td class=3Dxl39 x:num=3D"194">$194.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"194">194.00</td>
+ <td class=3Dxl43 x:num=3D"194">$194.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Toradol (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"28">$28.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"28">28.00</td>
+ <td class=3Dxl43 x:num=3D"28">$28.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>Soniya Banoth</td>
+ <td class=3Dxl38 x:num=3D"3819971">3819971</td>
+ <td class=3Dxl35>LA</td>
+ <td class=3Dxl38 x:num=3D"8064255">8064255</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>NAD 100mg (Member)</td>
+ <td class=3Dxl39 x:num=3D"85">$85.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"85">85.00</td>
+ <td class=3Dxl43 x:num=3D"85">$85.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td rowspan=3D3 class=3Dxl35>Debra Dejernette</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"5009122">5009122</td>
+ <td rowspan=3D3 class=3Dxl35>LA</td>
+ <td rowspan=3D3 class=3Dxl38 x:num=3D"8064451">8064451</td>
+ <td class=3Dxl35>OFFICE_VISIT</td>
+ <td colspan=3D2 class=3Dxl35>Immunity (Non-Member)</td>
+ <td class=3Dxl39 x:num=3D"174">$174.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"174">174.00</td>
+ <td class=3Dxl43 x:num=3D"174.00000748036">$174.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>PROCEDURE</td>
+ <td colspan=3D2 class=3Dxl35>Glutathione IVP (Non Member)</td>
+ <td class=3Dxl39 x:num=3D"68">$68.00</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"68">68.00</td>
+ <td class=3Dxl43 x:num=3D"68.0000029233593">$68.00</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl35>TOTAL_TIPS</td>
+ <td colspan=3D2 class=3Dxl35>TOTAL_TIPS</td>
+ <td class=3Dxl39 x:num=3D"24.2000007629395">$24.20</td>
+ <td class=3Dxl40 x:num=3D"0">$0.00</td>
+ <td class=3Dxl41 x:num=3D"0">$0.00</td>
+ <td class=3Dxl42 x:num=3D"24.2000007629395">24.20</td>
+ <td class=3Dxl43 x:num=3D"24.2000018033115">$24.20</td>
+ <td class=3Dxl44 x:num=3D"0">0.00</td>
+ <td class=3Dxl47 x:num=3D"1">1.00</td>
+</tr>
+<tr>
+ <td class=3Dxl56>Total</td>
+ <td class=3Dxl57></td>
+ <td class=3Dxl57></td>
+ <td colspan=3D2 class=3Dxl57></td>
+ <td class=3Dxl57></td>
+ <td class=3Dxl57></td>
+ <td class=3Dxl57></td>
+ <td colspan=3D2 class=3Dxl57></td>
+ <td class=3Dxl58 x:num=3D"30560.1900002956">$30,560.19</td>
+ <td class=3Dxl59 x:num=3D"1420.45">$1,420.45</td>
+ <td class=3Dxl60 x:num=3D"0">$0.00</td>
+ <td class=3Dxl61 x:num=3D"29139.7400002956">29,139.74</td>
+ <td class=3Dxl62 x:num=3D"29129.7400022201">$29,129.74</td>
+ <td class=3Dxl63 x:num=3D"0">0.00</td>
+ <td class=3Dxl64 x:num=3D"269">269.00</td>
+</tr>
+</table>
+</body>
+</html>
+
+--sheet-boundary--
