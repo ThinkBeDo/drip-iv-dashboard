@@ -16,6 +16,18 @@ function setDatabasePool(dbPool) {
   console.log('📊 Database pool configured for import-weekly-data');
 }
 
+// Create pool for CLI usage
+function createStandalonePool() {
+  if (!pool && process.env.DATABASE_URL) {
+    console.log('📊 Creating standalone database pool for CLI usage');
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+  }
+  return pool;
+}
+
 // Service categorization functions (matching server.js logic)
 function isBaseInfusionService(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
@@ -512,6 +524,28 @@ function analyzeRevenueData(csvData) {
     monthEndDate: null
   };
   
+  // Log available columns from first row
+  if (csvData.length > 0) {
+    console.log('📊 Available columns in revenue data:');
+    const firstRow = csvData[0];
+    const columns = Object.keys(firstRow);
+    columns.forEach(col => {
+      const sampleValue = firstRow[col];
+      console.log(`   - "${col}": "${sampleValue}"`);
+    });
+    
+    // Look for payment/amount columns
+    const paymentColumns = columns.filter(col => 
+      col.toLowerCase().includes('payment') || 
+      col.toLowerCase().includes('amount') || 
+      col.toLowerCase().includes('charge') ||
+      col.toLowerCase().includes('paid') ||
+      col.toLowerCase().includes('revenue') ||
+      col.toLowerCase().includes('total')
+    );
+    console.log('💰 Potential payment columns found:', paymentColumns);
+  }
+  
   // Process each row
   for (const row of csvData) {
     // Try to find the date column - support both 'Date' and 'Date Of Payment'
@@ -526,7 +560,28 @@ function analyzeRevenueData(csvData) {
     
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
-    const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']); // Use actual payment, not charge amount
+    
+    // Try multiple possible payment columns
+    let chargeAmount = cleanCurrency(row['Calculated Payment (Line)']) || 
+                       cleanCurrency(row['Charge Amount']) || 
+                       cleanCurrency(row['Payment Amount']) ||
+                       cleanCurrency(row['Amount']) ||
+                       cleanCurrency(row['Total']) ||
+                       cleanCurrency(row['Paid']) ||
+                       0;
+    
+    // Log if no payment found for debugging
+    if (chargeAmount === 0 && csvData.indexOf(row) < 5) {
+      console.log(`⚠️ No payment amount found in row ${csvData.indexOf(row)}:`, {
+        'Calculated Payment (Line)': row['Calculated Payment (Line)'],
+        'Charge Amount': row['Charge Amount'],
+        'Payment Amount': row['Payment Amount'],
+        'Amount': row['Amount'],
+        'Total': row['Total'],
+        'Paid': row['Paid']
+      });
+    }
+    
     const isWeekendDay = isWeekend(date);
     
     // Determine if this is a member service (based on charge description)
@@ -576,7 +631,11 @@ function analyzeRevenueData(csvData) {
     metrics.weekStartDate = weekStart;
     metrics.weekEndDate = weekEnd;
     
-    console.log(`Calculated week range: ${weekStart.toDateString()} to ${weekEnd.toDateString()}`);
+    console.log('📅 DATE EXTRACTION RESULTS:');
+    console.log(`   Earliest date found: ${earliestDate.toDateString()}`);
+    console.log(`   Latest date found: ${latestDate.toDateString()}`);
+    console.log(`   Calculated week start: ${weekStart.toDateString()} (${weekStart.toISOString().split('T')[0]})`);
+    console.log(`   Calculated week end: ${weekEnd.toDateString()} (${weekEnd.toISOString().split('T')[0]})`);
     console.log(`  Start: ${weekStart.toISOString().split('T')[0]} (${weekStart.getDay() === 0 ? 'Sunday' : 'Error'})`);
     console.log(`  End: ${weekEnd.toISOString().split('T')[0]} (${weekEnd.getDay() === 6 ? 'Saturday' : 'Error'})`);
   }
@@ -603,7 +662,16 @@ function analyzeRevenueData(csvData) {
     
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
-    const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']);
+    
+    // Try multiple possible payment columns
+    const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']) || 
+                        cleanCurrency(row['Charge Amount']) || 
+                        cleanCurrency(row['Payment Amount']) ||
+                        cleanCurrency(row['Amount']) ||
+                        cleanCurrency(row['Total']) ||
+                        cleanCurrency(row['Paid']) ||
+                        0;
+    
     const isWeekendDay = isWeekend(date);
     
     // Skip non-service charges and administrative entries
@@ -802,9 +870,13 @@ async function processMembershipData(excelFilePath) {
 
 // Main import function
 async function importWeeklyData(revenueFilePath, membershipFilePath) {
-  // Check if database pool is configured
+  // Check if database pool is configured, create one for CLI if needed
   if (!pool) {
-    throw new Error('Database pool not configured. Call setDatabasePool() first.');
+    console.log('⚠️ No database pool configured, attempting to create standalone pool...');
+    createStandalonePool();
+    if (!pool) {
+      throw new Error('Database pool not configured and DATABASE_URL not found.');
+    }
   }
   
   try {

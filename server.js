@@ -2058,6 +2058,59 @@ function validateDashboardData(data) {
   return validated;
 }
 
+// Database verification endpoint - shows all data in analytics_data table
+app.get('/api/verify-data', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+
+    // Get all records sorted by date
+    const result = await pool.query(`
+      SELECT 
+        id,
+        week_start_date,
+        week_end_date,
+        actual_weekly_revenue,
+        actual_monthly_revenue,
+        total_drip_iv_members,
+        drip_iv_revenue_weekly,
+        semaglutide_revenue_weekly,
+        created_at,
+        updated_at
+      FROM analytics_data
+      ORDER BY week_start_date DESC
+      LIMIT 20
+    `);
+
+    // Get count of total records
+    const countResult = await pool.query('SELECT COUNT(*) as total FROM analytics_data');
+    
+    res.json({
+      success: true,
+      total_records: parseInt(countResult.rows[0].total),
+      showing: result.rows.length,
+      records: result.rows.map(row => ({
+        id: row.id,
+        week: `${row.week_start_date} to ${row.week_end_date}`,
+        weekly_revenue: row.actual_weekly_revenue,
+        monthly_revenue: row.actual_monthly_revenue,
+        members: row.total_drip_iv_members,
+        drip_iv_revenue: row.drip_iv_revenue_weekly,
+        semaglutide_revenue: row.semaglutide_revenue_weekly,
+        created: row.created_at,
+        updated: row.updated_at
+      }))
+    });
+  } catch (error) {
+    console.error('Database verification error:', error);
+    res.status(500).json({ 
+      error: 'Database query failed', 
+      message: error.message 
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
   const health = {
