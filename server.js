@@ -3250,10 +3250,12 @@ app.post('/api/import-weekly-data', upload.fields([
     const revenueFile = req.files.revenueFile ? req.files.revenueFile[0] : null;
     const membershipFile = req.files.membershipFile ? req.files.membershipFile[0] : null;
     
-    // Validate file types if provided
-    if (revenueFile && !revenueFile.originalname.endsWith('.csv')) {
+    // Validate file types if provided - accept CSV, XLS, and MHTML formats
+    if (revenueFile && !revenueFile.originalname.endsWith('.csv') && 
+        !revenueFile.originalname.endsWith('.xls') && 
+        !revenueFile.originalname.endsWith('.mhtml')) {
       return res.status(400).json({ 
-        error: 'Revenue file must be a CSV file' 
+        error: 'Revenue file must be a CSV, XLS, or MHTML file' 
       });
     }
     

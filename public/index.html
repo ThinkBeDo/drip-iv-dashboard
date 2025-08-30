@@ -862,15 +862,15 @@
                 <div class="locations-badge">📍 Lafayette, LA</div>
                 <div style="margin-top: 25px;">
                     <!-- Hidden file inputs (moved outside of clickable divs) -->
-                    <input type="file" id="revenueFileInput" accept=".csv" class="hidden-file-input">
+                    <input type="file" id="revenueFileInput" accept=".csv,.xls,.mhtml" class="hidden-file-input">
                     <input type="file" id="membershipFileInput" accept=".xlsx,.xls" class="hidden-file-input">
                     
                     <div class="upload-container">
                         <div class="upload-section" id="revenueUploadSection">
                             <div class="upload-text">
                                 <span>💰</span>
-                                <span>Patient Analysis CSV</span>
-                                <div style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Revenue & service data</div>
+                                <span>Patient Analysis File</span>
+                                <div style="font-size: 0.85em; opacity: 0.8; margin-top: 5px;">Revenue data (CSV/XLS/MHTML)</div>
                             </div>
                         </div>
                         
@@ -1810,7 +1810,7 @@
                     revenueSection.querySelector('.upload-text span:nth-child(2)').textContent = revenueFile.name;
                 } else {
                     revenueSection.classList.remove('has-file');
-                    revenueSection.querySelector('.upload-text span:nth-child(2)').textContent = 'Patient Analysis CSV';
+                    revenueSection.querySelector('.upload-text span:nth-child(2)').textContent = 'Patient Analysis File';
                 }
                 
                 // Update membership section
