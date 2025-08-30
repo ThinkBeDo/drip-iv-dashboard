@@ -7,11 +7,14 @@ const iconv = require('iconv-lite');
 const { parse } = require('csv-parse/sync');
 require('dotenv').config();
 
-// Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+// Database pool will be passed from server.js to avoid multiple connections
+let pool = null;
+
+// Function to set the database pool
+function setDatabasePool(dbPool) {
+  pool = dbPool;
+  console.log('📊 Database pool configured for import-weekly-data');
+}
 
 // Service categorization functions (matching server.js logic)
 function isBaseInfusionService(chargeDesc) {
@@ -799,6 +802,11 @@ async function processMembershipData(excelFilePath) {
 
 // Main import function
 async function importWeeklyData(revenueFilePath, membershipFilePath) {
+  // Check if database pool is configured
+  if (!pool) {
+    throw new Error('Database pool not configured. Call setDatabasePool() first.');
+  }
+  
   try {
     console.log('Starting weekly data import...');
     console.log('Revenue file:', revenueFilePath || 'Not provided');
@@ -1116,6 +1124,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
 
 // Export functions for use in other modules
 module.exports = {
+  setDatabasePool,
   importWeeklyData,
   processRevenueData,
   processMembershipData,

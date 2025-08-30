@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const XLSX = require('xlsx');
 require('dotenv').config();
-const { importWeeklyData } = require('./import-weekly-data');
+const { importWeeklyData, setDatabasePool } = require('./import-weekly-data');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,20 +21,41 @@ let pool;
 if (process.env.DATABASE_URL) {
   // PostgreSQL for production and development
   console.log('🐘 Connecting to PostgreSQL database... v2.0 with membership data fix');
+  console.log('📍 Database URL:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@')); // Hide password
+  
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    // Connection pool configuration
+    max: 20, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 10000, // 10 second connection timeout
+    query_timeout: 30000, // 30 second query timeout
   });
   
-  // Test database connection
-  pool.query('SELECT 1')
-    .then(() => {
-      console.log('✅ Database connection successful');
-    })
-    .catch(err => {
-      console.error('❌ Database connection failed:', err.message);
-      console.error('Please check your DATABASE_URL configuration');
-    });
+  // Test database connection with retry logic
+  const testConnection = async (retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await pool.query('SELECT 1');
+        console.log('✅ Database connection successful');
+        // Pass the pool to import-weekly-data module
+        setDatabasePool(pool);
+        return true;
+      } catch (err) {
+        console.error(`❌ Database connection attempt ${i + 1} failed:`, err.message);
+        if (i < retries - 1) {
+          console.log(`⏳ Retrying in ${(i + 1) * 2} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, (i + 1) * 2000));
+        }
+      }
+    }
+    console.error('❌ Could not establish database connection after', retries, 'attempts');
+    console.error('Please check your DATABASE_URL configuration');
+    return false;
+  };
+  
+  testConnection();
 } else {
   console.error('❌ DATABASE_URL environment variable not found');
   console.error('Please set DATABASE_URL in your environment variables');
@@ -2036,6 +2057,40 @@ function validateDashboardData(data) {
   
   return validated;
 }
+
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: 'disconnected',
+    environment: process.env.NODE_ENV || 'development'
+  };
+
+  // Check database connection
+  if (pool) {
+    try {
+      const result = await pool.query('SELECT NOW() as time, COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = \'public\'');
+      health.database = 'connected';
+      health.databaseTime = result.rows[0].time;
+      health.tableCount = parseInt(result.rows[0].table_count);
+      
+      // Check analytics_data table
+      const analyticsCheck = await pool.query('SELECT COUNT(*) as record_count FROM analytics_data');
+      health.analyticsRecords = parseInt(analyticsCheck.rows[0].record_count);
+      
+      res.json(health);
+    } catch (error) {
+      health.database = 'error';
+      health.databaseError = error.message;
+      res.status(503).json(health);
+    }
+  } else {
+    health.database = 'not configured';
+    res.status(503).json(health);
+  }
+});
 
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
