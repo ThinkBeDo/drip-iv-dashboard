@@ -207,54 +207,140 @@ async function processRevenueData(csvFilePath) {
         
         console.log(`Found ${rowMatches.length} rows in MHTML table`);
         
-        // Parse headers from first row
-        const headerMatch = rowMatches[0].match(/<td[^>]*>([^<]*)<\/td>/g);
-        const headers = [];
+        // Parse headers - simplified approach for this specific MHTML format
+        // The table has a complex colspan structure that differs between header and data rows
+        // We'll use a fixed mapping based on the known structure
+        const headers = [
+          'Practitioner',
+          'Date', 
+          'Date Of Payment',
+          'Patient',
+          'Patient_ID',  // This is part of the Patient colspan
+          'Patient State',
+          'Super Bill',
+          'Charge Type',
+          'Charge Desc',  // This spans 2 columns in data rows
+          'Charges',
+          'Total Discount',
+          'Tax',
+          'Charges - Discount',
+          'Calculated Payment (Line)',
+          'COGS',
+          'Qty'
+        ];
         
-        if (headerMatch) {
-          headerMatch.forEach(cell => {
-            const text = cell.replace(/<[^>]*>/g, '').trim();
-            headers.push(text);
-          });
-        }
-        
-        console.log('MHTML Headers:', headers.slice(0, 10), '...');
+        console.log('MHTML Headers (fixed mapping):', headers.slice(0, 10), '...');
+        console.log(`Total expected columns: ${headers.length}`);
         
         // Parse data rows
         const records = [];
         for (let i = 1; i < rowMatches.length; i++) {
           const rowMatch = rowMatches[i].match(/<td[^>]*>([^<]*)<\/td>/g);
           
-          if (rowMatch) {
+          if (rowMatch && rowMatch.length > 0) {
             const row = {};
-            // Process all available cells, even if less than header count
-            const cellCount = Math.min(rowMatch.length, headers.length);
-            for (let j = 0; j < cellCount; j++) {
-              let value = rowMatch[j].replace(/<[^>]*>/g, '').trim();
-              // Clean HTML entities
+            
+            // For this specific MHTML format, data rows have 16 cells:
+            // Positions 0-7: Practitioner through Charge Type
+            // Position 8: Charge Desc (with colspan=2, covering Metrics column)
+            // Positions 9-15: Charges through Qty
+            
+            // Extract values
+            const values = rowMatch.map(cell => {
+              let value = cell.replace(/<[^>]*>/g, '').trim();
+              // Clean HTML entities and MIME encoding
               value = value.replace(/&amp;/g, '&')
                           .replace(/&lt;/g, '<')
                           .replace(/&gt;/g, '>')
                           .replace(/&quot;/g, '"')
                           .replace(/&#32;/g, ' ')
+                          .replace(/=3D/g, '=')
                           .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
-              row[headers[j]] = value;
+              return value;
+            });
+            
+            // Map to headers based on available values
+            // Handle variable row lengths due to rowspan/colspan
+            if (values.length === 16) {
+              // Standard row with all columns
+              row['Practitioner'] = values[0];
+              row['Date'] = values[1];
+              row['Date Of Payment'] = values[2];
+              row['Patient'] = values[3];
+              row['Patient_ID'] = values[4];
+              row['Patient State'] = values[5];
+              row['Super Bill'] = values[6];
+              row['Charge Type'] = values[7];
+              row['Charge Desc'] = values[8];
+              row['Charges'] = values[9];
+              row['Total Discount'] = values[10];
+              row['Tax'] = values[11];
+              row['Charges - Discount'] = values[12];
+              row['Calculated Payment (Line)'] = values[13];
+              row['COGS'] = values[14];
+              row['Qty'] = values[15];
+            } else if (values.length === 13) {
+              // Row with rowspan on practitioner/date columns (continuation row)
+              row['Practitioner'] = '';  // Inherited from previous row
+              row['Date'] = '';  // Inherited from previous row
+              row['Date Of Payment'] = '';  // Inherited from previous row
+              row['Patient'] = values[0];
+              row['Patient_ID'] = values[1];
+              row['Patient State'] = values[2];
+              row['Super Bill'] = values[3];
+              row['Charge Type'] = values[4];
+              row['Charge Desc'] = values[5];
+              row['Charges'] = values[6];
+              row['Total Discount'] = values[7];
+              row['Tax'] = values[8];
+              row['Charges - Discount'] = values[9];
+              row['Calculated Payment (Line)'] = values[10];
+              row['COGS'] = values[11];
+              row['Qty'] = values[12];
+            } else if (values.length === 15) {
+              // Row missing one column (likely practitioner with rowspan)
+              row['Practitioner'] = '';  // Inherited from previous row
+              row['Date'] = values[0];
+              row['Date Of Payment'] = values[1];
+              row['Patient'] = values[2];
+              row['Patient_ID'] = values[3];
+              row['Patient State'] = values[4];
+              row['Super Bill'] = values[5];
+              row['Charge Type'] = values[6];
+              row['Charge Desc'] = values[7];
+              row['Charges'] = values[8];
+              row['Total Discount'] = values[9];
+              row['Tax'] = values[10];
+              row['Charges - Discount'] = values[11];
+              row['Calculated Payment (Line)'] = values[12];
+              row['COGS'] = values[13];
+              row['Qty'] = values[14];
+            } else if (values.length >= 8 && values.length <= 10) {
+              // Short row - likely just charge details without patient info
+              const offset = 16 - values.length;
+              row['Charge Type'] = values[Math.max(0, 7 - offset)] || '';
+              row['Charge Desc'] = values[Math.max(0, 8 - offset)] || '';
+              row['Charges'] = values[Math.max(0, 9 - offset)] || '';
+              row['Total Discount'] = values[Math.max(0, 10 - offset)] || '';
+              row['Tax'] = values[Math.max(0, 11 - offset)] || '';
+              row['Charges - Discount'] = values[Math.max(0, 12 - offset)] || '';
+              row['Calculated Payment (Line)'] = values[Math.max(0, 13 - offset)] || '';
+              row['COGS'] = values[Math.max(0, 14 - offset)] || '';
+              row['Qty'] = values[Math.max(0, 15 - offset)] || '';
             }
             
-            // Fill missing columns with empty strings
-            for (let j = cellCount; j < headers.length; j++) {
-              row[headers[j]] = '';
-            }
-            
-            // Only add rows that have actual data (not empty rows)
-            if (Object.values(row).some(v => v && v.trim())) {
+            // Only add rows that have payment data
+            if (row['Calculated Payment (Line)'] && row['Calculated Payment (Line)'].trim()) {
               records.push(row);
             }
           }
         }
         
         console.log(`Successfully parsed ${records.length} rows from MHTML`);
-        resolve(records);
+        
+        // Analyze the parsed data
+        const analyzedData = analyzeRevenueData(records);
+        resolve(analyzedData);
         return;
       }
       
@@ -469,7 +555,10 @@ async function processRevenueData(csvFilePath) {
       }
       
       console.log(`Successfully parsed ${records.length} rows from CSV`);
-      resolve(records);
+      
+      // Analyze the parsed data
+      const analyzedData = analyzeRevenueData(records);
+      resolve(analyzedData);
       
     } catch (error) {
       console.error('Error parsing CSV file:', error);
@@ -529,10 +618,18 @@ function analyzeRevenueData(csvData) {
     console.log('📊 Available columns in revenue data:');
     const firstRow = csvData[0];
     const columns = Object.keys(firstRow);
-    columns.forEach(col => {
-      const sampleValue = firstRow[col];
-      console.log(`   - "${col}": "${sampleValue}"`);
-    });
+    console.log(`   Total columns: ${columns.length}`);
+    
+    // Show first 5 rows with key columns for debugging
+    console.log('\n📋 Sample data (first 3 rows):');
+    for (let i = 0; i < Math.min(3, csvData.length); i++) {
+      const row = csvData[i];
+      console.log(`   Row ${i + 1}:`);
+      console.log(`     Date: ${row['Date'] || row['Date Of Payment'] || 'N/A'}`);
+      console.log(`     Patient: ${row['Patient']} (ID: ${row['Patient_ID'] || 'N/A'})`);
+      console.log(`     Charge Desc: ${row['Charge Desc']}`);
+      console.log(`     Calculated Payment: ${row['Calculated Payment (Line)']}`);
+    }
     
     // Look for payment/amount columns
     const paymentColumns = columns.filter(col => 
@@ -543,7 +640,15 @@ function analyzeRevenueData(csvData) {
       col.toLowerCase().includes('revenue') ||
       col.toLowerCase().includes('total')
     );
-    console.log('💰 Potential payment columns found:', paymentColumns);
+    console.log('\n💰 Payment-related columns found:', paymentColumns);
+    
+    // Verify the critical column exists
+    if (!columns.includes('Calculated Payment (Line)')) {
+      console.log('⚠️ WARNING: "Calculated Payment (Line)" column not found!');
+      console.log('   Available columns:', columns);
+    } else {
+      console.log('✅ "Calculated Payment (Line)" column found at index:', columns.indexOf('Calculated Payment (Line)'));
+    }
   }
   
   // Process each row
@@ -601,43 +706,43 @@ function analyzeRevenueData(csvData) {
   
   // After processing all dates, determine the most recent week in the data
   if (metrics.monthEndDate && metrics.monthStartDate) {
-    // Find the most recent complete week (Sunday to Saturday)
+    // Find the most recent complete week (Monday to Sunday)
     const endDate = new Date(metrics.monthEndDate);
     console.log(`Most recent date in data: ${endDate.toDateString()} (day ${endDate.getDay()})`);
     
     let weekStart = new Date(endDate);
     let weekEnd = new Date(endDate);
     
-    const dayOfWeek = endDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const dayOfWeek = endDate.getDay(); // 0 = Sunday, 1 = Monday, 6 = Saturday
     
-    if (dayOfWeek === 6) {
-      // If end date is Saturday, it's the end of the week
+    if (dayOfWeek === 0) {
+      // If end date is Sunday, it's the end of a Monday-Sunday week
       weekEnd = new Date(endDate);
       weekStart = new Date(endDate);
-      weekStart.setDate(endDate.getDate() - 6); // Go back to Sunday
-    } else if (dayOfWeek === 0) {
-      // If end date is Sunday, it's the start of a week
+      weekStart.setDate(endDate.getDate() - 6); // Go back to Monday
+    } else if (dayOfWeek === 1) {
+      // If end date is Monday, it's the start of a Monday-Sunday week
       weekStart = new Date(endDate);
       weekEnd = new Date(endDate);
-      weekEnd.setDate(endDate.getDate() + 6); // Go forward to Saturday
+      weekEnd.setDate(endDate.getDate() + 6); // Go forward to Sunday
     } else {
-      // For any other day, find the containing week (previous Sunday to Saturday)
+      // For any other day, find the containing Monday-Sunday week
+      const daysFromMonday = dayOfWeek - 1; // Days since Monday
       weekStart = new Date(endDate);
-      weekStart.setDate(endDate.getDate() - dayOfWeek); // Go back to Sunday
+      weekStart.setDate(endDate.getDate() - daysFromMonday); // Go back to Monday
       weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6); // Go forward to Saturday
+      weekEnd.setDate(weekStart.getDate() + 6); // Go forward to Sunday
     }
     
     metrics.weekStartDate = weekStart;
     metrics.weekEndDate = weekEnd;
     
     console.log('📅 DATE EXTRACTION RESULTS:');
-    console.log(`   Earliest date found: ${earliestDate.toDateString()}`);
-    console.log(`   Latest date found: ${latestDate.toDateString()}`);
+    if (metrics.monthStartDate && metrics.monthEndDate) {
+      console.log(`   Date range in data: ${metrics.monthStartDate.toDateString()} to ${metrics.monthEndDate.toDateString()}`);
+    }
     console.log(`   Calculated week start: ${weekStart.toDateString()} (${weekStart.toISOString().split('T')[0]})`);
     console.log(`   Calculated week end: ${weekEnd.toDateString()} (${weekEnd.toISOString().split('T')[0]})`);
-    console.log(`  Start: ${weekStart.toISOString().split('T')[0]} (${weekStart.getDay() === 0 ? 'Sunday' : 'Error'})`);
-    console.log(`  End: ${weekEnd.toISOString().split('T')[0]} (${weekEnd.getDay() === 6 ? 'Saturday' : 'Error'})`);
   }
   
   // CRITICAL FIX: Calculate proper month boundaries for filtering
