@@ -3240,8 +3240,12 @@ app.post('/api/import-weekly-data', upload.fields([
   { name: 'revenueFile', maxCount: 1 },
   { name: 'membershipFile', maxCount: 1 }
 ]), async (req, res) => {
+  console.log('\n=== FILE UPLOAD REQUEST ===');
+  console.log('Timestamp:', new Date().toISOString());
+  
   try {
     if (!req.files || (!req.files.revenueFile && !req.files.membershipFile)) {
+      console.log('❌ No files provided in request');
       return res.status(400).json({ 
         error: 'At least one file (revenue CSV or membership Excel) is required' 
       });
@@ -3267,18 +3271,31 @@ app.post('/api/import-weekly-data', upload.fields([
 
     // Log what we're processing
     if (revenueFile && membershipFile) {
-      console.log(`Processing weekly data import: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+      console.log(`✅ Files received: ${revenueFile.originalname} + ${membershipFile.originalname}`);
+      console.log(`   Revenue file size: ${revenueFile.size} bytes`);
+      console.log(`   Membership file size: ${membershipFile.size} bytes`);
     } else if (revenueFile) {
-      console.log(`Processing revenue data import: ${revenueFile.originalname}`);
+      console.log(`✅ Revenue file received: ${revenueFile.originalname}`);
+      console.log(`   File size: ${revenueFile.size} bytes`);
+      console.log(`   File type: ${revenueFile.mimetype}`);
     } else {
-      console.log(`Processing membership data import: ${membershipFile.originalname}`);
+      console.log(`✅ Membership file received: ${membershipFile.originalname}`);
+      console.log(`   File size: ${membershipFile.size} bytes`);
     }
     
     // Use the specialized import function with optional membership file
+    console.log('\n📤 Calling importWeeklyData function...');
     const importedData = await importWeeklyData(
       revenueFile ? revenueFile.path : null, 
       membershipFile ? membershipFile.path : null
     );
+    
+    console.log('📥 Import function returned successfully');
+    if (importedData) {
+      console.log(`   Week dates: ${importedData.week_start_date} to ${importedData.week_end_date}`);
+      console.log(`   Revenue: $${importedData.actual_weekly_revenue || 0}`);
+      console.log(`   Members: ${importedData.total_drip_iv_members || 0}`);
+    }
     
     // Clean up uploaded files
     try {

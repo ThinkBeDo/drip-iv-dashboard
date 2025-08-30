@@ -1453,8 +1453,17 @@
         
         // Format date for display
         function formatDateDisplay(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            // Handle YYYY-MM-DD format strings to avoid timezone issues
+            if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // Parse as local date, not UTC
+                const [year, month, day] = dateString.split('-').map(Number);
+                const date = new Date(year, month - 1, day); // month is 0-indexed
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } else {
+                // Fallback for other date formats
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
         }
         
         // Format date for input field (YYYY-MM-DD)
