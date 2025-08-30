@@ -1470,13 +1470,19 @@
             const d = new Date(date);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-            return new Date(d.setDate(diff));
+            const monday = new Date(d.setDate(diff));
+            monday.setHours(0, 0, 0, 0); // Set to start of day
+            return monday;
         }
         
         // Get Sunday of the week for a given date
         function getSunday(date) {
-            const monday = getMonday(date);
-            return new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? 0 : 7); // If Sunday, use it; otherwise, go to next Sunday
+            const sunday = new Date(d.setDate(diff));
+            sunday.setHours(23, 59, 59, 999); // Set to end of day
+            return sunday;
         }
         
         // Apply preset date range
