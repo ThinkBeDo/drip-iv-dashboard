@@ -234,6 +234,8 @@ async function processRevenueData(csvFilePath) {
         
         // Parse data rows
         const records = [];
+        let previousRow = {}; // Track previous row for rowspan inheritance
+        
         for (let i = 1; i < rowMatches.length; i++) {
           const rowMatch = rowMatches[i].match(/<td[^>]*>([^<]*)<\/td>/g);
           
@@ -309,7 +311,11 @@ async function processRevenueData(csvFilePath) {
                 
                 // Map based on common patterns
                 if (values.length === 13) {
-                  // Missing first 3 columns (practitioner, date, date of payment)
+                  // Missing first 3 columns (practitioner, date, date of payment) due to rowspan
+                  // CRITICAL: Inherit these from previous row
+                  row['Practitioner'] = previousRow['Practitioner'] || '';
+                  row['Date'] = previousRow['Date'] || '';
+                  row['Date Of Payment'] = previousRow['Date Of Payment'] || '';
                   row['Patient'] = values[0];
                   row['Patient_ID'] = values[1]; 
                   row['Patient State'] = values[2];
@@ -323,8 +329,28 @@ async function processRevenueData(csvFilePath) {
                   row['Calculated Payment (Line)'] = values[10];
                   row['COGS'] = values[11];
                   row['Qty'] = values[12];
+                } else if (values.length === 15) {
+                  // Missing first column (practitioner) due to rowspan
+                  row['Practitioner'] = previousRow['Practitioner'] || '';
+                  row['Date'] = values[0];
+                  row['Date Of Payment'] = values[1];
+                  row['Patient'] = values[2];
+                  row['Patient_ID'] = values[3];
+                  row['Patient State'] = values[4];
+                  row['Super Bill'] = values[5];
+                  row['Charge Type'] = values[6];
+                  row['Charge Desc'] = values[7];
+                  row['Charges'] = values[8];
+                  row['Total Discount'] = values[9];
+                  row['Tax'] = values[10];
+                  row['Charges - Discount'] = values[11];
+                  row['Calculated Payment (Line)'] = values[12];
+                  row['COGS'] = values[13];
+                  row['Qty'] = values[14];
                 } else if (values.length === 12) {
                   // Likely missing practitioner and some other columns
+                  // Inherit date from previous row if not present
+                  row['Date'] = previousRow['Date'] || '';
                   // Map conservatively - focus on getting payment amount
                   const chargeDescIndex = values.findIndex(v => v && (v.includes('Membership') || v.includes('IV') || v.includes('Injection')));
                   if (chargeDescIndex >= 0 && chargeDescIndex < values.length - 3) {
@@ -352,6 +378,15 @@ async function processRevenueData(csvFilePath) {
               row['Calculated Payment (Line)'] = values[Math.max(0, 13 - offset)] || '';
               row['COGS'] = values[Math.max(0, 14 - offset)] || '';
               row['Qty'] = values[Math.max(0, 15 - offset)] || '';
+            }
+            
+            // Store current row data for next iteration (for rowspan inheritance)
+            if (row['Date'] && row['Date'].trim()) {
+              previousRow = { 
+                'Date': row['Date'],
+                'Practitioner': row['Practitioner'] || '',
+                'Date Of Payment': row['Date Of Payment'] || ''
+              };
             }
             
             // Only add rows that have payment data
