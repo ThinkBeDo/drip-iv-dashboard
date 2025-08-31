@@ -260,8 +260,8 @@ async function processRevenueData(csvFilePath) {
             });
             
             // DEBUG: Log row parsing for first few rows
-            if (recordIndex < 3) {
-              console.log(`DEBUG Row ${recordIndex + 1}: ${values.length} columns found`);
+            if (i < 4) {  // First 3 data rows (i starts at 1)
+              console.log(`DEBUG Row ${i}: ${values.length} columns found`);
               console.log('  Values:', values.slice(0, Math.min(values.length, 16)));
             }
             
