@@ -259,62 +259,87 @@ async function processRevenueData(csvFilePath) {
               return value;
             });
             
+            // DEBUG: Log row parsing for first few rows
+            if (recordIndex < 3) {
+              console.log(`DEBUG Row ${recordIndex + 1}: ${values.length} columns found`);
+              console.log('  Values:', values.slice(0, Math.min(values.length, 16)));
+            }
+            
             // Map to headers based on available values
-            // Handle variable row lengths due to rowspan/colspan
-            if (values.length === 16) {
-              // Standard row with all columns
-              row['Practitioner'] = values[0];
-              row['Date'] = values[1];
-              row['Date Of Payment'] = values[2];
-              row['Patient'] = values[3];
-              row['Patient_ID'] = values[4];
-              row['Patient State'] = values[5];
-              row['Super Bill'] = values[6];
-              row['Charge Type'] = values[7];
-              row['Charge Desc'] = values[8];
-              row['Charges'] = values[9];
-              row['Total Discount'] = values[10];
-              row['Tax'] = values[11];
-              row['Charges - Discount'] = values[12];
-              row['Calculated Payment (Line)'] = values[13];
-              row['COGS'] = values[14];
-              row['Qty'] = values[15];
-            } else if (values.length === 13) {
-              // Row with rowspan on practitioner/date columns (continuation row)
-              row['Practitioner'] = '';  // Inherited from previous row
-              row['Date'] = '';  // Inherited from previous row
-              row['Date Of Payment'] = '';  // Inherited from previous row
-              row['Patient'] = values[0];
-              row['Patient_ID'] = values[1];
-              row['Patient State'] = values[2];
-              row['Super Bill'] = values[3];
-              row['Charge Type'] = values[4];
-              row['Charge Desc'] = values[5];
-              row['Charges'] = values[6];
-              row['Total Discount'] = values[7];
-              row['Tax'] = values[8];
-              row['Charges - Discount'] = values[9];
-              row['Calculated Payment (Line)'] = values[10];
-              row['COGS'] = values[11];
-              row['Qty'] = values[12];
-            } else if (values.length === 15) {
-              // Row missing one column (likely practitioner with rowspan)
-              row['Practitioner'] = '';  // Inherited from previous row
-              row['Date'] = values[0];
-              row['Date Of Payment'] = values[1];
-              row['Patient'] = values[2];
-              row['Patient_ID'] = values[3];
-              row['Patient State'] = values[4];
-              row['Super Bill'] = values[5];
-              row['Charge Type'] = values[6];
-              row['Charge Desc'] = values[7];
-              row['Charges'] = values[8];
-              row['Total Discount'] = values[9];
-              row['Tax'] = values[10];
-              row['Charges - Discount'] = values[11];
-              row['Calculated Payment (Line)'] = values[12];
-              row['COGS'] = values[13];
-              row['Qty'] = values[14];
+            // CRITICAL FIX: The actual MHTML has different column structure
+            // Based on test output, columns appear to be misaligned
+            if (values.length >= 10) {
+              // Parse based on actual MHTML structure observed
+              // The payment amount appears to be in different positions based on row structure
+              
+              // Try to identify the row type by checking content patterns
+              const hasDate = values.some(v => v && v.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/));
+              const hasPatientName = values.some(v => v && v.length > 3 && !v.includes('$') && !v.match(/^\d+$/));
+              
+              if (values.length === 16) {
+                // Full row with all columns
+                row['Practitioner'] = values[0];
+                row['Date'] = values[1];
+                row['Date Of Payment'] = values[2];
+                row['Patient'] = values[3];
+                row['Patient_ID'] = values[4];
+                row['Patient State'] = values[5];
+                row['Super Bill'] = values[6];
+                row['Charge Type'] = values[7];
+                row['Charge Desc'] = values[8];
+                row['Charges'] = values[9];
+                row['Total Discount'] = values[10];
+                row['Tax'] = values[11];
+                row['Charges - Discount'] = values[12];
+                row['Calculated Payment (Line)'] = values[13];
+                row['COGS'] = values[14];
+                row['Qty'] = values[15];
+              } else {
+                // For other row lengths, try to find the payment column intelligently
+                // Look for dollar amounts in expected positions
+                let paymentIndex = -1;
+                
+                // Search for payment amount (usually after charge desc and before COGS)
+                for (let i = values.length - 4; i < values.length - 1; i++) {
+                  if (i >= 0 && values[i] && (values[i].includes('$') || values[i].match(/^\d+\.?\d*$/))) {
+                    paymentIndex = i;
+                    break;
+                  }
+                }
+                
+                // Map based on common patterns
+                if (values.length === 13) {
+                  // Missing first 3 columns (practitioner, date, date of payment)
+                  row['Patient'] = values[0];
+                  row['Patient_ID'] = values[1]; 
+                  row['Patient State'] = values[2];
+                  row['Super Bill'] = values[3];
+                  row['Charge Type'] = values[4];
+                  row['Charge Desc'] = values[5];
+                  row['Charges'] = values[6];
+                  row['Total Discount'] = values[7];
+                  row['Tax'] = values[8];
+                  row['Charges - Discount'] = values[9];
+                  row['Calculated Payment (Line)'] = values[10];
+                  row['COGS'] = values[11];
+                  row['Qty'] = values[12];
+                } else if (values.length === 12) {
+                  // Likely missing practitioner and some other columns
+                  // Map conservatively - focus on getting payment amount
+                  const chargeDescIndex = values.findIndex(v => v && (v.includes('Membership') || v.includes('IV') || v.includes('Injection')));
+                  if (chargeDescIndex >= 0 && chargeDescIndex < values.length - 3) {
+                    row['Charge Desc'] = values[chargeDescIndex];
+                    // Payment is typically 3-4 positions after charge desc
+                    row['Calculated Payment (Line)'] = values[Math.min(chargeDescIndex + 4, values.length - 2)];
+                  }
+                } else {
+                  // Generic mapping for other lengths
+                  // Try to at least get the payment amount
+                  if (paymentIndex >= 0) {
+                    row['Calculated Payment (Line)'] = values[paymentIndex];
+                  }
+                }
+              }
             } else if (values.length >= 8 && values.length <= 10) {
               // Short row - likely just charge details without patient info
               const offset = 16 - values.length;
@@ -858,6 +883,11 @@ function analyzeRevenueData(csvData) {
     
     // Track revenue
     if (chargeAmount > 0) {
+      // DEBUG: Log successful revenue parsing
+      if (csvData.indexOf(row) < 3) {
+        console.log(`   Row ${csvData.indexOf(row) + 1} revenue: $${chargeAmount}, Date: ${row['Date']}, In week: ${isCurrentWeek}`);
+      }
+      
       if (isCurrentWeek) {
         metrics.actual_weekly_revenue += chargeAmount;
         
@@ -911,6 +941,23 @@ function analyzeRevenueData(csvData) {
     uniqueCustomersWeekly: metrics.unique_customers_weekly,
     uniqueCustomersMonthly: metrics.unique_customers_monthly
   });
+  
+  // CRITICAL DEBUG: Log if revenue is suspiciously low
+  if (metrics.actual_weekly_revenue === 0 && csvData.length > 10) {
+    console.log('⚠️ WARNING: Revenue is $0 despite having', csvData.length, 'rows of data');
+    console.log('   Week range:', metrics.weekStartDate, 'to', metrics.weekEndDate);
+    console.log('   First 3 rows payment amounts:');
+    for (let i = 0; i < Math.min(3, csvData.length); i++) {
+      console.log(`   Row ${i + 1}:`, {
+        'Calculated Payment': csvData[i]['Calculated Payment (Line)'],
+        'Charge Amount': csvData[i]['Charge Amount'],
+        'Date': csvData[i]['Date'],
+        'Is in week range?': csvData[i]['Date'] && 
+          new Date(csvData[i]['Date']) >= metrics.weekStartDate && 
+          new Date(csvData[i]['Date']) <= metrics.weekEndDate
+      });
+    }
+  }
   
   return metrics;
 }
@@ -1059,6 +1106,18 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       membershipMetrics = await processMembershipData(membershipFilePath);
     } else {
       console.log('No membership file provided, using default membership metrics');
+    }
+    
+    // VALIDATION: Check if revenue data is suspiciously missing
+    if (revenueMetrics.actual_weekly_revenue === 0 && revenueFilePath) {
+      console.log('⚠️ CRITICAL WARNING: Revenue is $0 after processing revenue file');
+      console.log('   This likely indicates a parsing error in the MHTML/CSV file');
+      console.log('   Please check the column mapping for "Calculated Payment (Line)"');
+      
+      // Don't save data with $0 revenue unless it's genuinely empty
+      if (revenueMetrics.uniqueCustomersWeekly > 0) {
+        throw new Error('Revenue parsing failed - found customers but $0 revenue. Check column mapping.');
+      }
     }
     
     // Combine metrics
