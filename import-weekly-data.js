@@ -1380,6 +1380,27 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
         
         console.log('Data inserted successfully!');
       }
+      
+      // VERIFICATION: Query the database to confirm what was saved
+      console.log('\n📊 VERIFICATION: Checking what was saved to database...');
+      const verifyQuery = await client.query(
+        `SELECT week_start_date, week_end_date, actual_weekly_revenue, 
+                total_drip_iv_members, unique_customers_weekly
+         FROM analytics_data 
+         WHERE week_start_date = $1 AND week_end_date = $2`,
+        [combinedData.week_start_date, combinedData.week_end_date]
+      );
+      
+      if (verifyQuery.rows.length > 0) {
+        const saved = verifyQuery.rows[0];
+        console.log('✅ Data confirmed in database:');
+        console.log(`   Week: ${saved.week_start_date} to ${saved.week_end_date}`);
+        console.log(`   Revenue: $${saved.actual_weekly_revenue}`);
+        console.log(`   Members: ${saved.total_drip_iv_members}`);
+        console.log(`   Unique Customers: ${saved.unique_customers_weekly}`);
+      } else {
+        console.log('⚠️ WARNING: Could not verify saved data!');
+      }
     } finally {
       client.release();
     }

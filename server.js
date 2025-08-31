@@ -2161,6 +2161,29 @@ app.get('/api/dashboard', async (req, res) => {
     // Extract date parameters
     const { start_date, end_date, aggregate } = req.query;
     
+    // DIAGNOSTIC: Log available weeks when filter is requested
+    if (start_date && end_date) {
+      console.log('\n🔍 Dashboard request with filter:');
+      console.log(`   Requested: ${start_date} to ${end_date}`);
+      
+      const weekCheck = await pool.query(`
+        SELECT week_start_date, week_end_date, actual_weekly_revenue, total_drip_iv_members
+        FROM analytics_data 
+        ORDER BY week_start_date DESC
+        LIMIT 10
+      `);
+      
+      if (weekCheck.rows.length > 0) {
+        console.log('📊 Available weeks in database:');
+        weekCheck.rows.forEach(row => {
+          const match = row.week_start_date === start_date && row.week_end_date === end_date ? ' ✅ MATCH' : '';
+          console.log(`   ${row.week_start_date} to ${row.week_end_date}: $${row.actual_weekly_revenue}${match}`);
+        });
+      } else {
+        console.log('⚠️ No data found in analytics_data table!');
+      }
+    }
+    
     // Validate date parameters if provided
     if (start_date || end_date) {
       const startDate = start_date ? new Date(start_date) : null;
@@ -2265,14 +2288,24 @@ app.get('/api/dashboard', async (req, res) => {
         
         let whereClause = '';
         if (start_date && end_date) {
-          // Find any week that overlaps with the date range
+          // Look for exact week match when dates are Monday-Sunday
+          const startDateObj = new Date(start_date);
+          const dayOfWeek = startDateObj.getDay();
+          
           paramCount++;
           const startParam = paramCount;
           params.push(start_date);
           paramCount++;
           const endParam = paramCount;
           params.push(end_date);
-          whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+          
+          if (dayOfWeek === 1) { // Monday - look for exact match
+            whereClause += ` AND week_start_date = $${startParam} AND week_end_date = $${endParam}`;
+            console.log(`🎯 Exact week match query: ${start_date} to ${end_date}`);
+          } else {
+            whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+            console.log(`🔍 Overlap query: ${start_date} to ${end_date}`);
+          }
         } else if (start_date) {
           paramCount++;
           whereClause += ` AND week_end_date >= $${paramCount}`;
@@ -2309,14 +2342,24 @@ app.get('/api/dashboard', async (req, res) => {
         
         let whereClause = '';
         if (start_date && end_date) {
-          // Find any week that overlaps with the date range
+          // Look for exact week match when dates are Monday-Sunday
+          const startDateObj = new Date(start_date);
+          const dayOfWeek = startDateObj.getDay();
+          
           paramCount++;
           const startParam = paramCount;
           params.push(start_date);
           paramCount++;
           const endParam = paramCount;
           params.push(end_date);
-          whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+          
+          if (dayOfWeek === 1) { // Monday - look for exact match
+            whereClause += ` AND week_start_date = $${startParam} AND week_end_date = $${endParam}`;
+            console.log(`🎯 Exact week match query: ${start_date} to ${end_date}`);
+          } else {
+            whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
+            console.log(`🔍 Overlap query: ${start_date} to ${end_date}`);
+          }
         } else if (start_date) {
           paramCount++;
           whereClause += ` AND week_end_date >= $${paramCount}`;
@@ -2329,9 +2372,28 @@ app.get('/api/dashboard', async (req, res) => {
         
         whereClause += ' ORDER BY week_start_date DESC LIMIT 1';
         
+        // First, log what weeks are available in the database
+        const availableWeeks = await pool.query(`
+          SELECT week_start_date, week_end_date, actual_weekly_revenue, total_drip_iv_members
+          FROM analytics_data
+          ORDER BY week_start_date DESC
+          LIMIT 5
+        `);
+        console.log('📅 Available weeks in database:');
+        availableWeeks.rows.forEach(week => {
+          console.log(`   ${week.week_start_date} to ${week.week_end_date}: $${week.actual_weekly_revenue}, ${week.total_drip_iv_members} members`);
+        });
+        
         console.log(`🔍 Single record query with params:`, params);
+        console.log(`   Query: ${singleQuery + whereClause}`);
         result = await pool.query(singleQuery + whereClause, params);
         console.log(`📊 Query returned ${result.rows.length} rows`);
+        
+        if (result.rows.length > 0) {
+          const row = result.rows[0];
+          console.log(`   Returned week: ${row.week_start_date} to ${row.week_end_date}`);
+          console.log(`   Revenue: $${row.actual_weekly_revenue}, Members: ${row.total_drip_iv_members}`);
+        }
         
         // If no data found for the date range, return a specific message
         if (result.rows.length === 0 && (start_date || end_date)) {

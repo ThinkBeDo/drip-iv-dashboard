@@ -1633,10 +1633,26 @@
                 raw_data: data
             });
             
-            // Update date ranges
-            if (data.week_start_date && data.week_end_date) {
-                const weekStart = new Date(data.week_start_date);
-                const weekEnd = new Date(data.week_end_date);
+            // Update date ranges - check if filter is active
+            const startInput = document.getElementById('start-date');
+            const endInput = document.getElementById('end-date');
+            const hasFilter = startInput && endInput && startInput.value && endInput.value;
+            
+            let weekStart, weekEnd;
+            
+            if (hasFilter) {
+                // Use the filtered dates from the input fields
+                weekStart = new Date(startInput.value);
+                weekEnd = new Date(endInput.value);
+                console.log('Using filtered dates for header:', startInput.value, 'to', endInput.value);
+            } else if (data.week_start_date && data.week_end_date) {
+                // Use the dates from the database
+                weekStart = new Date(data.week_start_date);
+                weekEnd = new Date(data.week_end_date);
+                console.log('Using database dates for header:', data.week_start_date, 'to', data.week_end_date);
+            }
+            
+            if (weekStart && weekEnd) {
                 const monthName = weekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 
                 // Format week range
