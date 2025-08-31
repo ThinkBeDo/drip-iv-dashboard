@@ -1048,8 +1048,8 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     
     // Process revenue data if file is provided
     if (revenueFilePath) {
-      const csvData = await processRevenueData(revenueFilePath);
-      revenueMetrics = analyzeRevenueData(csvData);
+      // processRevenueData now returns analyzed metrics directly
+      revenueMetrics = await processRevenueData(revenueFilePath);
     } else {
       console.log('No revenue file provided, using default revenue metrics');
     }
