@@ -2332,6 +2332,16 @@ app.get('/api/dashboard', async (req, res) => {
         console.log(`🔍 Single record query with params:`, params);
         result = await pool.query(singleQuery + whereClause, params);
         console.log(`📊 Query returned ${result.rows.length} rows`);
+        
+        // If no data found for the date range, return a specific message
+        if (result.rows.length === 0 && (start_date || end_date)) {
+          console.log(`⚠️ No data found for date range: ${start_date} to ${end_date}`);
+          return res.json({
+            success: false,
+            message: `No data found for the selected date range`,
+            dateRange: { start: start_date, end: end_date }
+          });
+        }
       }
     } else {
       // No date filtering - use priority scoring to get best record
@@ -3477,6 +3487,21 @@ app.post('/api/upload-dual', upload.fields([
       console.warn('Warning: Could not clean up temp files:', cleanupError.message);
     }
 
+    // Log important debug information
+    console.log('✅ Successfully imported data to database');
+    console.log('📊 Data overview:', {
+      weekRange: `${importedData.week_start_date} to ${importedData.week_end_date}`,
+      revenue: importedData.actual_weekly_revenue,
+      members: importedData.total_drip_iv_members,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Log the exact dates for debugging Last Week queries
+    console.log('🔍 DEBUG - Date range saved to database:');
+    console.log(`   week_start_date: ${importedData.week_start_date} (Monday)`);
+    console.log(`   week_end_date: ${importedData.week_end_date} (Sunday)`);
+    console.log('   These dates will be matched against "Last Week" filter queries');
+    
     res.json({
       success: true,
       message: 'Weekly data imported successfully via dual upload',
@@ -3488,6 +3513,11 @@ app.post('/api/upload-dual', upload.fields([
         uniqueCustomersMonthly: importedData.unique_customers_monthly,
         weekStart: importedData.week_start_date,
         weekEnd: importedData.week_end_date
+      },
+      savedDates: {
+        start: importedData.week_start_date,
+        end: importedData.week_end_date,
+        note: 'Data saved for this exact date range'
       }
     });
     

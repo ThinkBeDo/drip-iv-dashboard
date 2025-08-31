@@ -1257,31 +1257,28 @@
                     ]);
                 };
                 
-                // When filters are applied, we need to fetch data twice:
-                // 1. Latest data for revenue and membership sections (unfiltered)
-                // 2. Filtered data for service volume sections
+                // When filters are applied, fetch filtered data for the specified date range
                 if (startDate || endDate) {
-                    // Fetch both latest and filtered data
-                    const [latestResponse, filteredResponse] = await Promise.all([
-                        fetchWithTimeout('/api/dashboard'), // Latest data for revenue
-                        fetchWithTimeout(`/api/dashboard?start_date=${startDate || ''}&end_date=${endDate || ''}&aggregate=${aggregate}`) // Filtered data for services
-                    ]);
+                    const queryParams = new URLSearchParams();
+                    if (startDate) queryParams.append('start_date', startDate);
+                    if (endDate) queryParams.append('end_date', endDate);
+                    queryParams.append('aggregate', aggregate);
                     
-                    const latestResult = await latestResponse.json();
-                    const filteredResult = await filteredResponse.json();
+                    console.log('📅 Fetching filtered data for date range:', startDate, 'to', endDate);
+                    const response = await fetchWithTimeout(`/api/dashboard?${queryParams}`);
+                    const result = await response.json();
                     
-                    if (latestResult.success && latestResult.data && filteredResult.success && filteredResult.data) {
-                        console.log('Latest data:', latestResult.data);
-                        console.log('Filtered data:', filteredResult.data);
-                        
-                        // Use the new function to update dashboard with separated data
-                        updateDashboardWithSeparatedData(latestResult.data, filteredResult.data);
-                        
-                        // Update filter status
-                        showFilterStatus(startDate, endDate, aggregate, filteredResult.data);
+                    if (result.success && result.data) {
+                        console.log('✅ Filtered data loaded:', result.data);
+                        updateDashboard(result.data);
+                        showFilterStatus(startDate, endDate, aggregate, result.data);
+                    } else if (!result.success && result.message && result.message.includes('No data found')) {
+                        console.log('⚠️ No data found for date range:', startDate, 'to', endDate);
+                        // Show a user-friendly message when no data exists for the selected date range
+                        showNoDataForDateRange(startDate, endDate);
                     } else {
-                        console.log('Data loading issue:', latestResult.message || filteredResult.message);
-                        showNoDataState('Unable to load complete data. Please try again.');
+                        console.log('❌ Data loading issue:', result.message);
+                        showNoDataState('Unable to load data. Please try again.');
                     }
                 } else {
                     // No filters - just load latest data normally
@@ -1786,6 +1783,41 @@
             showAlert(message || defaultMessage, 'info');
         }
         
+        // Show message when no data exists for selected date range
+        function showNoDataForDateRange(startDate, endDate) {
+            const formatDate = (dateStr) => {
+                if (!dateStr) return 'N/A';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            };
+            
+            const message = `No data found for the selected date range (${formatDate(startDate)} to ${formatDate(endDate)}). ` +
+                          `Please try a different date range or upload data for this period.`;
+            
+            // Clear all dashboard values to prevent confusion
+            updateDashboard({
+                actual_weekly_revenue: 0,
+                weekly_revenue_goal: 0,
+                actual_monthly_revenue: 0,
+                monthly_revenue_goal: 0,
+                total_drip_iv_members: 0,
+                individual_memberships: 0,
+                family_memberships: 0,
+                concierge_memberships: 0,
+                corporate_memberships: 0,
+                iv_infusions_weekday_weekly: 0,
+                iv_infusions_weekend_weekly: 0,
+                injections_weekday_weekly: 0,
+                injections_weekend_weekly: 0,
+                consultations_weekday_weekly: 0,
+                consultations_weekend_weekly: 0,
+                peptide_therapies_weekday_weekly: 0,
+                peptide_therapies_weekend_weekly: 0
+            });
+            
+            showAlert(message, 'warning');
+        }
+        
         // File upload handling
         function setupFileUpload() {
             const revenueFileInput = document.getElementById('revenueFileInput');
@@ -1877,7 +1909,18 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        showAlert('Weekly data uploaded successfully!', 'success');
+                        // Show detailed success message with date range
+                        let successMessage = 'Weekly data uploaded successfully!';
+                        if (result.savedDates) {
+                            const formatDate = (dateStr) => {
+                                const date = new Date(dateStr);
+                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            };
+                            successMessage += ` Data saved for week: ${formatDate(result.savedDates.start)} to ${formatDate(result.savedDates.end)}`;
+                        }
+                        showAlert(successMessage, 'success');
+                        console.log('📊 Upload successful. Saved dates:', result.savedDates);
+                        
                         // Clear filters and reload dashboard to show new data
                         clearDateFilters();
                         await loadDashboardData(); // Reload dashboard
