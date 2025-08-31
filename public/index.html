@@ -1488,14 +1488,16 @@
         function getSunday(date) {
             const d = new Date(date);
             const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? 0 : 7); // If Sunday, use it; otherwise, go to next Sunday
-            const sunday = new Date(d.setDate(diff));
+            // If already Sunday, use it; otherwise calculate days until Sunday
+            const diff = day === 0 ? 0 : (7 - day);
+            const sunday = new Date(d);
+            sunday.setDate(d.getDate() + diff);
             sunday.setHours(23, 59, 59, 999); // Set to end of day
             return sunday;
         }
         
         // Apply preset date range
-        function applyPreset(preset) {
+        function applyPreset(preset, buttonElement = null) {
             const today = new Date();
             let startDate, endDate;
             
@@ -1532,7 +1534,12 @@
             document.querySelectorAll('.date-preset-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+            
+            // Automatically apply the filter
+            applyDateFilters();
         }
         
         // Clear date filters
@@ -1598,7 +1605,7 @@
             // Preset buttons
             document.querySelectorAll('.date-preset-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    applyPreset(e.target.dataset.preset);
+                    applyPreset(e.target.dataset.preset, e.target);
                 });
             });
             
