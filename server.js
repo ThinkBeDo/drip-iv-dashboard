@@ -2589,7 +2589,7 @@ app.get('/api/dashboard', async (req, res) => {
           // Now fetch the newly inserted data
           result = await pool.query(`
             SELECT * FROM analytics_data 
-            ORDER BY week_start_date DESC 
+            ORDER BY id DESC 
             LIMIT 1
           `);
         } catch (insertError) {
@@ -2606,7 +2606,7 @@ app.get('/api/dashboard', async (req, res) => {
           const allDates = await pool.query(`
             SELECT week_start_date, week_end_date 
             FROM analytics_data 
-            ORDER BY week_start_date DESC 
+            ORDER BY id DESC 
             LIMIT 5
           `);
           console.log('⚠️  No data found for date range. Available dates in DB:');
