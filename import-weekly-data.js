@@ -787,38 +787,52 @@ function analyzeRevenueData(csvData) {
     }
   }
   
-  // After processing all dates, determine the most recent week in the data
+  // After processing all dates, determine the week based on the data
   if (metrics.monthEndDate && metrics.monthStartDate) {
-    // Find the most recent complete week (Monday to Sunday)
+    // Use the MOST RECENT complete week in the data
+    const startDate = new Date(metrics.monthStartDate);
     const endDate = new Date(metrics.monthEndDate);
-    console.log(`Most recent date in data: ${endDate.toDateString()} (day ${endDate.getDay()})`);
     
+    console.log(`Date range in data: ${startDate.toDateString()} to ${endDate.toDateString()}`);
+    
+    // Calculate the Monday of the week containing the END date (most recent)
     let weekStart = new Date(endDate);
-    let weekEnd = new Date(endDate);
+    const endDayOfWeek = endDate.getDay(); // 0 = Sunday, 1 = Monday
     
-    const dayOfWeek = endDate.getDay(); // 0 = Sunday, 1 = Monday, 6 = Saturday
-    
-    if (dayOfWeek === 0) {
-      // If end date is Sunday, it's the end of a Monday-Sunday week
-      weekEnd = new Date(endDate);
-      weekStart = new Date(endDate);
+    if (endDayOfWeek === 0) {
+      // If end is Sunday, it's the last day of the week
       weekStart.setDate(endDate.getDate() - 6); // Go back to Monday
-    } else if (dayOfWeek === 1) {
-      // If end date is Monday, it's the start of a Monday-Sunday week
-      weekStart = new Date(endDate);
-      weekEnd = new Date(endDate);
-      weekEnd.setDate(endDate.getDate() + 6); // Go forward to Sunday
-    } else {
-      // For any other day, find the containing Monday-Sunday week
-      const daysFromMonday = dayOfWeek - 1; // Days since Monday
-      weekStart = new Date(endDate);
-      weekStart.setDate(endDate.getDate() - daysFromMonday); // Go back to Monday
-      weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6); // Go forward to Sunday
+    } else if (endDayOfWeek === 6) {
+      // If end is Saturday, go back 5 days to Monday
+      weekStart.setDate(endDate.getDate() - 5);
+    } else if (endDayOfWeek >= 1) {
+      // For Monday through Friday, go back to Monday of that week
+      weekStart.setDate(endDate.getDate() - (endDayOfWeek - 1));
     }
+    
+    // Calculate Sunday (end of week)
+    let weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
     
     metrics.weekStartDate = weekStart;
     metrics.weekEndDate = weekEnd;
+    
+    // VALIDATION: Ensure week is exactly 7 days (Monday to Sunday)
+    const daysDiff = Math.round((weekEnd - weekStart) / (1000 * 60 * 60 * 24));
+    if (daysDiff !== 6) {
+      console.error(`⚠️ ERROR: Week calculation resulted in ${daysDiff + 1} days instead of 7!`);
+      console.error(`   Week start: ${weekStart.toDateString()} (day ${weekStart.getDay()})`);
+      console.error(`   Week end: ${weekEnd.toDateString()} (day ${weekEnd.getDay()})`);
+      throw new Error(`Invalid week calculation: ${daysDiff + 1} days instead of 7`);
+    }
+    
+    // Ensure Monday-Sunday format
+    if (weekStart.getDay() !== 1 || weekEnd.getDay() !== 0) {
+      console.error('⚠️ ERROR: Week is not Monday-Sunday format!');
+      console.error(`   Week start day: ${weekStart.getDay()} (should be 1 for Monday)`);
+      console.error(`   Week end day: ${weekEnd.getDay()} (should be 0 for Sunday)`);
+      throw new Error('Week must be Monday-Sunday format');
+    }
     
     console.log('📅 DATE EXTRACTION RESULTS:');
     if (metrics.monthStartDate && metrics.monthEndDate) {
@@ -826,6 +840,7 @@ function analyzeRevenueData(csvData) {
     }
     console.log(`   Calculated week start: ${weekStart.toDateString()} (${weekStart.toISOString().split('T')[0]})`);
     console.log(`   Calculated week end: ${weekEnd.toDateString()} (${weekEnd.toISOString().split('T')[0]})`);
+    console.log(`   ✅ Week validation passed: 7-day Monday-Sunday week`);
   }
   
   // CRITICAL FIX: Calculate proper month boundaries for filtering
