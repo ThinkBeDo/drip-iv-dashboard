@@ -82,8 +82,19 @@ function isMembershipService(chargeDesc) {
          (lowerDesc.includes('corporate') && lowerDesc.includes('memb'));
 }
 
+function isConsultationService(chargeDesc) {
+  const lowerDesc = chargeDesc.toLowerCase();
+  return lowerDesc.includes('consultation') || 
+         lowerDesc.includes('consult') ||
+         lowerDesc.includes('follow-up') ||
+         lowerDesc.includes('follow up') ||
+         lowerDesc.includes('hormone') ||
+         lowerDesc.includes('initial visit');
+}
+
 function getServiceCategory(chargeDesc) {
   if (isMembershipService(chargeDesc)) return 'membership';
+  if (isConsultationService(chargeDesc)) return 'consultation';
   if (isStandaloneInjection(chargeDesc)) return 'injection';
   if (isBaseInfusionService(chargeDesc)) return 'base_infusion';
   if (isInfusionAddon(chargeDesc)) return 'infusion_addon';
@@ -666,6 +677,18 @@ function analyzeRevenueData(csvData) {
     membership_revenue_weekly: 0,
     membership_revenue_monthly: 0,
     
+    // Hormone services tracking
+    hormone_followup_female_weekly: 0,
+    hormone_followup_female_monthly: 0,
+    hormone_initial_male_weekly: 0,
+    hormone_initial_male_monthly: 0,
+    
+    // Weight management consultations
+    semaglutide_consults_weekly: 0,
+    semaglutide_consults_monthly: 0,
+    weight_loss_injections_weekly: 0,
+    weight_loss_injections_monthly: 0,
+    
     // Date tracking for weekly/monthly determination
     weekStartDate: null,
     weekEndDate: null,
@@ -904,6 +927,10 @@ function analyzeRevenueData(csvData) {
         } else {
           metrics.injections_weekday_weekly++;
         }
+        // Count weight loss injections specifically
+        if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
+          metrics.weight_loss_injections_weekly++;
+        }
       }
       
       // CRITICAL FIX: Only count monthly services if within month range
@@ -912,6 +939,35 @@ function analyzeRevenueData(csvData) {
           metrics.injections_weekend_monthly++;
         } else {
           metrics.injections_weekday_monthly++;
+        }
+        // Count weight loss injections specifically
+        if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
+          metrics.weight_loss_injections_monthly++;
+        }
+      }
+    } else if (serviceCategory === 'consultation') {
+      // Track consultations
+      const lowerDesc = chargeDesc.toLowerCase();
+      
+      if (isCurrentWeek) {
+        if (lowerDesc.includes('female') && lowerDesc.includes('hormone')) {
+          metrics.hormone_followup_female_weekly++;
+        } else if (lowerDesc.includes('male') && lowerDesc.includes('hormone')) {
+          metrics.hormone_initial_male_weekly++;
+        } else if (lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || 
+                   lowerDesc.includes('weight loss')) {
+          metrics.semaglutide_consults_weekly++;
+        }
+      }
+      
+      if (isCurrentMonth) {
+        if (lowerDesc.includes('female') && lowerDesc.includes('hormone')) {
+          metrics.hormone_followup_female_monthly++;
+        } else if (lowerDesc.includes('male') && lowerDesc.includes('hormone')) {
+          metrics.hormone_initial_male_monthly++;
+        } else if (lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || 
+                   lowerDesc.includes('weight loss')) {
+          metrics.semaglutide_consults_monthly++;
         }
       }
     }
@@ -928,14 +984,22 @@ function analyzeRevenueData(csvData) {
         
         if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
           metrics.infusion_revenue_weekly += chargeAmount;
+          // IV Therapy revenue is ONLY infusions, not injections
           metrics.drip_iv_revenue_weekly += chargeAmount;
         } else if (serviceCategory === 'injection') {
           metrics.injection_revenue_weekly += chargeAmount;
+          // Weight Loss (Semaglutide/Tirzepatide) is separate from other injections
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
             metrics.semaglutide_revenue_weekly += chargeAmount;
           }
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_weekly += chargeAmount;
+        } else if (serviceCategory === 'consultation') {
+          // Track consultation revenue separately
+          if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || 
+              chargeDesc.toLowerCase().includes('weight loss')) {
+            metrics.semaglutide_revenue_weekly += chargeAmount;
+          }
         }
       }
       
@@ -945,14 +1009,22 @@ function analyzeRevenueData(csvData) {
         
         if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
           metrics.infusion_revenue_monthly += chargeAmount;
+          // IV Therapy revenue is ONLY infusions, not injections
           metrics.drip_iv_revenue_monthly += chargeAmount;
         } else if (serviceCategory === 'injection') {
           metrics.injection_revenue_monthly += chargeAmount;
+          // Weight Loss (Semaglutide/Tirzepatide) is separate from other injections
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
             metrics.semaglutide_revenue_monthly += chargeAmount;
           }
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_monthly += chargeAmount;
+        } else if (serviceCategory === 'consultation') {
+          // Track consultation revenue separately
+          if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || 
+              chargeDesc.toLowerCase().includes('weight loss')) {
+            metrics.semaglutide_revenue_monthly += chargeAmount;
+          }
         }
       }
     }
