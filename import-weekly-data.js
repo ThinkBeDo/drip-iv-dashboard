@@ -248,9 +248,11 @@ async function processRevenueData(csvFilePath) {
         let previousRow = {}; // Track previous row for rowspan inheritance
         
         for (let i = 1; i < rowMatches.length; i++) {
-          const rowMatch = rowMatches[i].match(/<td[^>]*>([^<]*)<\/td>/g);
+          // Extract all cells - handle both <td> and content within
+          // More robust pattern to capture cell content including nested tags
+          const cellMatches = rowMatches[i].match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
           
-          if (rowMatch && rowMatch.length > 0) {
+          if (cellMatches && cellMatches.length > 0) {
             const row = {};
             
             // For this specific MHTML format, data rows have 16 cells:
@@ -258,16 +260,21 @@ async function processRevenueData(csvFilePath) {
             // Position 8: Charge Desc (with colspan=2, covering Metrics column)
             // Positions 9-15: Charges through Qty
             
-            // Extract values
-            const values = rowMatch.map(cell => {
-              let value = cell.replace(/<[^>]*>/g, '').trim();
+            // Extract values from cells
+            const values = cellMatches.map(cell => {
+              // Remove opening and closing td tags
+              let value = cell.replace(/<td[^>]*>/gi, '').replace(/<\/td>/gi, '');
+              // Remove any remaining HTML tags
+              value = value.replace(/<[^>]*>/g, '').trim();
               // Clean HTML entities and MIME encoding
               value = value.replace(/&amp;/g, '&')
                           .replace(/&lt;/g, '<')
                           .replace(/&gt;/g, '>')
                           .replace(/&quot;/g, '"')
+                          .replace(/&nbsp;/g, ' ')
                           .replace(/&#32;/g, ' ')
                           .replace(/=3D/g, '=')
+                          .replace(/=\r?\n/g, '') // Remove MIME line breaks
                           .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
               return value;
             });
@@ -408,6 +415,28 @@ async function processRevenueData(csvFilePath) {
         }
         
         console.log(`Successfully parsed ${records.length} rows from MHTML`);
+        
+        // DEBUG: Log date extraction details
+        if (records.length > 0) {
+          console.log('DEBUG: First 3 parsed records:');
+          records.slice(0, 3).forEach((record, idx) => {
+            console.log(`  Record ${idx}:`, {
+              Date: record['Date'] || 'NO DATE',
+              Payment: record['Calculated Payment (Line)'] || 'NO PAYMENT',
+              ChargeDesc: record['Charge Desc'] || 'NO DESC',
+              Patient: record['Patient'] || 'NO PATIENT'
+            });
+          });
+          
+          // Log all dates found
+          const allDates = records.map(r => r['Date']).filter(d => d && d.trim());
+          console.log(`DEBUG: Found ${allDates.length} dates out of ${records.length} records`);
+          if (allDates.length > 0) {
+            console.log('  Sample dates:', allDates.slice(0, 5));
+          }
+        } else {
+          console.log('WARNING: No records were parsed from MHTML!');
+        }
         
         // Analyze the parsed data
         const analyzedData = analyzeRevenueData(records);
