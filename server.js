@@ -2696,6 +2696,35 @@ app.get('/api/debug-records', async (req, res) => {
   }
 });
 
+// Delete specific problematic record IDs
+app.post('/api/delete-bad-dates', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not available' });
+    }
+
+    console.log('🗑️  Deleting records with same start/end date...');
+    
+    // Delete records where start date equals end date (single day "weeks")
+    const deleteResult = await pool.query(`
+      DELETE FROM analytics_data 
+      WHERE week_start_date::date = week_end_date::date
+    `);
+    
+    console.log(`✅ Deleted ${deleteResult.rowCount} bad date records`);
+    
+    res.json({
+      success: true,
+      deleted: deleteResult.rowCount,
+      message: `Deleted ${deleteResult.rowCount} records with same start/end date`
+    });
+    
+  } catch (error) {
+    console.error('❌ Delete failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
