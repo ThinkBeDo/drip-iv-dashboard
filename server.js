@@ -15,8 +15,8 @@ const { importWeeklyData, setDatabasePool } = require('./import-weekly-data');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
+// Configure multer for file uploads - use temp directory for Railway
+const upload = multer({ dest: '/tmp/' });
 
 // Database connection - Always use PostgreSQL for Railway deployment
 let pool;
