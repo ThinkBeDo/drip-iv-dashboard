@@ -243,160 +243,101 @@ async function processRevenueData(csvFilePath) {
         console.log('MHTML Headers (fixed mapping):', headers.slice(0, 10), '...');
         console.log(`Total expected columns: ${headers.length}`);
         
-        // Parse data rows
+        // Parse data rows with rowspan tracking
         const records = [];
-        let previousRow = {}; // Track previous row for rowspan inheritance
+        const rowspanTracker = {}; // Track active rowspans by column index
+        let previousRow = {}; // Track previous row for date inheritance
+        
+        console.log('Starting MHTML row parsing with rowspan handling...');
         
         for (let i = 1; i < rowMatches.length; i++) {
-          // Extract all cells - handle both <td> and content within
-          // More robust pattern to capture cell content including nested tags
+          // Extract all cells including their attributes for rowspan detection
           const cellMatches = rowMatches[i].match(/<td[^>]*>([\s\S]*?)<\/td>/gi);
           
           if (cellMatches && cellMatches.length > 0) {
             const row = {};
             
-            // For this specific MHTML format, data rows have 16 cells:
-            // Positions 0-7: Practitioner through Charge Type
-            // Position 8: Charge Desc (with colspan=2, covering Metrics column)
-            // Positions 9-15: Charges through Qty
+            // Process cells with rowspan tracking
+            const processedCells = [];
+            let cellIndex = 0;
             
-            // Extract values from cells
-            const values = cellMatches.map(cell => {
-              // Remove opening and closing td tags
-              let value = cell.replace(/<td[^>]*>/gi, '').replace(/<\/td>/gi, '');
-              // Remove any remaining HTML tags
-              value = value.replace(/<[^>]*>/g, '').trim();
-              // Clean HTML entities and MIME encoding
-              value = value.replace(/&amp;/g, '&')
-                          .replace(/&lt;/g, '<')
-                          .replace(/&gt;/g, '>')
-                          .replace(/&quot;/g, '"')
-                          .replace(/&nbsp;/g, ' ')
-                          .replace(/&#32;/g, ' ')
-                          .replace(/=3D/g, '=')
-                          .replace(/=\r?\n/g, '') // Remove MIME line breaks
-                          .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
-              return value;
-            });
+            // Process each column position, accounting for rowspans
+            for (let colIndex = 0; colIndex < 16; colIndex++) {
+              // Check if this column has an active rowspan from a previous row
+              if (rowspanTracker[colIndex] && rowspanTracker[colIndex].count > 0) {
+                // Use inherited value from rowspan
+                processedCells[colIndex] = rowspanTracker[colIndex].value;
+                rowspanTracker[colIndex].count--;
+                
+                // Clean up expired rowspans
+                if (rowspanTracker[colIndex].count === 0) {
+                  delete rowspanTracker[colIndex];
+                }
+              } else if (cellIndex < cellMatches.length) {
+                // Process actual cell from current row
+                const cell = cellMatches[cellIndex];
+                
+                // Check for rowspan attribute
+                const rowspanMatch = cell.match(/rowspan\s*=\s*["']?(\d+)/i);
+                const rowspan = rowspanMatch ? parseInt(rowspanMatch[1]) : 1;
+                
+                // Extract cell value
+                let value = cell.replace(/<td[^>]*>/gi, '').replace(/<\/td>/gi, '');
+                // Remove any remaining HTML tags
+                value = value.replace(/<[^>]*>/g, '').trim();
+                // Clean HTML entities and MIME encoding
+                value = value.replace(/&amp;/g, '&')
+                            .replace(/&lt;/g, '<')
+                            .replace(/&gt;/g, '>')
+                            .replace(/&quot;/g, '"')
+                            .replace(/&nbsp;/g, ' ')
+                            .replace(/&#32;/g, ' ')
+                            .replace(/&#36;/g, '$')
+                            .replace(/=3D/g, '=')
+                            .replace(/=\r?\n/g, '') // Remove MIME line breaks
+                            .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec));
+                
+                processedCells[colIndex] = value;
+                
+                // Track rowspan for future rows if needed
+                if (rowspan > 1) {
+                  rowspanTracker[colIndex] = {
+                    value: value,
+                    count: rowspan - 1
+                  };
+                }
+                
+                cellIndex++;
+              } else {
+                // No more cells in this row, use empty value
+                processedCells[colIndex] = '';
+              }
+            }
             
             // DEBUG: Log row parsing for first few rows
             if (i < 4) {  // First 3 data rows (i starts at 1)
-              console.log(`DEBUG Row ${i}: ${values.length} columns found`);
-              console.log('  Values:', values.slice(0, Math.min(values.length, 16)));
+              console.log(`DEBUG Row ${i}: ${cellMatches.length} actual cells, 16 processed`);
+              console.log('  Processed values:', processedCells.slice(0, 5), '...');
             }
             
-            // Map to headers based on available values
-            // CRITICAL FIX: The actual MHTML has different column structure
-            // Based on test output, columns appear to be misaligned
-            if (values.length >= 10) {
-              // Parse based on actual MHTML structure observed
-              // The payment amount appears to be in different positions based on row structure
-              
-              // Try to identify the row type by checking content patterns
-              const hasDate = values.some(v => v && v.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/));
-              const hasPatientName = values.some(v => v && v.length > 3 && !v.includes('$') && !v.match(/^\d+$/));
-              
-              if (values.length === 16) {
-                // Full row with all columns
-                row['Practitioner'] = values[0];
-                row['Date'] = values[1];
-                row['Date Of Payment'] = values[2];
-                row['Patient'] = values[3];
-                row['Patient_ID'] = values[4];
-                row['Patient State'] = values[5];
-                row['Super Bill'] = values[6];
-                row['Charge Type'] = values[7];
-                row['Charge Desc'] = values[8];
-                row['Charges'] = values[9];
-                row['Total Discount'] = values[10];
-                row['Tax'] = values[11];
-                row['Charges - Discount'] = values[12];
-                row['Calculated Payment (Line)'] = values[13];
-                row['COGS'] = values[14];
-                row['Qty'] = values[15];
-              } else {
-                // For other row lengths, try to find the payment column intelligently
-                // Look for dollar amounts in expected positions
-                let paymentIndex = -1;
-                
-                // Search for payment amount (usually after charge desc and before COGS)
-                for (let i = values.length - 4; i < values.length - 1; i++) {
-                  if (i >= 0 && values[i] && (values[i].includes('$') || values[i].match(/^\d+\.?\d*$/))) {
-                    paymentIndex = i;
-                    break;
-                  }
-                }
-                
-                // Map based on common patterns
-                if (values.length === 13) {
-                  // Missing first 3 columns (practitioner, date, date of payment) due to rowspan
-                  // CRITICAL: Inherit these from previous row
-                  row['Practitioner'] = previousRow['Practitioner'] || '';
-                  row['Date'] = previousRow['Date'] || '';
-                  row['Date Of Payment'] = previousRow['Date Of Payment'] || '';
-                  row['Patient'] = values[0];
-                  row['Patient_ID'] = values[1]; 
-                  row['Patient State'] = values[2];
-                  row['Super Bill'] = values[3];
-                  row['Charge Type'] = values[4];
-                  row['Charge Desc'] = values[5];
-                  row['Charges'] = values[6];
-                  row['Total Discount'] = values[7];
-                  row['Tax'] = values[8];
-                  row['Charges - Discount'] = values[9];
-                  row['Calculated Payment (Line)'] = values[10];
-                  row['COGS'] = values[11];
-                  row['Qty'] = values[12];
-                } else if (values.length === 15) {
-                  // Missing first column (practitioner) due to rowspan
-                  row['Practitioner'] = previousRow['Practitioner'] || '';
-                  row['Date'] = values[0];
-                  row['Date Of Payment'] = values[1];
-                  row['Patient'] = values[2];
-                  row['Patient_ID'] = values[3];
-                  row['Patient State'] = values[4];
-                  row['Super Bill'] = values[5];
-                  row['Charge Type'] = values[6];
-                  row['Charge Desc'] = values[7];
-                  row['Charges'] = values[8];
-                  row['Total Discount'] = values[9];
-                  row['Tax'] = values[10];
-                  row['Charges - Discount'] = values[11];
-                  row['Calculated Payment (Line)'] = values[12];
-                  row['COGS'] = values[13];
-                  row['Qty'] = values[14];
-                } else if (values.length === 12) {
-                  // Likely missing practitioner and some other columns
-                  // Inherit date from previous row if not present
-                  row['Date'] = previousRow['Date'] || '';
-                  // Map conservatively - focus on getting payment amount
-                  const chargeDescIndex = values.findIndex(v => v && (v.includes('Membership') || v.includes('IV') || v.includes('Injection')));
-                  if (chargeDescIndex >= 0 && chargeDescIndex < values.length - 3) {
-                    row['Charge Desc'] = values[chargeDescIndex];
-                    // Payment is typically 3-4 positions after charge desc
-                    row['Calculated Payment (Line)'] = values[Math.min(chargeDescIndex + 4, values.length - 2)];
-                  }
-                } else {
-                  // Generic mapping for other lengths
-                  // Try to at least get the payment amount
-                  if (paymentIndex >= 0) {
-                    row['Calculated Payment (Line)'] = values[paymentIndex];
-                  }
-                }
-              }
-            } else if (values.length >= 8 && values.length <= 10) {
-              // Short row - likely just charge details without patient info
-              const offset = 16 - values.length;
-              row['Charge Type'] = values[Math.max(0, 7 - offset)] || '';
-              row['Charge Desc'] = values[Math.max(0, 8 - offset)] || '';
-              row['Charges'] = values[Math.max(0, 9 - offset)] || '';
-              row['Total Discount'] = values[Math.max(0, 10 - offset)] || '';
-              row['Tax'] = values[Math.max(0, 11 - offset)] || '';
-              row['Charges - Discount'] = values[Math.max(0, 12 - offset)] || '';
-              row['Calculated Payment (Line)'] = values[Math.max(0, 13 - offset)] || '';
-              row['COGS'] = values[Math.max(0, 14 - offset)] || '';
-              row['Qty'] = values[Math.max(0, 15 - offset)] || '';
-            }
+            // Map processed cells to expected columns
+            // Now all rows have exactly 16 processed cells due to rowspan handling
+            row['Practitioner'] = processedCells[0] || previousRow['Practitioner'] || '';
+            row['Date'] = processedCells[1] || previousRow['Date'] || '';
+            row['Date Of Payment'] = processedCells[2] || previousRow['Date Of Payment'] || '';
+            row['Patient'] = processedCells[3] || '';
+            row['Patient_ID'] = processedCells[4] || '';
+            row['Patient State'] = processedCells[5] || '';
+            row['Super Bill'] = processedCells[6] || '';
+            row['Charge Type'] = processedCells[7] || '';
+            row['Charge Desc'] = processedCells[8] || '';
+            row['Charges'] = processedCells[9] || '';
+            row['Total Discount'] = processedCells[10] || '';
+            row['Tax'] = processedCells[11] || '';
+            row['Charges - Discount'] = processedCells[12] || '';
+            row['Calculated Payment (Line)'] = processedCells[13] || '';
+            row['COGS'] = processedCells[14] || '';
+            row['Qty'] = processedCells[15] || '';
             
             // Store current row data for next iteration (for rowspan inheritance)
             if (row['Date'] && row['Date'].trim()) {
