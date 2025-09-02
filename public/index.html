@@ -1649,11 +1649,9 @@
                 weekEnd = new Date(endParts[0], endParts[1] - 1, endParts[2]);
                 console.log('Using filtered dates for header:', startInput.value, 'to', endInput.value);
             } else if (data.week_start_date && data.week_end_date) {
-                // Use the dates from the database - fix timezone issue
-                const dbStartParts = data.week_start_date.split('-').map(Number);
-                const dbEndParts = data.week_end_date.split('-').map(Number);
-                weekStart = new Date(dbStartParts[0], dbStartParts[1] - 1, dbStartParts[2]);
-                weekEnd = new Date(dbEndParts[0], dbEndParts[1] - 1, dbEndParts[2]);
+                // Use the dates from the database - parse ISO strings directly
+                weekStart = new Date(data.week_start_date);
+                weekEnd = new Date(data.week_end_date);
                 console.log('Using database dates for header:', data.week_start_date, 'to', data.week_end_date);
             }
             
