@@ -73,10 +73,17 @@ function isStandaloneInjection(chargeDesc) {
 
 function isMembershipService(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
+  
+  // Don't match services that just have "(member)" as a pricing suffix
+  // These are IV services at member pricing, not membership fees
+  if (lowerDesc.match(/\(member\)$/)) {
+    return false;
+  }
+  
   // Expanded membership detection patterns
   return lowerDesc.includes('membership') || 
          lowerDesc.includes('concierge') ||
-         lowerDesc.includes('member') ||
+         (lowerDesc.includes('member') && !lowerDesc.includes('(member)')) || // Exclude pricing suffix
          (lowerDesc.includes('individual') && lowerDesc.includes('memb')) ||
          (lowerDesc.includes('family') && lowerDesc.includes('memb')) ||
          (lowerDesc.includes('corporate') && lowerDesc.includes('memb'));
@@ -93,11 +100,13 @@ function isConsultationService(chargeDesc) {
 }
 
 function getServiceCategory(chargeDesc) {
-  if (isMembershipService(chargeDesc)) return 'membership';
-  if (isConsultationService(chargeDesc)) return 'consultation';
-  if (isStandaloneInjection(chargeDesc)) return 'injection';
+  // Check for infusion services FIRST (before membership)
+  // This prevents "(Member)" pricing suffixes from triggering membership category
   if (isBaseInfusionService(chargeDesc)) return 'base_infusion';
   if (isInfusionAddon(chargeDesc)) return 'infusion_addon';
+  if (isStandaloneInjection(chargeDesc)) return 'injection';
+  if (isConsultationService(chargeDesc)) return 'consultation';
+  if (isMembershipService(chargeDesc)) return 'membership';
   return 'other';
 }
 
@@ -638,6 +647,22 @@ async function processRevenueData(csvFilePath) {
           return h;
         });
         
+        // Fix for empty header columns - if we find an empty header between valid headers,
+        // give it a name based on context
+        headers = headers.map((header, index) => {
+          if (!header && index > 0 && index < headers.length - 1) {
+            // Empty header found - likely patient ID column based on data analysis
+            if (index > 0 && headers[index - 1] === 'Patient') {
+              return 'Patient_ID';
+            }
+            if (index > 0 && headers[index - 1] === 'Charge Desc') {
+              return 'Metrics';  // This is usually an empty column
+            }
+            return `Column_${index}`;
+          }
+          return header;
+        });
+        
         console.log(`   Parsed ${headers.length} headers:`, headers.slice(0, 5), '...');
         if (headers.length < 10) {
           console.log('   ⚠️ WARNING: Fewer headers than expected. All headers:', headers);
@@ -662,8 +687,24 @@ async function processRevenueData(csvFilePath) {
           // Map available values to headers
           if (values.length >= headers.length - 2 && values.length <= headers.length + 2) {
             const row = {};
+            
+            // Handle column mismatch - data may have extra columns due to empty headers
+            // If we have 18 values and 17 headers, and column 5 is empty header but has data,
+            // we need to shift the mapping
+            let valueOffset = 0;
+            if (values.length > headers.length && headers[4] === 'Patient_ID' && values[5] === '') {
+              // This is the specific case where data has an extra empty column after Patient_ID
+              valueOffset = 1;
+            }
+            
             headers.forEach((header, index) => {
-              let value = values[index] || '';
+              let valueIndex = index;
+              // After the Patient_ID column, shift by one if we detected the offset
+              if (valueOffset && index > 5) {
+                valueIndex = index + valueOffset;
+              }
+              
+              let value = values[valueIndex] || '';
               // Remove surrounding quotes if present
               if (value.startsWith('"') && value.endsWith('"')) {
                 value = value.slice(1, -1);
