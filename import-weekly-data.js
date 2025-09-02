@@ -177,30 +177,68 @@ async function processRevenueData(csvFilePath) {
   
   return new Promise((resolve, reject) => {
     try {
-      // Check if this is an MHTML file
+      // Read file content for detection
       const fileContent = fs.readFileSync(csvFilePath, 'utf8');
+      const fileExt = path.extname(csvFilePath).toLowerCase();
       
-      // Check for MHTML markers
-      if (fileContent.includes('MIME-Version:') && 
-          fileContent.includes('Content-Type:') && 
-          fileContent.includes('Content-Location:')) {
+      // Enhanced logging for debugging
+      console.log('📁 File detection:');
+      console.log('   Extension:', fileExt);
+      console.log('   Size:', fileContent.length, 'bytes');
+      console.log('   First 500 chars:', fileContent.substring(0, 500).replace(/[\r\n]+/g, ' '));
+      
+      // Check for MHTML markers - more flexible detection
+      // MHTML files can have .xls extension but contain HTML/MIME content
+      const hasMimeMarkers = fileContent.includes('MIME-Version:') || 
+                            fileContent.includes('Content-Type:') || 
+                            fileContent.includes('Content-Location:');
+      const hasHtmlMarkers = fileContent.includes('<!DOCTYPE') ||
+                            fileContent.includes('<html') ||
+                            fileContent.includes('<table');
+      const hasTableContent = fileContent.includes('</tr>') || 
+                             fileContent.includes('</td>');
+      
+      const isMHTML = (hasMimeMarkers || hasHtmlMarkers) && hasTableContent;
+      
+      console.log('   MHTML detection:');
+      console.log('     Has MIME markers:', hasMimeMarkers);
+      console.log('     Has HTML markers:', hasHtmlMarkers);
+      console.log('     Has table content:', hasTableContent);
+      console.log('     Is MHTML:', isMHTML);
+      
+      if (isMHTML) {
         
-        console.log('Detected MHTML format (HTML saved as .xls)');
+        console.log('✅ Detected MHTML format (HTML saved as .xls)');
         
-        // Parse MHTML file
-        const parts = fileContent.split(/--[\w-]+/);
-        
+        // Parse MHTML file - handle both multipart and direct HTML
         let tableHtml = '';
-        // Look for the part containing the actual HTML table
-        for (const part of parts) {
-          if (part.includes('<table') && (part.includes('sheet1.htm') || part.includes('<tr'))) {
-            tableHtml = part;
-            break;
+        
+        // First try multipart MIME format
+        if (fileContent.includes('--')) {
+          const parts = fileContent.split(/--[\w-]+/);
+          console.log(`   Found ${parts.length} MIME parts`);
+          
+          // Look for the part containing the actual HTML table
+          for (const part of parts) {
+            if (part.includes('<table') || part.includes('<tr')) {
+              tableHtml = part;
+              console.log('   ✅ Found table in MIME part');
+              break;
+            }
+          }
+        }
+        
+        // If no multipart found or no table in parts, try direct HTML
+        if (!tableHtml) {
+          if (fileContent.includes('<table') || fileContent.includes('<tr')) {
+            tableHtml = fileContent;
+            console.log('   Using entire file content as HTML table');
           }
         }
         
         if (!tableHtml) {
-          reject(new Error('No table data found in MHTML file'));
+          console.error('   ❌ No table data found in file');
+          reject(new Error('No table data found in MHTML/HTML file'));
           return;
         }
         
@@ -208,15 +246,29 @@ async function processRevenueData(csvFilePath) {
         tableHtml = tableHtml.replace(/=3D/g, '=');
         tableHtml = tableHtml.replace(/=\r?\n/g, '');
         
-        // Extract table rows using regex
-        const rowMatches = tableHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/g);
+        // Extract table rows using regex - more robust pattern
+        let rowMatches = tableHtml.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi);
         
         if (!rowMatches || rowMatches.length === 0) {
+          // Try alternative row extraction for malformed HTML
+          console.log('   First extraction failed, trying alternative method...');
+          const trSplits = tableHtml.split(/<tr/i);
+          rowMatches = [];
+          for (let i = 1; i < trSplits.length; i++) {
+            const endIndex = trSplits[i].indexOf('</tr>');
+            if (endIndex > -1) {
+              rowMatches.push('<tr' + trSplits[i].substring(0, endIndex + 5));
+            }
+          }
+        }
+        
+        if (!rowMatches || rowMatches.length === 0) {
+          console.error('   ❌ No rows found in table');
           reject(new Error('No rows found in MHTML table'));
           return;
         }
         
-        console.log(`Found ${rowMatches.length} rows in MHTML table`);
+        console.log(`   ✅ Found ${rowMatches.length} rows in MHTML table`);
         
         // Parse headers - simplified approach for this specific MHTML format
         // The table has a complex colspan structure that differs between header and data rows
@@ -248,7 +300,7 @@ async function processRevenueData(csvFilePath) {
         const rowspanTracker = {}; // Track active rowspans by column index
         let previousRow = {}; // Track previous row for date inheritance
         
-        console.log('Starting MHTML row parsing with rowspan handling...');
+        console.log('   Starting MHTML row parsing with rowspan handling...');
         
         for (let i = 1; i < rowMatches.length; i++) {
           // Extract all cells including their attributes for rowspan detection
@@ -316,8 +368,11 @@ async function processRevenueData(csvFilePath) {
             
             // DEBUG: Log row parsing for first few rows
             if (i < 4) {  // First 3 data rows (i starts at 1)
-              console.log(`DEBUG Row ${i}: ${cellMatches.length} actual cells, 16 processed`);
-              console.log('  Processed values:', processedCells.slice(0, 5), '...');
+              console.log(`   Row ${i}: ${cellMatches.length} actual cells, 16 processed`);
+              if (i === 1) {
+                console.log('     First 5 values:', processedCells.slice(0, 5));
+                console.log('     Payment cell [13]:', processedCells[13]);
+              }
             }
             
             // Map processed cells to expected columns
@@ -386,6 +441,8 @@ async function processRevenueData(csvFilePath) {
       }
       
       // If not MHTML, process as regular CSV
+      console.log('📄 Not detected as MHTML, processing as CSV...');
+      
       const buffer = fs.readFileSync(csvFilePath);
       const firstBytes = buffer.slice(0, 4);
       
@@ -393,13 +450,13 @@ async function processRevenueData(csvFilePath) {
       
       // Check for UTF-16 LE BOM (FF FE)
       if (firstBytes[0] === 0xFF && firstBytes[1] === 0xFE) {
-        console.log('Detected UTF-16 LE encoding with BOM');
+        console.log('   Detected UTF-16 LE encoding with BOM');
         // Use iconv-lite to decode UTF-16 LE to UTF-8
         // BOM is automatically stripped by iconv-lite
         csvContent = iconv.decode(buffer, 'utf-16le');
       } else {
         // Standard UTF-8 processing
-        console.log('Processing as UTF-8 encoding');
+        console.log('   Processing as UTF-8 encoding');
         csvContent = buffer.toString('utf8');
       }
       
