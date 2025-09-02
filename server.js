@@ -2500,22 +2500,53 @@ app.get('/api/dashboard', async (req, res) => {
       const countCheck = await pool.query('SELECT COUNT(*) as count FROM analytics_data');
       
       if (countCheck.rows[0].count === '0') {
-        console.log('📊 Database is empty. Inserting sample data...');
+        console.log('📊 Database is completely empty. User should upload data files.');
         
-        // Insert sample data with current dates
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1;
+        // DON'T INSERT SAMPLE DATA - this interferes with uploaded data
+        // Return empty state to encourage user to upload files
+        return res.json({
+          success: true,
+          message: 'Database is empty. Please upload analytics files to populate the dashboard.',
+          data: {
+            week_start_date: null,
+            week_end_date: null,
+            actual_weekly_revenue: 0,
+            actual_monthly_revenue: 0,
+            drip_iv_revenue_weekly: 0,
+            semaglutide_revenue_weekly: 0,
+            drip_iv_revenue_monthly: 0,
+            semaglutide_revenue_monthly: 0,
+            total_drip_iv_members: 0,
+            individual_memberships: 0,
+            family_memberships: 0,
+            concierge_memberships: 0,
+            corporate_memberships: 0
+          }
+        });
+      } else {
+        // Database has data but query didn't match
+        console.log('📊 Database has data but no records match the query filters');
         
-        // Calculate week dates (use last week for realistic data)
-        const lastWeek = new Date(today);
-        lastWeek.setDate(today.getDate() - 7);
-        const weekStart = new Date(lastWeek);
-        weekStart.setDate(lastWeek.getDate() - lastWeek.getDay()); // Start of last week
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6); // End of last week
+        // Get the most recent record regardless of dates
+        const latestResult = await pool.query(`
+          SELECT * FROM analytics_data 
+          ORDER BY upload_date DESC, id DESC
+          LIMIT 1
+        `);
         
-        const sampleData = {
+        if (latestResult.rows.length > 0) {
+          console.log('✅ Using most recent database record');
+          result = latestResult;
+        } else {
+          // Truly no data found
+          return res.json({
+            success: false,
+            message: 'No data found in database. Please upload analytics files.',
+            data: null
+          });
+        }
+      }
+    }
           week_start_date: weekStart.toISOString().split('T')[0],
           week_end_date: weekEnd.toISOString().split('T')[0],
           
