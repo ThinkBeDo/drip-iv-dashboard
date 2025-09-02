@@ -15,6 +15,9 @@ const { importWeeklyData, setDatabasePool } = require('./import-weekly-data');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Configure multer for file uploads
+const upload = multer({ dest: 'uploads/' });
+
 // Database connection - Always use PostgreSQL for Railway deployment
 let pool;
 
@@ -2720,6 +2723,86 @@ app.post('/api/delete-bad-dates', async (req, res) => {
   } catch (error) {
     console.error('❌ Delete failed:', error.message);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Import weekly data endpoint - handles both revenue and membership files
+app.post('/api/import-weekly-data', upload.fields([
+  { name: 'revenueFile', maxCount: 1 },
+  { name: 'membershipFile', maxCount: 1 }
+]), async (req, res) => {
+  console.log('\n=== FILE UPLOAD REQUEST ===');
+  console.log('Timestamp:', new Date().toISOString());
+  
+  try {
+    if (!req.files || (!req.files.revenueFile && !req.files.membershipFile)) {
+      console.log('❌ No files provided in request');
+      return res.status(400).json({ 
+        error: 'At least one file (revenue or membership) is required',
+        received: {
+          revenueFile: !!req.files?.revenueFile,
+          membershipFile: !!req.files?.membershipFile
+        }
+      });
+    }
+
+    const revenueFile = req.files.revenueFile?.[0];
+    const membershipFile = req.files.membershipFile?.[0];
+
+    console.log('📁 Files received:');
+    if (revenueFile) console.log(`   Revenue: ${revenueFile.originalname}`);
+    if (membershipFile) console.log(`   Membership: ${membershipFile.originalname}`);
+
+    // Use the importWeeklyData function from import-weekly-data.js
+    console.log('📥 Calling import function...');
+    const importedData = await importWeeklyData(
+      revenueFile ? revenueFile.path : null,
+      membershipFile ? membershipFile.path : null
+    );
+    
+    console.log('📥 Import function returned successfully');
+    if (importedData) {
+      console.log(`   Week dates: ${importedData.week_start_date} to ${importedData.week_end_date}`);
+      console.log(`   Revenue: $${importedData.actual_weekly_revenue || 0}`);
+      console.log(`   Members: ${importedData.total_drip_iv_members || 0}`);
+    }
+    
+    // Clean up uploaded files
+    try {
+      if (revenueFile) fs.unlinkSync(revenueFile.path);
+      if (membershipFile) fs.unlinkSync(membershipFile.path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files:', cleanupError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Weekly data imported successfully',
+      data: {
+        weeklyRevenue: importedData.actual_weekly_revenue,
+        monthlyRevenue: importedData.actual_monthly_revenue,
+        totalMembers: importedData.total_drip_iv_members,
+        weekStart: importedData.week_start_date,
+        weekEnd: importedData.week_end_date
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Import failed:', error.message);
+    console.error('Stack trace:', error.stack);
+    
+    // Clean up files on error
+    try {
+      if (req.files?.revenueFile?.[0]?.path) fs.unlinkSync(req.files.revenueFile[0].path);
+      if (req.files?.membershipFile?.[0]?.path) fs.unlinkSync(req.files.membershipFile[0].path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp files on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to import weekly data',
+      details: error.message 
+    });
   }
 });
 
