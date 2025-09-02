@@ -20,12 +20,30 @@ let pool;
 
 if (process.env.DATABASE_URL) {
   // PostgreSQL for production and development
-  console.log('🐘 Connecting to PostgreSQL database... v2.0 with membership data fix');
-  console.log('📍 Database URL:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@')); // Hide password
+  console.log('🐘 Connecting to PostgreSQL database...');
+  console.log('📍 Environment:', process.env.NODE_ENV || 'development');
+  
+  // Enhanced logging for Railway debugging
+  const dbUrl = process.env.DATABASE_URL;
+  const isRailwayInternal = dbUrl.includes('.railway.internal');
+  const isRailwayPublic = dbUrl.includes('.railway.app');
+  
+  console.log('📍 Database URL type:', 
+    isRailwayInternal ? 'Railway Internal' : 
+    isRailwayPublic ? 'Railway Public' : 
+    'External');
+  console.log('📍 Database URL:', dbUrl.replace(/:[^:@]+@/, ':****@')); // Hide password
+  
+  // Railway requires SSL for external connections
+  const sslConfig = process.env.NODE_ENV === 'production' || isRailwayPublic
+    ? { rejectUnauthorized: false }
+    : false;
+  
+  console.log('🔒 SSL Configuration:', sslConfig ? 'Enabled' : 'Disabled');
   
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: sslConfig,
     // Connection pool configuration
     max: 20, // Maximum number of clients in the pool
     idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
@@ -37,13 +55,53 @@ if (process.env.DATABASE_URL) {
   const testConnection = async (retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
-        await pool.query('SELECT 1');
-        console.log('✅ Database connection successful');
+        console.log(`🔄 Connection attempt ${i + 1}/${retries}...`);
+        
+        // Test basic connectivity
+        const result = await pool.query('SELECT NOW() as time, current_database() as db');
+        console.log('✅ Database connection successful!');
+        console.log(`   Connected to: ${result.rows[0].db}`);
+        console.log(`   Server time: ${result.rows[0].time}`);
+        
+        // Test analytics_data table exists
+        const tableCheck = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'analytics_data'
+          ) as table_exists
+        `);
+        
+        if (tableCheck.rows[0].table_exists) {
+          console.log('✅ analytics_data table exists');
+          
+          // Get row count
+          const countResult = await pool.query('SELECT COUNT(*) as count FROM analytics_data');
+          console.log(`   Current records: ${countResult.rows[0].count}`);
+        } else {
+          console.warn('⚠️ analytics_data table does not exist!');
+          console.warn('   Database may need initialization');
+        }
+        
         // Pass the pool to import-weekly-data module
         setDatabasePool(pool);
+        console.log('✅ Database pool shared with import module');
         return true;
       } catch (err) {
-        console.error(`❌ Database connection attempt ${i + 1} failed:`, err.message);
+        console.error(`❌ Database connection attempt ${i + 1} failed:`);
+        console.error(`   Error: ${err.message}`);
+        console.error(`   Code: ${err.code}`);
+        
+        if (err.code === 'ECONNREFUSED') {
+          console.error('   → Database server is not accepting connections');
+          console.error('   → Check if DATABASE_URL is correct');
+        } else if (err.code === 'ENOTFOUND') {
+          console.error('   → Database host not found');
+          console.error('   → Verify the hostname in DATABASE_URL');
+        } else if (err.code === '28P01') {
+          console.error('   → Authentication failed');
+          console.error('   → Check username and password in DATABASE_URL');
+        }
+        
         if (i < retries - 1) {
           console.log(`⏳ Retrying in ${(i + 1) * 2} seconds...`);
           await new Promise(resolve => setTimeout(resolve, (i + 1) * 2000));
@@ -51,7 +109,10 @@ if (process.env.DATABASE_URL) {
       }
     }
     console.error('❌ Could not establish database connection after', retries, 'attempts');
-    console.error('Please check your DATABASE_URL configuration');
+    console.error('Please check your DATABASE_URL configuration in Railway');
+    
+    // Still pass the pool even if connection fails (for later retry)
+    setDatabasePool(pool);
     return false;
   };
   

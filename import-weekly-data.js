@@ -1360,17 +1360,37 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       }
     }
     
+    // Validate database connection before operations
+    console.log('\n📊 DATABASE OPERATION:');
+    
+    if (!pool) {
+      throw new Error('Database pool not initialized - cannot save data');
+    }
+    
+    // Test connection before proceeding
+    try {
+      const testQuery = await pool.query('SELECT 1 as test');
+      console.log('✅ Database connection verified');
+    } catch (connError) {
+      console.error('❌ Database connection test failed:', connError.message);
+      console.error('   Cannot proceed with data import');
+      throw new Error(`Database not accessible: ${connError.message}`);
+    }
+    
     // Insert or update database
     const client = await pool.connect();
+    console.log('✅ Database client acquired from pool');
     try {
       // Check if data already exists for this week
+      console.log(`📅 Checking for existing data: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
+      
       const existingCheck = await client.query(
         'SELECT id FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
         [combinedData.week_start_date, combinedData.week_end_date]
       );
       
       if (existingCheck.rows.length > 0) {
-        console.log('Data already exists for this week, updating...');
+        console.log(`📝 Found existing record (ID: ${existingCheck.rows[0].id}), updating...`);
         
         // Update existing record - Fixed parameter numbering
         const updateQuery = `
@@ -1433,9 +1453,12 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           existingCheck.rows[0].id
         ]);
         
-        console.log('Data updated successfully!');
+        console.log('✅ Data updated successfully!');
       } else {
-        console.log('Inserting new weekly data...');
+        console.log('📝 No existing record found, inserting new data...');
+        console.log(`   Week: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
+        console.log(`   Revenue: $${combinedData.actual_weekly_revenue}`);
+        console.log(`   Members: ${combinedData.total_drip_iv_members}`);
         
         // Insert new record
         const insertQuery = `
@@ -1502,7 +1525,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.popular_injections_status
         ]);
         
-        console.log('Data inserted successfully!');
+        console.log('✅ Data inserted successfully into database!');
       }
       
       // VERIFICATION: Query the database to confirm what was saved
@@ -1533,7 +1556,31 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     return combinedData;
     
   } catch (error) {
-    console.error('Error importing weekly data:', error);
+    console.error('❌ ERROR IMPORTING WEEKLY DATA:');
+    console.error(`   Message: ${error.message}`);
+    
+    if (error.code) {
+      console.error(`   Error Code: ${error.code}`);
+      
+      // Database-specific error codes
+      if (error.code === '23505') {
+        console.error('   → Duplicate key violation');
+      } else if (error.code === '42P01') {
+        console.error('   → Table does not exist');
+      } else if (error.code === '42703') {
+        console.error('   → Column does not exist');
+      } else if (error.code === '08P01') {
+        console.error('   → Protocol violation');
+      } else if (error.code === 'ECONNREFUSED') {
+        console.error('   → Database connection refused');
+        console.error('   → Check DATABASE_URL in Railway environment variables');
+      }
+    }
+    
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    
     throw error;
   }
 }
