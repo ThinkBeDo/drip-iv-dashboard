@@ -1022,12 +1022,38 @@ function analyzeRevenueData(csvData) {
     console.log(`Month range for revenue calculation: ${monthStart.toISOString().split('T')[0]} to ${monthEnd.toISOString().split('T')[0]}`);
   }
   
+  // Debugging: Track exclusions and totals
+  const debugInfo = {
+    totalRows: csvData.length,
+    processedRows: 0,
+    excludedRows: 0,
+    excludedReasons: {
+      tips: { count: 0, amount: 0 },
+      invalidDate: { count: 0, amount: 0 },
+      noAmount: { count: 0, amount: 0 },
+      emptyDesc: { count: 0, amount: 0 },
+      outOfRange: { count: 0, amount: 0 }
+    },
+    fileTotal: 0,
+    includedTotal: 0,
+    categoryTotals: {
+      iv_therapy: 0,
+      weight_loss: 0,
+      memberships: 0,
+      other: 0
+    }
+  };
+
   // Second pass: Process service counts and revenue with proper week detection
   for (const row of csvData) {
     if (!row.Date || row.Date === 'Total') continue;
     
     const date = parseDate(row.Date);
-    if (!date || isNaN(date)) continue;
+    if (!date || isNaN(date)) {
+      debugInfo.excludedRows++;
+      debugInfo.excludedReasons.invalidDate.count++;
+      continue;
+    }
     
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
@@ -1041,15 +1067,42 @@ function analyzeRevenueData(csvData) {
                         cleanCurrency(row['Paid']) ||
                         0;
     
+    // Track file total for all items in date range
+    if (date >= metrics.weekStartDate && date <= metrics.weekEndDate) {
+      debugInfo.fileTotal += chargeAmount;
+      debugInfo.processedRows++;
+    }
+    
     const isWeekendDay = isWeekend(date);
     
     // Skip non-service charges and administrative entries
     const lowerChargeDesc = chargeDesc.toLowerCase();
     if (lowerChargeDesc.includes('total_tips') || 
-        lowerChargeDesc.includes('tip') ||
-        lowerChargeDesc === 'total' ||
-        chargeDesc === '' ||
-        !chargeAmount) continue;
+        lowerChargeDesc.includes('tip')) {
+      if (date >= metrics.weekStartDate && date <= metrics.weekEndDate) {
+        debugInfo.excludedRows++;
+        debugInfo.excludedReasons.tips.count++;
+        debugInfo.excludedReasons.tips.amount += chargeAmount;
+      }
+      continue;
+    }
+    
+    if (lowerChargeDesc === 'total' || chargeDesc === '') {
+      if (date >= metrics.weekStartDate && date <= metrics.weekEndDate) {
+        debugInfo.excludedRows++;
+        debugInfo.excludedReasons.emptyDesc.count++;
+        debugInfo.excludedReasons.emptyDesc.amount += chargeAmount;
+      }
+      continue;
+    }
+    
+    if (!chargeAmount) {
+      if (date >= metrics.weekStartDate && date <= metrics.weekEndDate) {
+        debugInfo.excludedRows++;
+        debugInfo.excludedReasons.noAmount.count++;
+      }
+      continue;
+    }
         
     // Determine if this is a member service (based on charge description)
     const isMemberService = chargeDesc.toLowerCase().includes('(member)') || 
@@ -1162,25 +1215,32 @@ function analyzeRevenueData(csvData) {
       
       if (isCurrentWeek) {
         metrics.actual_weekly_revenue += chargeAmount;
+        debugInfo.includedTotal += chargeAmount;
         
         if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
           metrics.infusion_revenue_weekly += chargeAmount;
           // IV Therapy revenue is ONLY infusions, not injections
           metrics.drip_iv_revenue_weekly += chargeAmount;
+          debugInfo.categoryTotals.iv_therapy += chargeAmount;
         } else if (serviceCategory === 'injection') {
           metrics.injection_revenue_weekly += chargeAmount;
           // Weight Loss (Semaglutide/Tirzepatide) is separate from other injections
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
             metrics.semaglutide_revenue_weekly += chargeAmount;
+            debugInfo.categoryTotals.weight_loss += chargeAmount;
           }
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_weekly += chargeAmount;
+          debugInfo.categoryTotals.memberships += chargeAmount;
         } else if (serviceCategory === 'consultation') {
           // Track consultation revenue separately
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || 
               chargeDesc.toLowerCase().includes('weight loss')) {
             metrics.semaglutide_revenue_weekly += chargeAmount;
+            debugInfo.categoryTotals.weight_loss += chargeAmount;
           }
+        } else {
+          debugInfo.categoryTotals.other += chargeAmount;
         }
       }
       
@@ -1229,6 +1289,29 @@ function analyzeRevenueData(csvData) {
     uniqueCustomersWeekly: metrics.unique_customers_weekly,
     uniqueCustomersMonthly: metrics.unique_customers_monthly
   });
+  
+  // Output debug information
+  console.log('\n📊 REVENUE PROCESSING DEBUG INFO:');
+  console.log('═'.repeat(60));
+  console.log(`Total rows in file: ${debugInfo.totalRows}`);
+  console.log(`Rows in week range: ${debugInfo.processedRows}`);
+  console.log(`File total (week): $${debugInfo.fileTotal.toFixed(2)}`);
+  console.log(`Included total: $${debugInfo.includedTotal.toFixed(2)}`);
+  console.log(`\nEXCLUSIONS:`);
+  console.log(`  Tips: ${debugInfo.excludedReasons.tips.count} items = $${debugInfo.excludedReasons.tips.amount.toFixed(2)}`);
+  console.log(`  Empty/Total: ${debugInfo.excludedReasons.emptyDesc.count} items = $${debugInfo.excludedReasons.emptyDesc.amount.toFixed(2)}`);
+  console.log(`  No Amount: ${debugInfo.excludedReasons.noAmount.count} items`);
+  console.log(`  Invalid Date: ${debugInfo.excludedReasons.invalidDate.count} items`);
+  console.log(`\nCATEGORY BREAKDOWN:`);
+  console.log(`  IV Therapy: $${debugInfo.categoryTotals.iv_therapy.toFixed(2)}`);
+  console.log(`  Weight Loss: $${debugInfo.categoryTotals.weight_loss.toFixed(2)}`);
+  console.log(`  Memberships: $${debugInfo.categoryTotals.memberships.toFixed(2)}`);
+  console.log(`  Other: $${debugInfo.categoryTotals.other.toFixed(2)}`);
+  console.log(`\nDISCREPANCY CHECK:`);
+  console.log(`  File total - Tips - Empty = $${(debugInfo.fileTotal - debugInfo.excludedReasons.tips.amount - debugInfo.excludedReasons.emptyDesc.amount).toFixed(2)}`);
+  console.log(`  Database storing: $${metrics.actual_weekly_revenue.toFixed(2)}`);
+  console.log(`  Difference: $${(debugInfo.fileTotal - debugInfo.excludedReasons.tips.amount - debugInfo.excludedReasons.emptyDesc.amount - metrics.actual_weekly_revenue).toFixed(2)}`);
+  console.log('═'.repeat(60));
   
   // CRITICAL DEBUG: Log if revenue is suspiciously low
   if (metrics.actual_weekly_revenue === 0 && csvData.length > 10) {
