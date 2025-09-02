@@ -2667,6 +2667,33 @@ app.post('/api/cleanup-bad-records', async (req, res) => {
   }
 });
 
+// Debug endpoint - show all records by upload_date
+app.get('/api/debug-records', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not available' });
+    }
+
+    const allRecords = await pool.query(`
+      SELECT id, week_start_date, week_end_date, actual_weekly_revenue, 
+             total_drip_iv_members, upload_date
+      FROM analytics_data 
+      ORDER BY upload_date DESC, id DESC
+      LIMIT 10
+    `);
+    
+    res.json({
+      success: true,
+      records: allRecords.rows,
+      count: allRecords.rows.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Debug failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
