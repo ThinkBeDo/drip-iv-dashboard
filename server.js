@@ -2635,11 +2635,13 @@ app.post('/api/cleanup-bad-records', async (req, res) => {
 
     console.log('🗑️  Emergency cleanup: Deleting bad September 2nd records...');
     
-    // Delete records with September 2nd dates or zero revenue on current week
+    // Delete records with bad dates or zero revenue that interfere with good data
     const deleteResult = await pool.query(`
       DELETE FROM analytics_data 
       WHERE week_start_date = '2025-09-02' 
       OR week_end_date = '2025-09-02'
+      OR week_start_date = week_end_date
+      OR (actual_weekly_revenue = 0 AND week_start_date::text LIKE '%2025-08-2%')
       OR (actual_weekly_revenue = 0 AND week_start_date::text LIKE '%2025-09%')
     `);
     
