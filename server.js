@@ -2727,15 +2727,9 @@ app.post('/api/delete-bad-dates', async (req, res) => {
 console.log('Server setup complete');
 
 // Start server
-app.listen(port, async () => {
+app.listen(port, () => {
   console.log(`🌟 Drip IV Dashboard server running on port ${port}`);
-  try {
-    await initializeDatabase();
-    console.log('🚀 Server initialization complete');
-  } catch (error) {
-    console.error('❌ Server initialization failed:', error.message);
-    console.error('The server will continue running but database operations may fail');
-  }
+  console.log('🚀 Server initialization complete - Database pool configured during startup');
 });
 
 // Graceful shutdown
