@@ -734,6 +734,22 @@ function analyzeRevenueData(csvData) {
     }
   }
   
+  // Debug: Log data structure
+  if (csvData.length > 0) {
+    console.log('\n📊 ANALYZING REVENUE DATA:');
+    console.log(`   Total rows: ${csvData.length}`);
+    console.log('   Available columns:', Object.keys(csvData[0]).slice(0, 10));
+    console.log('   Sample row:', {
+      Date: csvData[0].Date,
+      'Calculated Payment (Line)': csvData[0]['Calculated Payment (Line)'],
+      'Charge Desc': csvData[0]['Charge Desc']
+    });
+  }
+  
+  let rowsWithDates = 0;
+  let rowsWithPayments = 0;
+  let totalRevenueTracked = 0;
+  
   // Process each row
   for (const row of csvData) {
     // Try to find the date column - support both 'Date' and 'Date Of Payment'
@@ -746,6 +762,8 @@ function analyzeRevenueData(csvData) {
       continue;
     }
     
+    rowsWithDates++;
+    
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row.Patient || '';
     
@@ -757,6 +775,11 @@ function analyzeRevenueData(csvData) {
                        cleanCurrency(row['Total']) ||
                        cleanCurrency(row['Paid']) ||
                        0;
+    
+    if (chargeAmount > 0) {
+      rowsWithPayments++;
+      totalRevenueTracked += chargeAmount;
+    }
     
     // Log if no payment found for debugging
     if (chargeAmount === 0 && csvData.indexOf(row) < 5) {
@@ -788,6 +811,12 @@ function analyzeRevenueData(csvData) {
   }
   
   // After processing all dates, determine the week based on the data
+  console.log('\n🔍 DATA PROCESSING SUMMARY:');
+  console.log(`   Rows with valid dates: ${rowsWithDates}/${csvData.length}`);
+  console.log(`   Rows with payments: ${rowsWithPayments}`);
+  console.log(`   Total revenue found: $${totalRevenueTracked.toFixed(2)}`);
+  console.log(`   Date range found: ${metrics.monthStartDate || 'NO START'} to ${metrics.monthEndDate || 'NO END'}`);
+  
   if (metrics.monthEndDate && metrics.monthStartDate) {
     const startDate = new Date(metrics.monthStartDate);
     const endDate = new Date(metrics.monthEndDate);
@@ -878,6 +907,15 @@ function analyzeRevenueData(csvData) {
     console.log(`   Calculated week end: ${weekEnd.toDateString()} (${weekEnd.toISOString().split('T')[0]})`);
     console.log(`   ✅ Week validation passed: 7-day Monday-Sunday week`);
     console.log(`   📊 This data will be saved as week: ${weekStart.toISOString().split('T')[0]} to ${weekEnd.toISOString().split('T')[0]}`);
+  } else {
+    // NO DATES FOUND - This is a critical error
+    console.error('❌ CRITICAL ERROR: No valid dates found in revenue data!');
+    console.error('   Cannot determine week range without dates');
+    console.error('   Check if the Date column exists and has valid dates');
+    
+    // Don't default to today - this causes wrong data saves
+    metrics.weekStartDate = null;
+    metrics.weekEndDate = null;
   }
   
   // CRITICAL FIX: Calculate proper month boundaries for filtering
@@ -1308,7 +1346,9 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
         combinedData.week_start_date = combinedData.weekStartDate;
       }
     } else {
-      combinedData.week_start_date = new Date().toISOString().split('T')[0];
+      // NO WEEK START DATE - This is an error
+      console.error('❌ ERROR: No week start date found!');
+      throw new Error('Cannot save data without valid week dates. Check if revenue file contains valid dates.');
     }
     
     if (combinedData.weekEndDate) {
@@ -1319,7 +1359,9 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
         combinedData.week_end_date = combinedData.weekEndDate;
       }
     } else {
-      combinedData.week_end_date = new Date().toISOString().split('T')[0];
+      // NO WEEK END DATE - This is an error
+      console.error('❌ ERROR: No week end date found!');
+      throw new Error('Cannot save data without valid week dates. Check if revenue file contains valid dates.');
     }
     
     // Validate date formats before database operations
@@ -1329,6 +1371,33 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     }
     if (!dateRegex.test(combinedData.week_end_date)) {
       throw new Error(`Invalid week_end_date format: ${combinedData.week_end_date}. Expected YYYY-MM-DD`);
+    }
+    
+    // CRITICAL VALIDATION: Prevent saving bad data
+    if (combinedData.week_start_date === combinedData.week_end_date) {
+      console.error('❌ ERROR: Week start and end dates are the same!');
+      console.error(`   Both dates: ${combinedData.week_start_date}`);
+      throw new Error('Invalid week range - start and end dates cannot be the same');
+    }
+    
+    // Validate week is exactly 7 days
+    const weekStart = new Date(combinedData.week_start_date);
+    const weekEnd = new Date(combinedData.week_end_date);
+    const daysDiff = Math.round((weekEnd - weekStart) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff !== 6) {
+      console.error('❌ ERROR: Week range is not 7 days!');
+      console.error(`   Start: ${combinedData.week_start_date}`);
+      console.error(`   End: ${combinedData.week_end_date}`);
+      console.error(`   Days: ${daysDiff + 1} (should be 7)`);
+      throw new Error(`Invalid week range - must be exactly 7 days, got ${daysDiff + 1}`);
+    }
+    
+    // Warn if revenue is suspiciously low
+    if (combinedData.actual_weekly_revenue === 0 && revenueFilePath) {
+      console.warn('⚠️ WARNING: Weekly revenue is $0 despite processing revenue file');
+      console.warn('   This may indicate a parsing error');
+      // Don't throw error - $0 might be legitimate for some weeks
     }
     
     // Clean up temporary date fields
