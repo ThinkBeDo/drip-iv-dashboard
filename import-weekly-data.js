@@ -132,23 +132,9 @@ function parseDate(dateStr) {
     const day = parseInt(parts[1]);
     let year = parseInt(parts[2]);
     
-    // Handle 2-digit year - CRITICAL FIX FOR 2024 DATA
+    // Handle 2-digit year (25 = 2025, not 1925)
     if (year < 100) {
-      // In 2024, "25" should be interpreted as 2024 data, not 2025
-      // This is a common issue with medical billing systems
-      const currentYear = new Date().getFullYear();
-      
-      // If 2-digit year is 24 or 25, interpret as 2024
-      // (common data entry pattern in medical systems)
-      if (year === 24 || year === 25) {
-        year = 2024;
-      } else if (year < 24) {
-        // Years 00-23 are interpreted as 2000-2023
-        year = 2000 + year;
-      } else {
-        // For years > 25, still add 2000 (future-proofing)
-        year = 2000 + year;
-      }
+      year = 2000 + year;
     }
     
     const date = new Date(year, month - 1, day);
