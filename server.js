@@ -2626,6 +2626,47 @@ app.route('/api/add-july-data')
   }
 });
 
+// Emergency cleanup endpoint - delete bad September 2nd records
+app.post('/api/cleanup-bad-records', async (req, res) => {
+  try {
+    if (!pool) {
+      return res.status(503).json({ success: false, error: 'Database not available' });
+    }
+
+    console.log('🗑️  Emergency cleanup: Deleting bad September 2nd records...');
+    
+    // Delete records with September 2nd dates or zero revenue on current week
+    const deleteResult = await pool.query(`
+      DELETE FROM analytics_data 
+      WHERE week_start_date = '2025-09-02' 
+      OR week_end_date = '2025-09-02'
+      OR (actual_weekly_revenue = 0 AND week_start_date::text LIKE '%2025-09%')
+    `);
+    
+    console.log(`✅ Deleted ${deleteResult.rowCount} bad records`);
+    
+    // Check what remains
+    const remaining = await pool.query(`
+      SELECT id, week_start_date, week_end_date, actual_weekly_revenue, total_drip_iv_members
+      FROM analytics_data 
+      ORDER BY upload_date DESC LIMIT 3
+    `);
+    
+    const result = {
+      success: true,
+      deleted: deleteResult.rowCount,
+      remaining: remaining.rows
+    };
+    
+    console.log('📊 Cleanup complete:', result);
+    res.json(result);
+    
+  } catch (error) {
+    console.error('❌ Cleanup failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
