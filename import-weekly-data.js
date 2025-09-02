@@ -524,7 +524,10 @@ async function processRevenueData(csvFilePath) {
           headers.push(header.trim());
         });
         
-        console.log('Parsed headers:', headers.slice(0, 5), '...');
+        console.log(`   Parsed ${headers.length} headers:`, headers.slice(0, 5), '...');
+        if (headers.length < 10) {
+          console.log('   ⚠️ WARNING: Fewer headers than expected. All headers:', headers);
+        }
         
         // Parse data rows
         for (let i = 1; i < lines.length; i++) {
@@ -583,10 +586,18 @@ async function processRevenueData(csvFilePath) {
           }
         }
       } else {
-        // Standard CSV format with proper quote handling
-        console.log('Processing standard CSV format');
+        // Standard CSV/TSV format with proper quote handling
+        // Detect delimiter type (comma vs tab)
+        const firstLine = lines[0] || '';
+        const tabCount = (firstLine.match(/\t/g) || []).length;
+        const commaCount = (firstLine.match(/,/g) || []).length;
+        const delimiter = tabCount > commaCount ? '\t' : ',';
         
-        const parseCSVLine = (line) => {
+        console.log(`📊 Processing ${delimiter === '\t' ? 'TSV (Tab-Separated)' : 'CSV (Comma-Separated)'} format`);
+        console.log(`   Detected: ${tabCount} tabs, ${commaCount} commas`);
+        console.log(`   Using delimiter: ${delimiter === '\t' ? 'TAB' : 'COMMA'}`);
+        
+        const parseCSVLine = (line, delimiterChar) => {
           const result = [];
           let current = '';
           let inQuotes = false;
@@ -604,7 +615,7 @@ async function processRevenueData(csvFilePath) {
                 // Toggle quote state
                 inQuotes = !inQuotes;
               }
-            } else if (char === ',' && !inQuotes) {
+            } else if (char === delimiterChar && !inQuotes) {
               // Field separator
               result.push(current.trim());
               current = '';
@@ -619,7 +630,7 @@ async function processRevenueData(csvFilePath) {
         };
         
         // Parse headers
-        headers = parseCSVLine(lines[0]).map(h => {
+        headers = parseCSVLine(lines[0], delimiter).map(h => {
           // Remove surrounding quotes if present
           if (h.startsWith('"') && h.endsWith('"')) {
             return h.slice(1, -1);
@@ -627,17 +638,29 @@ async function processRevenueData(csvFilePath) {
           return h;
         });
         
-        console.log('Parsed headers:', headers.slice(0, 5), '...');
+        console.log(`   Parsed ${headers.length} headers:`, headers.slice(0, 5), '...');
+        if (headers.length < 10) {
+          console.log('   ⚠️ WARNING: Fewer headers than expected. All headers:', headers);
+        }
         
         // Parse data rows
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];
           if (!line.trim()) continue;
           
-          const values = parseCSVLine(line);
+          const values = parseCSVLine(line, delimiter);
           
-          // Only add row if it has the correct number of columns
-          if (values.length === headers.length) {
+          // Debug first few rows
+          if (i <= 3) {
+            console.log(`   Row ${i}: ${values.length} values found`);
+            if (values.length !== headers.length) {
+              console.log(`     ⚠️ Column mismatch: expected ${headers.length}, got ${values.length}`);
+            }
+          }
+          
+          // Add row even if column count is slightly off (common with TSV/CSV issues)
+          // Map available values to headers
+          if (values.length >= headers.length - 2 && values.length <= headers.length + 2) {
             const row = {};
             headers.forEach((header, index) => {
               let value = values[index] || '';

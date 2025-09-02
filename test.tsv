@@ -1,0 +1,4 @@
+Practitioner	Date	Date Of Payment	Patient		Patient State	Super Bill	Charge Type	Charge Desc	Metrics	Charges	Total Discount	Tax	Charges - Discount	Calculated Payment (Line)	COGS	Qty
+Lauren  White, RN	8/25/25	8/25/2025 12:00:00 AM	John Doe	12345		LA	8049358	OFFICE_VISIT	Membership - Individual		$129.00	$0.00	$0.00	129.00	$129.00	0.00	1.00
+Lauren  White, RN	8/25/25	8/25/2025 12:00:00 AM	Jane Smith	67890		TX	8049359	OFFICE_VISIT	Membership - Individual		$129.00	$0.00	$0.00	129.00	$129.00	0.00	1.00
+Megan Gaspard, MSN	8/26/25	8/26/2025 12:00:00 AM	Bob Johnson	11111		LA	8049360	PROCEDURE	Saline 1L (Member)		$45.00	$0.00	$0.00	45.00	$45.00	0.00	1.00
