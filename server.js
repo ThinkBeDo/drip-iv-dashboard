@@ -2806,9 +2806,43 @@ app.post('/api/import-weekly-data', upload.fields([
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
+// Run migrations on startup
+async function runMigrations() {
+  try {
+    console.log('🔧 Running database migrations...');
+    
+    // Add missing columns if they don't exist
+    const columns = [
+      'semaglutide_injections_weekly',
+      'semaglutide_injections_monthly', 
+      'new_individual_members_weekly',
+      'new_family_members_weekly',
+      'new_concierge_members_weekly',
+      'new_corporate_members_weekly'
+    ];
+    
+    for (const col of columns) {
+      try {
+        await pool.query(`ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS ${col} INTEGER DEFAULT 0`);
+        console.log(`   ✅ Column ${col} verified`);
+      } catch (err) {
+        if (!err.message.includes('already exists')) {
+          console.error(`   ⚠️ Could not add ${col}: ${err.message}`);
+        }
+      }
+    }
+    
+    console.log('✅ Migrations complete');
+  } catch (error) {
+    console.error('⚠️ Migration warning:', error.message);
+    // Don't crash the server if migrations fail
+  }
+}
+
 // Start server
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`🌟 Drip IV Dashboard server running on port ${port}`);
+  await runMigrations();
   console.log('🚀 Server initialization complete - Database pool configured during startup');
 });
 
