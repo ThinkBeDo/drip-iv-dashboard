@@ -1164,6 +1164,7 @@ function analyzeRevenueData(csvData) {
         // Count weight loss injections specifically
         if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
           metrics.weight_loss_injections_weekly++;
+          metrics.semaglutide_injections_weekly++;
         }
       }
       
@@ -1177,6 +1178,28 @@ function analyzeRevenueData(csvData) {
         // Count weight loss injections specifically
         if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
           metrics.weight_loss_injections_monthly++;
+          metrics.semaglutide_injections_monthly++;
+        }
+      }
+    // IMPORTANT: Also check for weight loss services that might not be categorized as injections
+    } else if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
+      // Count ALL semaglutide/tirzepatide services, regardless of category
+      if (isCurrentWeek) {
+        metrics.semaglutide_injections_weekly++;
+        metrics.weight_loss_injections_weekly++;
+        if (isWeekendDay) {
+          metrics.injections_weekend_weekly++;
+        } else {
+          metrics.injections_weekday_weekly++;
+        }
+      }
+      if (isCurrentMonth) {
+        metrics.semaglutide_injections_monthly++;
+        metrics.weight_loss_injections_monthly++;
+        if (isWeekendDay) {
+          metrics.injections_weekend_monthly++;
+        } else {
+          metrics.injections_weekday_monthly++;
         }
       }
     } else if (serviceCategory === 'consultation') {
@@ -1232,6 +1255,18 @@ function analyzeRevenueData(csvData) {
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_weekly += chargeAmount;
           debugInfo.categoryTotals.memberships += chargeAmount;
+          
+          // Track new membership signups
+          const lowerDesc = chargeDesc.toLowerCase();
+          if (lowerDesc.includes('individual')) {
+            metrics.new_individual_members_weekly++;
+          } else if (lowerDesc.includes('family')) {
+            metrics.new_family_members_weekly++;
+          } else if (lowerDesc.includes('concierge')) {
+            metrics.new_concierge_members_weekly++;
+          } else if (lowerDesc.includes('corporate')) {
+            metrics.new_corporate_members_weekly++;
+          }
         } else if (serviceCategory === 'consultation') {
           // Track consultation revenue separately
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || 
@@ -1260,6 +1295,18 @@ function analyzeRevenueData(csvData) {
           }
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_monthly += chargeAmount;
+          
+          // Track new membership signups (monthly)
+          const lowerDesc = chargeDesc.toLowerCase();
+          if (lowerDesc.includes('individual')) {
+            metrics.new_individual_members_monthly++;
+          } else if (lowerDesc.includes('family')) {
+            metrics.new_family_members_monthly++;
+          } else if (lowerDesc.includes('concierge')) {
+            metrics.new_concierge_members_monthly++;
+          } else if (lowerDesc.includes('corporate')) {
+            metrics.new_corporate_members_monthly++;
+          }
         } else if (serviceCategory === 'consultation') {
           // Track consultation revenue separately
           if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || 
