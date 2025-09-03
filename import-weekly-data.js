@@ -1682,7 +1682,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       if (existingCheck.rows.length > 0) {
         console.log(`📝 Found existing record (ID: ${existingCheck.rows[0].id}), updating...`);
         
-        // Update existing record - Fixed parameter numbering
+        // Update existing record - Fixed parameter numbering with new columns
         const updateQuery = `
           UPDATE analytics_data SET
             iv_infusions_weekday_weekly = $1,
@@ -1710,8 +1710,14 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
             drip_concierge_memberships = $23,
             concierge_memberships = $24,
             corporate_memberships = $25,
+            semaglutide_injections_weekly = $26,
+            semaglutide_injections_monthly = $27,
+            new_individual_members_weekly = $28,
+            new_family_members_weekly = $29,
+            new_concierge_members_weekly = $30,
+            new_corporate_members_weekly = $31,
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = $26
+          WHERE id = $32
         `;
         
         await client.query(updateQuery, [
@@ -1740,6 +1746,12 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.drip_concierge_memberships,
           combinedData.concierge_memberships,
           combinedData.corporate_memberships,
+          combinedData.semaglutide_injections_weekly || 0,
+          combinedData.semaglutide_injections_monthly || 0,
+          combinedData.new_individual_members_weekly || 0,
+          combinedData.new_family_members_weekly || 0,
+          combinedData.new_concierge_members_weekly || 0,
+          combinedData.new_corporate_members_weekly || 0,
           existingCheck.rows[0].id
         ]);
         
@@ -1750,7 +1762,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
         console.log(`   Revenue: $${combinedData.actual_weekly_revenue}`);
         console.log(`   Members: ${combinedData.total_drip_iv_members}`);
         
-        // Insert new record
+        // Insert new record with new columns
         const insertQuery = `
           INSERT INTO analytics_data (
             week_start_date, week_end_date,
@@ -1769,12 +1781,15 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
             drip_concierge_memberships, concierge_memberships,
             corporate_memberships, days_left_in_month,
             popular_infusions, popular_infusions_status,
-            popular_injections, popular_injections_status
+            popular_injections, popular_injections_status,
+            semaglutide_injections_weekly, semaglutide_injections_monthly,
+            new_individual_members_weekly, new_family_members_weekly,
+            new_concierge_members_weekly, new_corporate_members_weekly
           ) VALUES (
             $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
             $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
             $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
-            $31, $32, $33, $34
+            $31, $32, $33, $34, $35, $36, $37, $38, $39, $40
           )
         `;
         
@@ -1812,7 +1827,13 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.popular_infusions,
           combinedData.popular_infusions_status,
           combinedData.popular_injections,
-          combinedData.popular_injections_status
+          combinedData.popular_injections_status,
+          combinedData.semaglutide_injections_weekly || 0,
+          combinedData.semaglutide_injections_monthly || 0,
+          combinedData.new_individual_members_weekly || 0,
+          combinedData.new_family_members_weekly || 0,
+          combinedData.new_concierge_members_weekly || 0,
+          combinedData.new_corporate_members_weekly || 0
         ]);
         
         console.log('✅ Data inserted successfully into database!');
