@@ -773,12 +773,28 @@ function analyzeRevenueData(csvData) {
     hormone_followup_female_monthly: 0,
     hormone_initial_male_weekly: 0,
     hormone_initial_male_monthly: 0,
+    hormone_followup_male_weekly: 0,
+    hormone_followup_male_monthly: 0,
     
     // Weight management consultations
     semaglutide_consults_weekly: 0,
     semaglutide_consults_monthly: 0,
     weight_loss_injections_weekly: 0,
     weight_loss_injections_monthly: 0,
+    
+    // Semaglutide/Tirzepatide injection counts
+    semaglutide_injections_weekly: 0,
+    semaglutide_injections_monthly: 0,
+    
+    // New membership tracking
+    new_individual_members_weekly: 0,
+    new_family_members_weekly: 0,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0,
+    new_individual_members_monthly: 0,
+    new_family_members_monthly: 0,
+    new_concierge_members_monthly: 0,
+    new_corporate_members_monthly: 0,
     
     // Date tracking for weekly/monthly determination
     weekStartDate: null,
