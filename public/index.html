@@ -1117,12 +1117,16 @@
                             Hormones
                         </h4>
                         <div class="service-item">
-                            <span class="service-label">Female Hormone Follow-ups</span>
-                            <span class="service-count"><span class="hormone-female-weekly">--</span> weekly (<span class="hormone-female-monthly">--</span> monthly)</span>
+                            <span class="service-label">Total Hormone Services</span>
+                            <span class="service-count"><span class="hormone-total-weekly">--</span> weekly (<span class="hormone-total-monthly">--</span> monthly)</span>
                         </div>
                         <div class="service-item">
-                            <span class="service-label">Male Initial Consultations</span>
-                            <span class="service-count"><span class="hormone-male-weekly">--</span> weekly (<span class="hormone-male-monthly">--</span> monthly)</span>
+                            <span class="service-label">Female Hormone Services</span>
+                            <span class="service-count"><span class="hormone-female-total-weekly">--</span> weekly (<span class="hormone-female-total-monthly">--</span> monthly)</span>
+                        </div>
+                        <div class="service-item">
+                            <span class="service-label">Male Hormone Services</span>
+                            <span class="service-count"><span class="hormone-male-total-weekly">--</span> weekly (<span class="hormone-male-total-monthly">--</span> monthly)</span>
                         </div>
                     </div>
                 </div>
@@ -1780,10 +1784,43 @@
             updateElement('.sema-injections-weekly', data.semaglutide_injections_weekly || 0);
             updateElement('.sema-injections-monthly', data.semaglutide_injections_monthly || 0);
             
-            updateElement('.hormone-female-weekly', data.hormone_followup_female_weekly || 0);
-            updateElement('.hormone-female-monthly', data.hormone_followup_female_monthly || 0);
-            updateElement('.hormone-male-weekly', data.hormone_initial_male_weekly || 0);
-            updateElement('.hormone-male-monthly', data.hormone_initial_male_monthly || 0);
+            // Calculate hormone service totals (aggregate all hormone services)
+            const hormoneFemaleWeekly = (data.hormone_followup_female_weekly || 0) + (data.hormone_initial_female_weekly || 0);
+            const hormoneFemaleMonthly = (data.hormone_followup_female_monthly || 0) + (data.hormone_initial_female_monthly || 0);
+            const hormoneMaleWeekly = (data.hormone_followup_male_weekly || 0) + (data.hormone_initial_male_weekly || 0);
+            const hormoneMaleMonthly = (data.hormone_followup_male_monthly || 0) + (data.hormone_initial_male_monthly || 0);
+            const hormoneTotalWeekly = hormoneFemaleWeekly + hormoneMaleWeekly;
+            const hormoneTotalMonthly = hormoneFemaleMonthly + hormoneMaleMonthly;
+            
+            // Update hormone service displays
+            updateElement('.hormone-total-weekly', hormoneTotalWeekly);
+            updateElement('.hormone-total-monthly', hormoneTotalMonthly);
+            updateElement('.hormone-female-total-weekly', hormoneFemaleWeekly);
+            updateElement('.hormone-female-total-monthly', hormoneFemaleMonthly);
+            updateElement('.hormone-male-total-weekly', hormoneMaleWeekly);
+            updateElement('.hormone-male-total-monthly', hormoneMaleMonthly);
+            
+            // Debug log for hormone data
+            console.log('🔬 Hormone Data Update:', {
+                raw_data: {
+                    hormone_followup_female_weekly: data.hormone_followup_female_weekly,
+                    hormone_followup_female_monthly: data.hormone_followup_female_monthly,
+                    hormone_initial_female_weekly: data.hormone_initial_female_weekly,
+                    hormone_initial_female_monthly: data.hormone_initial_female_monthly,
+                    hormone_followup_male_weekly: data.hormone_followup_male_weekly,
+                    hormone_followup_male_monthly: data.hormone_followup_male_monthly,
+                    hormone_initial_male_weekly: data.hormone_initial_male_weekly,
+                    hormone_initial_male_monthly: data.hormone_initial_male_monthly
+                },
+                calculated_totals: {
+                    female_weekly: hormoneFemaleWeekly,
+                    female_monthly: hormoneFemaleMonthly,
+                    male_weekly: hormoneMaleWeekly,
+                    male_monthly: hormoneMaleMonthly,
+                    total_weekly: hormoneTotalWeekly,
+                    total_monthly: hormoneTotalMonthly
+                }
+            });
             
             console.log('Dashboard updated successfully');
         }

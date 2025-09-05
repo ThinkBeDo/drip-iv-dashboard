@@ -1347,6 +1347,8 @@ function extractFromCSV(csvData) {
   let hormoneInitialMaleMonthly = 0;
   let hormoneFollowupFemaleWeekly = 0;
   let hormoneFollowupFemaleMonthly = 0;
+  let hormoneFollowupMaleWeekly = 0;
+  let hormoneFollowupMaleMonthly = 0;
   const hormoneServices = {};
   
   // First pass: group services by patient + date
@@ -1450,18 +1452,49 @@ function extractFromCSV(csvData) {
       
       // Hormone service tracking
       if (isHormoneService(chargeDesc)) {
+        console.log(`🔬 HORMONE SERVICE DETECTED: "${chargeDesc}" | Date: ${date.toDateString()} | Patient: ${patient}`);
         const lowerDesc = chargeDesc.toLowerCase();
         if (lowerDesc.includes('initial') && lowerDesc.includes('female')) {
-          if (isWithinWeek) hormoneInitialFemaleWeekly++;
-          if (isWithinMonth) hormoneInitialFemaleMonthly++;
+          if (isWithinWeek) {
+            hormoneInitialFemaleWeekly++;
+            console.log(`   ✅ Initial Female Weekly (now: ${hormoneInitialFemaleWeekly})`);
+          }
+          if (isWithinMonth) {
+            hormoneInitialFemaleMonthly++;
+            console.log(`   ✅ Initial Female Monthly (now: ${hormoneInitialFemaleMonthly})`);
+          }
         } else if (lowerDesc.includes('initial') && lowerDesc.includes('male')) {
-          if (isWithinWeek) hormoneInitialMaleWeekly++;
-          if (isWithinMonth) hormoneInitialMaleMonthly++;
+          if (isWithinWeek) {
+            hormoneInitialMaleWeekly++;
+            console.log(`   ✅ Initial Male Weekly (now: ${hormoneInitialMaleWeekly})`);
+          }
+          if (isWithinMonth) {
+            hormoneInitialMaleMonthly++;
+            console.log(`   ✅ Initial Male Monthly (now: ${hormoneInitialMaleMonthly})`);
+          }
         } else if (lowerDesc.includes('followup') || lowerDesc.includes('follow up')) {
           if (lowerDesc.includes('female')) {
-            if (isWithinWeek) hormoneFollowupFemaleWeekly++;
-            if (isWithinMonth) hormoneFollowupFemaleMonthly++;
+            if (isWithinWeek) {
+              hormoneFollowupFemaleWeekly++;
+              console.log(`   ✅ Followup Female Weekly (now: ${hormoneFollowupFemaleWeekly})`);
+            }
+            if (isWithinMonth) {
+              hormoneFollowupFemaleMonthly++;
+              console.log(`   ✅ Followup Female Monthly (now: ${hormoneFollowupFemaleMonthly})`);
+            }
+          } else if (lowerDesc.includes('male')) {
+            // CRITICAL FIX: Add missing male followup hormone services
+            if (isWithinWeek) {
+              hormoneFollowupMaleWeekly++;
+              console.log(`   ✅ Followup Male Weekly (now: ${hormoneFollowupMaleWeekly})`);
+            }
+            if (isWithinMonth) {
+              hormoneFollowupMaleMonthly++;
+              console.log(`   ✅ Followup Male Monthly (now: ${hormoneFollowupMaleMonthly})`);
+            }
           }
+        } else {
+          console.log(`   ⚠️ Hormone service not categorized by gender/type: "${chargeDesc}"`);
         }
         hormoneServices[chargeDesc] = (hormoneServices[chargeDesc] || 0) + 1;
       }
@@ -1493,8 +1526,15 @@ function extractFromCSV(csvData) {
     // Count IV infusion visits (base infusion + any addons = 1 visit)
     if (hasBaseInfusion) {
       if (isWeekend) {
-        if (isWithinWeek) data.iv_infusions_weekend_weekly++;
-        if (isWithinMonth) data.iv_infusions_weekend_monthly++;
+        console.log(`🔍 WEEKEND IV INFUSION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${visitServices.length}`);
+        if (isWithinWeek) {
+          data.iv_infusions_weekend_weekly++;
+          console.log(`   ✅ Added to weekend weekly count (now: ${data.iv_infusions_weekend_weekly})`);
+        }
+        if (isWithinMonth) {
+          data.iv_infusions_weekend_monthly++;
+          console.log(`   ✅ Added to weekend monthly count (now: ${data.iv_infusions_weekend_monthly})`);
+        }
       } else {
         if (isWithinWeek) data.iv_infusions_weekday_weekly++;
         if (isWithinMonth) data.iv_infusions_weekday_monthly++;
@@ -1514,8 +1554,15 @@ function extractFromCSV(csvData) {
     // Count standalone injection visits separately
     if (hasStandaloneInjection) {
       if (isWeekend) {
-        if (isWithinWeek) data.injections_weekend_weekly++;
-        if (isWithinMonth) data.injections_weekend_monthly++;
+        console.log(`🔍 WEEKEND INJECTION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${visitServices.length}`);
+        if (isWithinWeek) {
+          data.injections_weekend_weekly++;
+          console.log(`   ✅ Added to injection weekend weekly count (now: ${data.injections_weekend_weekly})`);
+        }
+        if (isWithinMonth) {
+          data.injections_weekend_monthly++;
+          console.log(`   ✅ Added to injection weekend monthly count (now: ${data.injections_weekend_monthly})`);
+        }
       } else {
         if (isWithinWeek) data.injections_weekday_weekly++;
         if (isWithinMonth) data.injections_weekday_monthly++;
@@ -1749,6 +1796,16 @@ function extractFromCSV(csvData) {
       console.log('   Note: This is an estimate. Upload membership Excel file for accurate counts.');
     }
   }
+
+  // Add hormone service data to response
+  data.hormone_followup_female_weekly = hormoneFollowupFemaleWeekly;
+  data.hormone_followup_female_monthly = hormoneFollowupFemaleMonthly;
+  data.hormone_initial_male_weekly = hormoneInitialMaleWeekly;
+  data.hormone_initial_male_monthly = hormoneInitialMaleMonthly;
+  data.hormone_initial_female_weekly = hormoneInitialFemaleWeekly;
+  data.hormone_initial_female_monthly = hormoneInitialFemaleMonthly;
+  data.hormone_followup_male_weekly = hormoneFollowupMaleWeekly;
+  data.hormone_followup_male_monthly = hormoneFollowupMaleMonthly;
 
   return data;
 }
