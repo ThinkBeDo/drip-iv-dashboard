@@ -2875,7 +2875,13 @@ async function runMigrations() {
       'new_individual_members_weekly',
       'new_family_members_weekly',
       'new_concierge_members_weekly',
-      'new_corporate_members_weekly'
+      'new_corporate_members_weekly',
+      'hormone_followup_female_weekly',
+      'hormone_followup_female_monthly',
+      'hormone_initial_male_weekly',
+      'hormone_initial_male_monthly',
+      'hormone_followup_male_weekly',
+      'hormone_followup_male_monthly'
     ];
     
     for (const col of columns) {
