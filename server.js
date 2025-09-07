@@ -566,9 +566,9 @@ function isStandaloneInjection(chargeDesc) {
   // Weight management medications (tracked separately)
   const weightManagementMeds = ['semaglutide', 'tirzepatide'];
   
-  // Return true for standalone injections, but false for weight management
+  // Return false for weight management medications - these should only appear in Weight Management section
   if (weightManagementMeds.some(med => lowerDesc.includes(med))) {
-    return true; // Still counted as injection for service counting, but categorized separately
+    return false; // Weight management medications are NOT counted as regular injections
   }
   
   return standaloneInjections.some(service => lowerDesc.includes(service)) ||

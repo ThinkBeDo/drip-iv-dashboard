@@ -126,7 +126,7 @@ async function testDataCombination() {
       days_left_in_month: Math.max(0, 30 - new Date().getDate()),
       popular_infusions: ['Energy', 'NAD+', 'Performance & Recovery'],
       popular_infusions_status: 'Active',
-      popular_injections: ['Tirzepatide', 'Semaglutide', 'B12'],
+      popular_injections: ['B12', 'Vitamin D', 'Metabolism Boost'],
       popular_injections_status: 'Active'
     };
     

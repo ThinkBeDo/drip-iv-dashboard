@@ -12,7 +12,7 @@ ADD COLUMN IF NOT EXISTS popular_infusions_status VARCHAR(50) DEFAULT 'Active';
 
 -- Add popular_injections column (array of service names)
 ALTER TABLE analytics_data 
-ADD COLUMN IF NOT EXISTS popular_injections TEXT[] DEFAULT ARRAY['Tirzepatide', 'Semaglutide', 'B12'];
+ADD COLUMN IF NOT EXISTS popular_injections TEXT[] DEFAULT ARRAY['B12', 'Vitamin D', 'Metabolism Boost'];
 
 -- Add popular_injections_status column
 ALTER TABLE analytics_data 

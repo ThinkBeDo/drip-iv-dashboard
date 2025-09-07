@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     -- Popular services tracking
     popular_infusions TEXT[] DEFAULT ARRAY['Energy', 'NAD+', 'Performance & Recovery'],
     popular_infusions_status VARCHAR(50) DEFAULT 'Active',
-    popular_injections TEXT[] DEFAULT ARRAY['Tirzepatide', 'Semaglutide', 'B12'],
+    popular_injections TEXT[] DEFAULT ARRAY['B12', 'Vitamin D', 'Metabolism Boost'],
     popular_injections_status VARCHAR(50) DEFAULT 'Active',
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

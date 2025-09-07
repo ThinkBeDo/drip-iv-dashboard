@@ -81,7 +81,7 @@ const correctData = {
   days_left_in_month: 4,
   popular_infusions: ['Energy', 'NAD+', 'Performance & Recovery'],
   popular_infusions_status: 'Active',
-  popular_injections: ['Tirzepatide', 'Semaglutide', 'B12'],
+  popular_injections: ['B12', 'Vitamin D', 'Metabolism Boost'],
   popular_injections_status: 'Active'
 };
 
