@@ -64,7 +64,7 @@ function isStandaloneInjection(chargeDesc) {
 
   // Standalone Injections (count separately)
   const standaloneInjections = [
-    'semaglutide', 'tirzepatide', 'b12 injection', 'metabolism boost injection'
+    'semaglutide', 'tirzepatide', 'b12', 'metabolism boost injection', 'biotin', 'taurine'
   ];
 
   return standaloneInjections.some(service => lowerDesc.includes(service)) ||
@@ -100,6 +100,34 @@ function isConsultationService(chargeDesc) {
 }
 
 function getServiceCategory(chargeDesc) {
+
+  const lowerDesc = chargeDesc.toLowerCase();
+
+  // Weight Management
+  if (
+    lowerDesc.includes('semaglutide') ||
+    lowerDesc.includes('tirzepatide') ||
+    lowerDesc.includes('contrave') ||
+    lowerDesc.includes('weight loss')
+  ) {
+    return 'weight_management';
+  }
+
+  // NAD Categorization
+  if (lowerDesc.includes('nad')) {
+    if (lowerDesc.includes('250mg') || lowerDesc.includes('500mg')) {
+      return 'base_infusion';
+    }
+    if (
+      lowerDesc.includes('50mg') ||
+      lowerDesc.includes('100mg') ||
+      lowerDesc.includes('150mg') ||
+      lowerDesc.includes('200mg')
+    ) {
+      return 'injection';
+    }
+  }
+
   // Check for infusion services FIRST (before membership)
   // This prevents "(Member)" pricing suffixes from triggering membership category
   if (isBaseInfusionService(chargeDesc)) return 'base_infusion';
@@ -1173,7 +1201,7 @@ function analyzeRevenueData(csvData) {
     } else if (serviceCategory === 'injection') {
       // IMPORTANT FIX: Exclude Tirzepatide/Semaglutide from general injection counts
       // These should ONLY appear in Weight Management, not in Injections tile
-      const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide');
+      const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || chargeDesc.toLowerCase().includes('contrave');
 
       if (isCurrentWeek) {
         if (!isWeightLossInjection) {
@@ -1210,7 +1238,7 @@ function analyzeRevenueData(csvData) {
         }
       }
       // IMPORTANT: Check for weight loss services that might not be categorized as injections
-    } else if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide')) {
+    } else if (serviceCategory === 'weight_management') {
       // Count ALL semaglutide/tirzepatide services in Weight Management ONLY - don't add to injection totals
       if (isCurrentWeek) {
         metrics.semaglutide_injections_weekly++;
@@ -1308,7 +1336,7 @@ function analyzeRevenueData(csvData) {
           debugInfo.categoryTotals.iv_therapy += chargeAmount;
         } else if (serviceCategory === 'injection') {
           // IMPORTANT FIX: Don't count Tirzepatide/Semaglutide revenue in general injection revenue
-          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide');
+          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || chargeDesc.toLowerCase().includes('contrave');
 
           if (!isWeightLossInjection) {
             // Only add to general injection revenue if it's NOT a weight loss injection
@@ -1357,7 +1385,7 @@ function analyzeRevenueData(csvData) {
           metrics.drip_iv_revenue_monthly += chargeAmount;
         } else if (serviceCategory === 'injection') {
           // IMPORTANT FIX: Don't count Tirzepatide/Semaglutide revenue in general injection revenue
-          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide');
+          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || chargeDesc.toLowerCase().includes('contrave');
 
           if (!isWeightLossInjection) {
             // Only add to general injection revenue if it's NOT a weight loss injection
