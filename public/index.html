@@ -2102,6 +2102,19 @@
                 setupFileUpload();
                 addInteractiveEffects();
                 initializeDateFilters();
+
+                // Load membership data separately (independent of weekly data)
+                loadMembershipData().then(hasMembership => {
+                    console.log('Membership data loaded:', hasMembership);
+                });
+                        
+                // Load dashboard data with error handling
+                loadDashboardData().catch(error => {
+                    console.error('Failed to load initial dashboard data:', error);
+                    hideLoadingOverlay();
+                    // Ensure dashboard structure is visible even without data
+                    showNoDataState('Dashboard ready. Upload data to view analytics.');
+                });
                 
                 // First check database health
                 checkDatabaseHealth().then(async isHealthy => {
@@ -2114,19 +2127,6 @@
                         } catch (error) {
                             console.log('⚠️ Version endpoint not available (old deployment)');
                         }
-                        
-                        // Load membership data separately (independent of weekly data)
-                        loadMembershipData().then(hasMembership => {
-                            console.log('Membership data loaded:', hasMembership);
-                        });
-                        
-                        // Load dashboard data with error handling
-                        loadDashboardData().catch(error => {
-                            console.error('Failed to load initial dashboard data:', error);
-                            hideLoadingOverlay();
-                            // Ensure dashboard structure is visible even without data
-                            showNoDataState('Dashboard ready. Upload data to view analytics.');
-                        });
                     } else {
                         // Show database status button
                         const statusBtn = document.createElement('button');
