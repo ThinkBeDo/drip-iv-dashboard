@@ -2896,8 +2896,8 @@ async function runMigrations() {
     }
 
     // DELETE ALL DATA AFTER MIGRATION
-    await pool.query('DELETE FROM analytics_data');
-    console.log('🗑️ All records deleted from analytics_data after migration.');
+    // await pool.query('DELETE FROM analytics_data');
+    // console.log('🗑️ All records deleted from analytics_data after migration.');
     
     console.log('✅ Migrations complete');
   } catch (error) {
