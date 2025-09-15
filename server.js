@@ -641,34 +641,78 @@ function isHormoneService(chargeDesc) {
 // Revenue category mapping for Excel processing
 const revenueCategoryMapping = {
   drip_iv_revenue: [
+    // Base IV Therapy Services
     'All Inclusive (Non-Member)', 'Alleviate (Member)', 'Alleviate (Non-Member)',
     'Energy (Non-Member)', 'Hydration (Non-Member)', 'Hydration (member)',
     'Immunity (Member)', 'Immunity (Non-Member)', 'Lux Beauty (Non-Member)',
     'Performance & Recovery (Member)', 'Performance & Recovery (Non-member)',
     'NAD 100mg (Member)', 'NAD 100mg (Non-Member)', 'NAD 150mg (Member)',
     'NAD 200mg (Member)', 'NAD 250mg (Member)', 'NAD 50mg (Non Member)',
-    'Saline 1L (Member)', 'Saline 1L (Non-Member)', 'Met. Boost IV'
+    'Saline 1L (Member)', 'Saline 1L (Non-Member)', 'Met. Boost IV',
+    
+    // IV Add-ons and Injections (previously missing)
+    'Vitamin D3 IM', 'Toradol IM', 'Glutathione IM', 'Zofran IM',
+    'B12 IM', 'Vitamin B Complex IM', 'Biotin IM', 'MIC IM',
+    'Amino Acid IM', 'Magnesium IM', 'Zinc IM', 'Vitamin C IM'
   ],
   semaglutide_revenue: [
     'Semaglutide Monthly', 'Semaglutide Weekly', 'Tirzepatide Monthly', 
     'Tirzepatide Weekly', 'Partner Tirzepatide', 'Weight Loss Program Lab Bundle',
-    'Contrave Office Visit'
+    'Contrave Office Visit', 'Weight Management', 'GLP-1', 'Ozempic', 'Wegovy'
   ],
-  ketamine_revenue: [],
+  ketamine_revenue: [
+    'Ketamine', 'Ketamine Therapy', 'Spravato'
+  ],
   membership_revenue: [
     'Membership - Individual', 'Membership - Family', 'Membership - Family (NEW)', 
     'Family Membership', 'Individual Membership', 'Concierge Membership'
   ],
-  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS', 'Hormones - Follow Up MALES']
+  hormone_revenue: [
+    'Hormones - Follow Up MALES', 'Hormone Therapy', 'HRT', 'Testosterone',
+    'Estrogen', 'Progesterone', 'DHEA', 'Thyroid'
+  ],
+  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS']
 };
 
-// Helper function to categorize revenue based on charge description
+// Revenue categorization patterns for substring matching
+const revenueCategoryPatterns = {
+  drip_iv_revenue: [
+    'iv', 'infusion', 'drip', 'saline', 'nad', 'vitamin', 'immunity', 'energy', 
+    'hydration', 'alleviate', 'performance', 'recovery', 'lux beauty', 'toradol', 
+    'glutathione', 'zofran', 'b12', 'biotin', 'mic', 'amino acid', 'magnesium', 'zinc'
+  ],
+  semaglutide_revenue: [
+    'semaglutide', 'tirzepatide', 'weight loss', 'ozempic', 'wegovy', 'glp-1', 'contrave'
+  ],
+  ketamine_revenue: [
+    'ketamine', 'spravato'
+  ],
+  membership_revenue: [
+    'membership'
+  ],
+  hormone_revenue: [
+    'hormone', 'testosterone', 'estrogen', 'progesterone', 'dhea', 'thyroid', 'hrt'
+  ]
+};
+
+// Enhanced helper function to categorize revenue with exact matching first, then substring matching
 function categorizeRevenue(chargeDesc) {
+  const cleanDesc = chargeDesc.toLowerCase().trim();
+  
+  // First try exact matching (backward compatibility)
   for (const [category, descriptions] of Object.entries(revenueCategoryMapping)) {
     if (descriptions.some(desc => chargeDesc === desc)) {
       return category;
     }
   }
+  
+  // Then try substring pattern matching for better coverage
+  for (const [category, patterns] of Object.entries(revenueCategoryPatterns)) {
+    if (patterns.some(pattern => cleanDesc.includes(pattern))) {
+      return category;
+    }
+  }
+  
   return 'other_revenue'; // Default category
 }
 
@@ -893,6 +937,9 @@ function extractFromExcel(filePath) {
       console.log('   Please verify this is the complete data export.');
     }
     
+    // Track rows processed for validation
+    let rowsProcessed = 0;
+    
     // Skip header row, process all data rows
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
@@ -951,6 +998,9 @@ function extractFromExcel(filePath) {
       
       // Add to total revenue
       extractedData.actual_weekly_revenue += amount;
+      
+      // Increment rows processed counter
+      rowsProcessed++;
     }
     
     // Round all revenue values to 2 decimal places
@@ -968,6 +1018,11 @@ function extractFromExcel(filePath) {
     console.log(`   Ketamine Revenue: $${extractedData.ketamine_revenue_weekly}`);
     console.log(`   Membership Revenue: $${extractedData.membership_revenue_weekly}`);
     console.log(`   Other Revenue: $${extractedData.other_revenue_weekly}`);
+    console.log(`   Rows Processed: ${rowsProcessed}`);
+    
+    // Add validation data
+    extractedData.rows_processed = rowsProcessed;
+    extractedData.total_rows = data.length - 1; // Exclude header row
     
     return extractedData;
     
@@ -988,7 +1043,6 @@ async function parseExcelData(filePath) {
     console.log(`📊 Membership file loaded: ${data.length} records`);
     
     // Initialize membership counts
-    let totalMembers = 0;
     let conciergeMembers = 0;
     let corporateMembers = 0;
     let individualMembers = 0;
@@ -996,11 +1050,17 @@ async function parseExcelData(filePath) {
     let familyConciergeMembers = 0;
     let dripConciergeMembers = 0;
     
-    // Process each row
+    // Track unique patients to avoid duplicates
+    const uniquePatients = new Map();
+    
+    // Process each row for deduplication
     data.forEach((row, index) => {
-      totalMembers++;
+      // Create unique patient identifier using name and email
+      const patientName = (row['Customer'] || row['Name'] || row['Patient'] || '').toString().trim().toLowerCase();
+      const patientEmail = (row['Email'] || row['Email Address'] || '').toString().trim().toLowerCase();
+      const patientKey = patientEmail || patientName || `row_${index}`;
       
-      // Check membership type from the Title column (based on actual file structure)
+      // Get membership type
       const membershipType = (
         row['Title'] || 
         row['Membership Type'] || 
@@ -1008,29 +1068,74 @@ async function parseExcelData(filePath) {
         row['Plan'] || 
         row['Membership'] ||
         ''
-      ).toString().toLowerCase();
+      ).toString().toLowerCase().trim();
       
-      console.log(`Row ${index + 1}: Membership type = "${membershipType}"`);
+      if (index < 5) {
+        console.log(`Row ${index + 1}: Patient="${patientName}", Email="${patientEmail}", Type="${membershipType}"`);
+      }
       
-      if (membershipType.includes('membership - individual') || membershipType.includes('individual')) {
-        individualMembers++;
-      } else if (membershipType.includes('family membership') || 
-                 (membershipType.includes('family') && membershipType.includes('membership'))) {
+      // Check if patient already exists
+      if (!uniquePatients.has(patientKey)) {
+        uniquePatients.set(patientKey, {
+          name: patientName,
+          email: patientEmail,
+          memberships: []
+        });
+      }
+      
+      // Add membership type to patient
+      uniquePatients.get(patientKey).memberships.push(membershipType);
+    });
+    
+    console.log(`📊 Found ${uniquePatients.size} unique patients from ${data.length} records`);
+    
+    // Analyze membership types for each unique patient
+    uniquePatients.forEach((patient, patientKey) => {
+      const allMemberships = patient.memberships.join(' | ');
+      
+      // Determine primary membership classification
+      let hasFamily = false;
+      let hasConcierge = false;
+      let hasIndividual = false;
+      let hasCorporate = false;
+      
+      patient.memberships.forEach(membershipType => {
+        if (membershipType.includes('family')) hasFamily = true;
+        if (membershipType.includes('concierge')) hasConcierge = true;
+        if (membershipType.includes('individual')) hasIndividual = true;
+        if (membershipType.includes('corporate')) hasCorporate = true;
+      });
+      
+      // Classify based on membership combinations
+      if (hasFamily && hasConcierge) {
+        familyConciergeMembers++;
+        console.log(`👥 Family+Concierge: ${patient.name} - ${allMemberships}`);
+      } else if (hasConcierge && (allMemberships.includes('drip') || hasIndividual)) {
+        dripConciergeMembers++;
+        console.log(`💎 Drip+Concierge: ${patient.name} - ${allMemberships}`);
+      } else if (hasFamily) {
         familyMembers++;
-      } else if (membershipType.includes('concierge')) {
+      } else if (hasConcierge) {
         conciergeMembers++;
-      } else if (membershipType.includes('corporate')) {
+      } else if (hasIndividual) {
+        individualMembers++;
+      } else if (hasCorporate) {
         corporateMembers++;
       } else {
-        console.log(`⚠️ Unknown membership type: "${membershipType}"`);
+        individualMembers++; // Default to individual for unknown types
+        console.log(`⚠️ Unknown membership type defaulted to individual: ${patient.name} - ${allMemberships}`);
       }
     });
     
+    const totalMembers = uniquePatients.size;
+    
     console.log('✅ Membership parsing complete:');
-    console.log(`   Total Members: ${totalMembers}`);
+    console.log(`   Total Unique Patients: ${totalMembers}`);
     console.log(`   Individual: ${individualMembers}`);
     console.log(`   Family: ${familyMembers}`);
     console.log(`   Concierge: ${conciergeMembers}`);
+    console.log(`   Family+Concierge: ${familyConciergeMembers}`);
+    console.log(`   Drip+Concierge: ${dripConciergeMembers}`);
     console.log(`   Corporate: ${corporateMembers}`);
     
     return {
@@ -1041,7 +1146,9 @@ async function parseExcelData(filePath) {
       drip_concierge_memberships: dripConciergeMembers,
       concierge_memberships: conciergeMembers,
       corporate_memberships: corporateMembers,
-      raw_data: data
+      raw_data: data,
+      unique_patients: uniquePatients.size,
+      duplicate_records: data.length - uniquePatients.size
     };
     
   } catch (error) {
@@ -3108,6 +3215,72 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     console.log(`   Ketamine Revenue: $${extractedData.ketamine_revenue_weekly}`);
     console.log(`   Membership Revenue: $${extractedData.membership_revenue_weekly}`);
     console.log(`   Other Revenue: $${extractedData.other_revenue_weekly}`);
+
+    // 🔍 DATA VALIDATION CHECKS
+    const validationErrors = [];
+    
+    // Check for minimum data completeness
+    if (extractedData.actual_weekly_revenue <= 0) {
+      validationErrors.push('Total weekly revenue must be greater than $0');
+    }
+    
+    // Check for suspiciously low revenue (likely incomplete data)
+    if (extractedData.actual_weekly_revenue < 1000) {
+      validationErrors.push(`Weekly revenue of $${extractedData.actual_weekly_revenue} seems unusually low. Please verify this is complete weekly data.`);
+    }
+    
+    // Check revenue category distribution (should have some IV revenue typically)
+    if (extractedData.drip_iv_revenue_weekly === 0 && extractedData.actual_weekly_revenue > 1000) {
+      validationErrors.push('No IV therapy revenue detected, but total revenue > $1000. Please verify revenue categorization.');
+    }
+    
+    // Check for data integrity - sum should equal total
+    const categorySum = extractedData.drip_iv_revenue_weekly + 
+                       extractedData.semaglutide_revenue_weekly + 
+                       extractedData.ketamine_revenue_weekly + 
+                       extractedData.membership_revenue_weekly + 
+                       extractedData.other_revenue_weekly;
+    const difference = Math.abs(categorySum - extractedData.actual_weekly_revenue);
+    
+    if (difference > 0.01) { // Allow for small rounding differences
+      validationErrors.push(`Revenue categories ($${categorySum}) don't match total revenue ($${extractedData.actual_weekly_revenue}). Difference: $${difference}`);
+    }
+    
+    // Check for file completeness indicators
+    if (extractedData.rows_processed && extractedData.rows_processed < 10) {
+      validationErrors.push(`Only ${extractedData.rows_processed} data rows processed. This seems low for a weekly revenue report.`);
+    }
+    
+    // Log validation results
+    if (validationErrors.length > 0) {
+      console.log('⚠️ DATA VALIDATION WARNINGS:');
+      validationErrors.forEach((error, index) => {
+        console.log(`   ${index + 1}. ${error}`);
+      });
+      
+      // For severe validation errors, stop the upload
+      const severeErrors = validationErrors.filter(error => 
+        error.includes('must be greater than') || 
+        error.includes("don't match total")
+      );
+      
+      if (severeErrors.length > 0) {
+        // Clean up the uploaded file
+        try {
+          fs.unlinkSync(uploadedFile.path);
+        } catch (cleanupError) {
+          console.warn('Warning: Could not clean up temp file:', cleanupError.message);
+        }
+        
+        return res.status(400).json({ 
+          error: 'Data validation failed',
+          validation_errors: validationErrors,
+          suggestion: 'Please verify the uploaded file contains complete weekly revenue data with proper formatting.'
+        });
+      }
+    } else {
+      console.log('✅ Data validation passed');
+    }
 
     // Store data in database (using similar logic to import-weekly-data)
     if (!pool) {
