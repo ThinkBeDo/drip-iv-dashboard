@@ -512,8 +512,17 @@ async function parsePDFData(filePath) {
   }
 }
 
-// Function to extract analytics data from parsed content
-function extractAnalyticsData(content, isCSV = false) {
+// Function to extract analytics data from parsed content or Excel files
+function extractAnalyticsData(content, isCSV = false, filePath = null) {
+  // Check if we have a file path and it's an Excel file
+  if (filePath) {
+    const fileExt = filePath.toLowerCase();
+    if (fileExt.endsWith('.xls') || fileExt.endsWith('.xlsx')) {
+      console.log('📊 Detected Excel file, using extractFromExcel');
+      return extractFromExcel(filePath);
+    }
+  }
+  
   if (isCSV) {
     // Handle CSV data format
     return extractFromCSV(content);
@@ -627,6 +636,40 @@ function isHormoneService(chargeDesc) {
   ];
   
   return hormoneKeywords.some(keyword => lowerDesc.includes(keyword));
+}
+
+// Revenue category mapping for Excel processing
+const revenueCategoryMapping = {
+  drip_iv_revenue: [
+    'All Inclusive (Non-Member)', 'Alleviate (Member)', 'Alleviate (Non-Member)',
+    'Energy (Non-Member)', 'Hydration (Non-Member)', 'Hydration (member)',
+    'Immunity (Member)', 'Immunity (Non-Member)', 'Lux Beauty (Non-Member)',
+    'Performance & Recovery (Member)', 'Performance & Recovery (Non-member)',
+    'NAD 100mg (Member)', 'NAD 100mg (Non-Member)', 'NAD 150mg (Member)',
+    'NAD 200mg (Member)', 'NAD 250mg (Member)', 'NAD 50mg (Non Member)',
+    'Saline 1L (Member)', 'Saline 1L (Non-Member)', 'Met. Boost IV'
+  ],
+  semaglutide_revenue: [
+    'Semaglutide Monthly', 'Semaglutide Weekly', 'Tirzepatide Monthly', 
+    'Tirzepatide Weekly', 'Partner Tirzepatide', 'Weight Loss Program Lab Bundle',
+    'Contrave Office Visit'
+  ],
+  ketamine_revenue: [],
+  membership_revenue: [
+    'Membership - Individual', 'Membership - Family', 'Membership - Family (NEW)', 
+    'Family Membership', 'Individual Membership', 'Concierge Membership'
+  ],
+  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS', 'Hormones - Follow Up MALES']
+};
+
+// Helper function to categorize revenue based on charge description
+function categorizeRevenue(chargeDesc) {
+  for (const [category, descriptions] of Object.entries(revenueCategoryMapping)) {
+    if (descriptions.some(desc => chargeDesc === desc)) {
+      return category;
+    }
+  }
+  return 'other_revenue'; // Default category
 }
 
 function extractFromPDF(pdfText) {
@@ -787,6 +830,153 @@ function extractFromPDF(pdfText) {
   return data;
 }
 
+// Function to extract analytics data from Excel files (.xls/.xlsx)
+function extractFromExcel(filePath) {
+  try {
+    console.log('Processing Excel file:', filePath);
+    
+    // Check if XLSX module is available
+    if (!XLSX) {
+      throw new Error('XLSX module not available');
+    }
+    
+    // Read Excel file
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Convert to array of arrays, preserving column structure
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    console.log(`📊 Excel file loaded: ${data.length} rows, ${data[0]?.length || 0} columns`);
+    
+    // Initialize data structure matching extractFromPDF format
+    const extractedData = {
+      // Default values matching extractFromPDF structure
+      drip_iv_weekday_weekly: 0,
+      drip_iv_weekend_weekly: 0,
+      semaglutide_consults_weekly: 0,
+      semaglutide_injections_weekly: 0,
+      hormone_followup_female_weekly: 0,
+      hormone_initial_male_weekly: 0,
+      actual_weekly_revenue: 0,
+      weekly_revenue_goal: 0,
+      actual_monthly_revenue: 0,
+      monthly_revenue_goal: 0,
+      drip_iv_revenue_weekly: 0,
+      semaglutide_revenue_weekly: 0,
+      drip_iv_revenue_monthly: 0,
+      semaglutide_revenue_monthly: 0,
+      ketamine_revenue_weekly: 0,
+      membership_revenue_weekly: 0,
+      other_revenue_weekly: 0,
+      total_drip_iv_members: 0,
+      individual_memberships: 0,
+      family_memberships: 0,
+      family_concierge_memberships: 0,
+      drip_concierge_memberships: 0,
+      marketing_initiatives: 0,
+      concierge_memberships: 0,
+      corporate_memberships: 0,
+      days_left_in_month: 0
+    };
+    
+    if (data.length <= 1) {
+      console.log('⚠️ Excel file has no data rows');
+      return extractedData;
+    }
+    
+    // Warn if the file seems to have very little data (less than expected for a full week)
+    if (data.length <= 5) {
+      console.log(`⚠️ WARNING: Excel file has only ${data.length - 1} data rows`);
+      console.log('   This seems unusually small for a weekly revenue report.');
+      console.log('   Please verify this is the complete data export.');
+    }
+    
+    // Skip header row, process all data rows
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      
+      // Extract Column 8 (Charge Desc) and Column 14 (Calculated Payment)
+      // Note: Array is 0-indexed, so Column 8 = index 7, Column 14 = index 13
+      const chargeDesc = row[7]; // Column 8 - "Charge Desc"
+      const paymentAmount = row[13]; // Column 14 - "Calculated Payment (Line)"
+      
+      // Enhanced validation for charge descriptions
+      if (!chargeDesc || chargeDesc === 'undefined' || typeof chargeDesc === 'undefined') {
+        console.log(`⚠️ Row ${i}: Skipping row with missing/undefined charge description`);
+        continue;
+      }
+      
+      if (paymentAmount === undefined || paymentAmount === null || paymentAmount === '') {
+        console.log(`⚠️ Row ${i}: Skipping row with missing payment amount for '${chargeDesc}'`);
+        continue;
+      }
+      
+      // Parse payment amount - handle various formats
+      let amount = 0;
+      if (typeof paymentAmount === 'number') {
+        amount = paymentAmount;
+      } else if (typeof paymentAmount === 'string') {
+        // Remove currency symbols, commas, and parse
+        const cleanAmount = paymentAmount.replace(/[$,]/g, '');
+        amount = parseFloat(cleanAmount);
+      }
+      
+      if (isNaN(amount) || amount <= 0) {
+        continue; // Skip invalid amounts
+      }
+      
+      // Categorize the charge using the revenue mapping
+      const category = categorizeRevenue(chargeDesc);
+      
+      // Add to appropriate revenue category
+      switch (category) {
+        case 'drip_iv_revenue':
+          extractedData.drip_iv_revenue_weekly += amount;
+          break;
+        case 'semaglutide_revenue':
+          extractedData.semaglutide_revenue_weekly += amount;
+          break;
+        case 'ketamine_revenue':
+          extractedData.ketamine_revenue_weekly += amount;
+          break;
+        case 'membership_revenue':
+          extractedData.membership_revenue_weekly += amount;
+          break;
+        case 'other_revenue':
+          extractedData.other_revenue_weekly += amount;
+          break;
+      }
+      
+      // Add to total revenue
+      extractedData.actual_weekly_revenue += amount;
+    }
+    
+    // Round all revenue values to 2 decimal places
+    extractedData.actual_weekly_revenue = Math.round(extractedData.actual_weekly_revenue * 100) / 100;
+    extractedData.drip_iv_revenue_weekly = Math.round(extractedData.drip_iv_revenue_weekly * 100) / 100;
+    extractedData.semaglutide_revenue_weekly = Math.round(extractedData.semaglutide_revenue_weekly * 100) / 100;
+    extractedData.ketamine_revenue_weekly = Math.round(extractedData.ketamine_revenue_weekly * 100) / 100;
+    extractedData.membership_revenue_weekly = Math.round(extractedData.membership_revenue_weekly * 100) / 100;
+    extractedData.other_revenue_weekly = Math.round(extractedData.other_revenue_weekly * 100) / 100;
+    
+    console.log('✅ Excel processing complete:');
+    console.log(`   Total Weekly Revenue: $${extractedData.actual_weekly_revenue}`);
+    console.log(`   Drip IV Revenue: $${extractedData.drip_iv_revenue_weekly}`);
+    console.log(`   Semaglutide Revenue: $${extractedData.semaglutide_revenue_weekly}`);
+    console.log(`   Ketamine Revenue: $${extractedData.ketamine_revenue_weekly}`);
+    console.log(`   Membership Revenue: $${extractedData.membership_revenue_weekly}`);
+    console.log(`   Other Revenue: $${extractedData.other_revenue_weekly}`);
+    
+    return extractedData;
+    
+  } catch (error) {
+    console.error('❌ Error processing Excel file:', error.message);
+    throw new Error(`Failed to process Excel file: ${error.message}`);
+  }
+}
+
 // Function to parse Excel membership data
 async function parseExcelData(filePath) {
   try {
@@ -794,6 +984,8 @@ async function parseExcelData(filePath) {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     const data = XLSX.utils.sheet_to_json(worksheet);
+    
+    console.log(`📊 Membership file loaded: ${data.length} records`);
     
     // Initialize membership counts
     let totalMembers = 0;
@@ -805,11 +997,12 @@ async function parseExcelData(filePath) {
     let dripConciergeMembers = 0;
     
     // Process each row
-    data.forEach(row => {
+    data.forEach((row, index) => {
       totalMembers++;
       
-      // Check membership type from various possible column names
+      // Check membership type from the Title column (based on actual file structure)
       const membershipType = (
+        row['Title'] || 
         row['Membership Type'] || 
         row['Type'] || 
         row['Plan'] || 
@@ -817,20 +1010,28 @@ async function parseExcelData(filePath) {
         ''
       ).toString().toLowerCase();
       
-      if (membershipType.includes('individual')) {
+      console.log(`Row ${index + 1}: Membership type = "${membershipType}"`);
+      
+      if (membershipType.includes('membership - individual') || membershipType.includes('individual')) {
         individualMembers++;
-      } else if (membershipType.includes('family') && membershipType.includes('concierge')) {
-        familyConciergeMembers++;
-      } else if (membershipType.includes('family')) {
+      } else if (membershipType.includes('family membership') || 
+                 (membershipType.includes('family') && membershipType.includes('membership'))) {
         familyMembers++;
-      } else if (membershipType.includes('concierge') && membershipType.includes('drip')) {
-        dripConciergeMembers++;
       } else if (membershipType.includes('concierge')) {
         conciergeMembers++;
       } else if (membershipType.includes('corporate')) {
         corporateMembers++;
+      } else {
+        console.log(`⚠️ Unknown membership type: "${membershipType}"`);
       }
     });
+    
+    console.log('✅ Membership parsing complete:');
+    console.log(`   Total Members: ${totalMembers}`);
+    console.log(`   Individual: ${individualMembers}`);
+    console.log(`   Family: ${familyMembers}`);
+    console.log(`   Concierge: ${conciergeMembers}`);
+    console.log(`   Corporate: ${corporateMembers}`);
     
     return {
       total_drip_iv_members: totalMembers,
@@ -2860,6 +3061,134 @@ app.post('/api/import-weekly-data', upload.fields([
   }
 });
 
+// Upload endpoint for Excel revenue files - processes Excel files directly with revenue categorization
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  console.log('\n=== EXCEL UPLOAD REQUEST ===');
+  console.log('Timestamp:', new Date().toISOString());
+  
+  try {
+    if (!req.file) {
+      console.log('❌ No file provided in request');
+      return res.status(400).json({ 
+        error: 'File is required',
+        received: !!req.file
+      });
+    }
+
+    const uploadedFile = req.file;
+    console.log('📁 File received:', uploadedFile.originalname);
+    console.log('📄 File path:', uploadedFile.path);
+    console.log('📏 File size:', uploadedFile.size, 'bytes');
+
+    // Check if it's an Excel file
+    const fileExt = uploadedFile.originalname.toLowerCase();
+    if (!fileExt.endsWith('.xls') && !fileExt.endsWith('.xlsx')) {
+      // Clean up the uploaded file
+      try {
+        fs.unlinkSync(uploadedFile.path);
+      } catch (cleanupError) {
+        console.warn('Warning: Could not clean up temp file:', cleanupError.message);
+      }
+      
+      return res.status(400).json({ 
+        error: 'Only Excel files (.xls, .xlsx) are supported',
+        receivedExtension: fileExt 
+      });
+    }
+
+    // Process Excel file using our extractFromExcel function
+    console.log('📊 Processing Excel file for revenue categorization...');
+    const extractedData = extractFromExcel(uploadedFile.path);
+    
+    console.log('✅ Excel processing completed');
+    console.log('📈 Revenue breakdown:');
+    console.log(`   Total Weekly Revenue: $${extractedData.actual_weekly_revenue}`);
+    console.log(`   Drip IV Revenue: $${extractedData.drip_iv_revenue_weekly}`);
+    console.log(`   Semaglutide Revenue: $${extractedData.semaglutide_revenue_weekly}`);
+    console.log(`   Ketamine Revenue: $${extractedData.ketamine_revenue_weekly}`);
+    console.log(`   Membership Revenue: $${extractedData.membership_revenue_weekly}`);
+    console.log(`   Other Revenue: $${extractedData.other_revenue_weekly}`);
+
+    // Store data in database (using similar logic to import-weekly-data)
+    if (!pool) {
+      throw new Error('Database connection not available');
+    }
+
+    // Insert or update analytics data
+    const insertQuery = `
+      INSERT INTO analytics_data (
+        actual_weekly_revenue, drip_iv_revenue_weekly, semaglutide_revenue_weekly, 
+        ketamine_revenue_weekly, membership_revenue_weekly, other_revenue_weekly,
+        week_start_date, week_end_date, upload_date
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      RETURNING id
+    `;
+    
+    // Use current week dates (can be enhanced to parse from Excel if needed)
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+    
+    const result = await pool.query(insertQuery, [
+      extractedData.actual_weekly_revenue,
+      extractedData.drip_iv_revenue_weekly, 
+      extractedData.semaglutide_revenue_weekly,
+      extractedData.ketamine_revenue_weekly,
+      extractedData.membership_revenue_weekly,
+      extractedData.other_revenue_weekly,
+      weekStart.toISOString().split('T')[0],
+      weekEnd.toISOString().split('T')[0]
+    ]);
+    
+    console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
+
+    // Clean up uploaded file
+    try {
+      fs.unlinkSync(uploadedFile.path);
+      console.log('🧹 Temporary file cleaned up');
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp file:', cleanupError.message);
+    }
+
+    res.json({
+      success: true,
+      message: 'Excel file processed and revenue data categorized successfully',
+      data: {
+        totalWeeklyRevenue: extractedData.actual_weekly_revenue,
+        dripIvRevenue: extractedData.drip_iv_revenue_weekly,
+        semaglutideRevenue: extractedData.semaglutide_revenue_weekly,
+        ketamineRevenue: extractedData.ketamine_revenue_weekly,
+        membershipRevenue: extractedData.membership_revenue_weekly,
+        otherRevenue: extractedData.other_revenue_weekly,
+        weekStart: weekStart.toISOString().split('T')[0],
+        weekEnd: weekEnd.toISOString().split('T')[0],
+        recordId: result.rows[0].id
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Upload processing failed:', error.message);
+    console.error('Stack trace:', error.stack);
+    
+    // Clean up file on error
+    try {
+      if (req.file?.path) {
+        fs.unlinkSync(req.file.path);
+        console.log('🧹 Temporary file cleaned up after error');
+      }
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp file on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to process Excel file',
+      details: error.message 
+    });
+  }
+});
+
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
@@ -2884,10 +3213,30 @@ async function runMigrations() {
       'hormone_followup_male_monthly'
     ];
     
+    // Add revenue columns with proper data type
+    const revenueColumns = [
+      'membership_revenue_weekly',
+      'membership_revenue_monthly',
+      'other_revenue_weekly',
+      'other_revenue_monthly'
+    ];
+    
     for (const col of columns) {
       try {
         await pool.query(`ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS ${col} INTEGER DEFAULT 0`);
         console.log(`   ✅ Column ${col} verified`);
+      } catch (err) {
+        if (!err.message.includes('already exists')) {
+          console.error(`   ⚠️ Could not add ${col}: ${err.message}`);
+        }
+      }
+    }
+    
+    // Add revenue columns with DECIMAL data type for proper monetary values
+    for (const col of revenueColumns) {
+      try {
+        await pool.query(`ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS ${col} DECIMAL(10,2) DEFAULT 0.00`);
+        console.log(`   ✅ Revenue column ${col} verified`);
       } catch (err) {
         if (!err.message.includes('already exists')) {
           console.error(`   ⚠️ Could not add ${col}: ${err.message}`);
