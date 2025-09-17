@@ -3417,6 +3417,19 @@ async function runMigrations() {
       }
     }
 
+    // Add membership_history table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS membership_history (
+        member_id TEXT PRIMARY KEY,
+        member_type TEXT,
+        first_seen DATE,
+        last_seen DATE,
+        cancelled DATE,
+        active BOOLEAN DEFAULT true
+      )
+    `);
+    console.log('✅ membership_history table verified');
+
     // DELETE ALL DATA AFTER MIGRATION
     // await pool.query('DELETE FROM analytics_data');
     // console.log('🗑️ All records deleted from analytics_data after migration.');

@@ -5,6 +5,7 @@ const csvParser = require('csv-parser');
 const XLSX = require('xlsx');
 const iconv = require('iconv-lite');
 const { parse } = require('csv-parse/sync');
+const { Console } = require('console');
 require('dotenv').config();
 
 // Database pool will be passed from server.js to avoid multiple connections
@@ -747,9 +748,10 @@ async function processRevenueData(csvFilePath) {
       console.log(`Successfully parsed ${records.length} rows from CSV`);
 
       // Analyze the parsed data
-      const analyzedData = analyzeRevenueData(records);
-      resolve(analyzedData);
+      // const analyzedData = analyzeRevenueData(records);
+      // resolve(analyzedData);
 
+      resolve({ metrics: analyzeRevenueData(records), rawRows: records });
     } catch (error) {
       console.error('Error parsing CSV file:', error);
       reject(new Error(`Failed to parse CSV file: ${error.message}`));
@@ -1500,7 +1502,9 @@ async function processMembershipData(excelFilePath) {
   const workbook = XLSX.readFile(excelFilePath);
   const sheetName = workbook.SheetNames[ 0 ];
   const worksheet = workbook.Sheets[ sheetName ];
-  const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+  //const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+  // Use header row for keys
+  const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
   // Initialize membership counts
   const membershipTotals = {
@@ -1514,13 +1518,34 @@ async function processMembershipData(excelFilePath) {
     marketing_initiatives: 0
   };
 
-  // Process membership data (column 4 contains membership types)
-  for (let i = 0; i < data.length; i++) {
-    const row = data[ i ];
-    if (row && row[ 4 ]) { // Column 4 contains membership type
-      const membershipType = row[ 4 ].toString().toLowerCase();
-      membershipTotals.total_drip_iv_members++;
+  // // Process membership data (column 4 contains membership types)
+  // for (let i = 0; i < data.length; i++) {
+  //   const row = data[ i ];
+  //   if (row && row[ 4 ]) { // Column 4 contains membership type
+  //     const membershipType = row[ 4 ].toString().toLowerCase();
+  //     membershipTotals.total_drip_iv_members++;
 
+  //     if (membershipType.includes('individual')) {
+  //       membershipTotals.individual_memberships++;
+  //     } else if (membershipType.includes('family') && membershipType.includes('concierge')) {
+  //       membershipTotals.family_concierge_memberships++;
+  //     } else if (membershipType.includes('family')) {
+  //       membershipTotals.family_memberships++;
+  //     } else if (membershipType.includes('concierge') && membershipType.includes('drip')) {
+  //       membershipTotals.drip_concierge_memberships++;
+  //     } else if (membershipType.includes('concierge')) {
+  //       membershipTotals.concierge_memberships++;
+  //     } else if (membershipType.includes('corporate')) {
+  //       membershipTotals.corporate_memberships++;
+  //     }
+  //   }
+  // }
+
+  // Process membership data using column names
+  for (const row of data) {
+    const membershipType = (row['Title'] || '').toLowerCase();
+    if (membershipType) {
+      membershipTotals.total_drip_iv_members++;
       if (membershipType.includes('individual')) {
         membershipTotals.individual_memberships++;
       } else if (membershipType.includes('family') && membershipType.includes('concierge')) {
@@ -1538,7 +1563,9 @@ async function processMembershipData(excelFilePath) {
   }
 
   console.log('Membership analysis complete:', membershipTotals);
-  return membershipTotals;
+  // return membershipTotals;
+  // Return both metrics and raw rows
+  return { metrics: membershipTotals, rawRows: data };
 }
 
 // Main import function
@@ -1615,16 +1642,22 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     };
 
     // Process revenue data if file is provided
+    let revenueRows = [];
     if (revenueFilePath) {
       // processRevenueData now returns analyzed metrics directly
-      revenueMetrics = await processRevenueData(revenueFilePath);
+      const result = await processRevenueData(revenueFilePath);
+      revenueMetrics = result.metrics;
+      revenueRows = result.rawRows;
     } else {
       console.log('No revenue file provided, using default revenue metrics');
     }
 
     // Process membership data if file is provided
+    let membershipRows = [];
     if (membershipFilePath) {
-      membershipMetrics = await processMembershipData(membershipFilePath);
+      const result = await processMembershipData(membershipFilePath);
+      membershipMetrics = result.metrics;
+      membershipRows = result.rawRows;
     } else {
       console.log('No membership file provided, using default membership metrics');
     }
@@ -1774,6 +1807,21 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     const client = await pool.connect();
     console.log('✅ Database client acquired from pool');
     try {
+
+      // Added By Kenson
+      // Update membership history before saving analytics
+      const { newMembers, cancelledMembers, reactivatedMembers } =
+        await updateMembershipHistory(
+          client,
+          membershipRows,
+          revenueRows,
+          combinedData.week_start_date,
+          combinedData.week_end_date
+        );
+
+      // Optionally, use these counts to override metrics in combinedData
+      combinedData.new_individual_members_weekly = newMembers;
+
       // Check if data already exists for this week
       console.log(`📅 Checking for existing data: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
 
@@ -2036,4 +2084,79 @@ if (require.main === module) {
       console.error('Import failed:', error);
       process.exit(1);
     });
+}
+
+// Added By Kenson
+// Integrate membership and revenue files to update membership history
+async function updateMembershipHistory(client, membershipRows, revenueRows, weekStartDate, weekEndDate) {
+  // Build set of current members from membership file
+  const currentMembers = new Set(
+    membershipRows.map(row => (row['Patient'] || row['Name'] || '').trim().toLowerCase())
+  );
+
+  // Fetch all existing members from history
+  const res = await client.query('SELECT * FROM membership_history');
+  const existing = new Map(res.rows.map(r => [r.member_id, r]));
+
+  let newMembers = 0, cancelledMembers = 0, reactivatedMembers = 0;
+
+  // Process revenue file for new sign-ups
+  for (const row of revenueRows) {
+    const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
+    const patient = (row['Patient'] || '').trim().toLowerCase();
+    const date = parseDate(row['Date Of Payment'] || row['Date']);
+    if (!date || date < weekStartDate || date > weekEndDate) continue;
+
+    if (chargeDesc.includes('membership') && !currentMembers.has(patient)) {
+      // New sign-up detected in revenue file
+      if (!existing.has(patient)) {
+        await client.query(
+          `INSERT INTO membership_history (member_id, member_type, first_seen, last_seen, active)
+           VALUES ($1, $2, $3, $3, true)`,
+          [patient, chargeDesc, weekStartDate]
+        );
+        newMembers++;
+      }
+    }
+  }
+
+  // Process current members for reactivation/update
+  for (const id of currentMembers) {
+    if (!existing.has(id)) {
+      // New member from membership file (not seen before)
+      await client.query(
+        `INSERT INTO membership_history (member_id, member_type, first_seen, last_seen, active)
+         VALUES ($1, $2, $3, $3, true)`,
+        [id, '', weekStartDate]
+      );
+      newMembers++;
+    } else {
+      const prev = existing.get(id);
+      if (!prev.active) {
+        await client.query(
+          `UPDATE membership_history SET last_seen=$2, active=true, cancelled=NULL WHERE member_id=$1`,
+          [id, weekStartDate]
+        );
+        reactivatedMembers++;
+      } else {
+        await client.query(
+          `UPDATE membership_history SET last_seen=$2 WHERE member_id=$1`,
+          [id, weekStartDate]
+        );
+      }
+    }
+  }
+
+  // Process cancellations (members missing this week)
+  for (const [id, prev] of existing.entries()) {
+    if (!currentMembers.has(id) && prev.active) {
+      await client.query(
+        `UPDATE membership_history SET active=false, cancelled=$2 WHERE member_id=$1`,
+        [id, weekStartDate]
+      );
+      cancelledMembers++;
+    }
+  }
+
+  return { newMembers, cancelledMembers, reactivatedMembers };
 }
