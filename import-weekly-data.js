@@ -1331,12 +1331,15 @@ function analyzeRevenueData(csvData) {
       if (isCurrentWeek) {
         metrics.semaglutide_injections_weekly++;
         metrics.weight_loss_injections_weekly++;
-        // REMOVED: Don't count these in general injection totals anymore
+        // FIX: Add missing revenue tracking for weight management services
+        metrics.semaglutide_revenue_weekly += chargeAmount;
+        debugInfo.categoryTotals.weight_loss += chargeAmount;
       }
       if (isCurrentMonth) {
         metrics.semaglutide_injections_monthly++;
         metrics.weight_loss_injections_monthly++;
-        // REMOVED: Don't count these in general injection totals anymore
+        // FIX: Add missing revenue tracking for weight management services
+        metrics.semaglutide_revenue_monthly += chargeAmount;
       }
     } else if (serviceCategory === 'consultation') {
       // Track consultations
