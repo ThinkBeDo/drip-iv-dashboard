@@ -199,6 +199,92 @@ function isWeekend(date) {
   return dayOfWeek === 0 || dayOfWeek === 6; // Sunday = 0, Saturday = 6
 }
 
+// Week window calculation helper
+function getWeekWindow(now = new Date(), weekStartsOn = 1 /* Mon */) {
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const todayDow = (d.getUTCDay() + 7 - weekStartsOn) % 7;
+  const startThis = new Date(d); startThis.setUTCDate(d.getUTCDate() - todayDow);
+  const startPrev = new Date(startThis); startPrev.setUTCDate(startThis.getUTCDate() - 7);
+  const endPrev = new Date(startThis); endPrev.setUTCDate(startThis.getUTCDate() - 1);
+  endPrev.setUTCHours(23,59,59,999);
+  return { startPrev, endPrev };
+}
+
+// Compute new memberships from Active Memberships upload
+async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
+  const { startPrev } = getWeekWindow(now, 1);
+  const startPrevDate = new Date(startPrev);
+
+  const counters = {
+    new_individual_members_weekly: 0,
+    new_family_members_weekly: 0,
+    new_concierge_members_weekly: 0,
+    new_corporate_members_weekly: 0,
+  };
+
+  console.log(`🔍 Processing ${rows.length} membership rows for new signups`);
+  console.log(`   Week boundary: ${startPrevDate.toISOString().split('T')[0]} (previous week or future)`);
+
+  for (const r of rows) {
+    const patient = String(r.Patient || '').trim();
+    const titleRaw = String(r.Title || '').trim();
+    const startDate = r['Start Date'] ? new Date(r['Start Date']) : null;
+
+    // Skip invalid entries
+    if (!patient || !titleRaw || !startDate || Number.isNaN(startDate.getTime())) {
+      continue;
+    }
+
+    // Only count memberships with Start Date >= previous week
+    if (startDate < startPrevDate) {
+      continue;
+    }
+
+    // Normalize membership type from Title
+    const t = titleRaw.toLowerCase();
+    let membershipType = null;
+    if (t.includes('individual')) membershipType = 'individual';
+    else if (t.includes('family')) membershipType = 'family';
+    else if (t.includes('concierge')) membershipType = 'concierge';
+    else if (t.includes('corporate')) membershipType = 'corporate';
+    
+    if (!membershipType) {
+      continue; // Skip if not a recognized membership type
+    }
+
+    // Build unique member key
+    const memberKey = `${patient.toLowerCase()}|${membershipType}`;
+
+    // Check if this membership already exists in registry
+    const exists = await db.oneOrNone(
+      'SELECT 1 FROM membership_registry WHERE member_key = $1',
+      [memberKey]
+    );
+    
+    if (exists) {
+      continue; // Already counted this membership
+    }
+
+    // Insert into registry and increment counter
+    await db.none(
+      `INSERT INTO membership_registry (member_key, patient, membership_type, title_raw, start_date, first_seen_week)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [memberKey, patient, membershipType, titleRaw, startDate, startPrevDate]
+    );
+
+    // Increment appropriate counter
+    switch (membershipType) {
+      case 'individual': counters.new_individual_members_weekly++; break;
+      case 'family': counters.new_family_members_weekly++; break;
+      case 'concierge': counters.new_concierge_members_weekly++; break;
+      case 'corporate': counters.new_corporate_members_weekly++; break;
+    }
+  }
+
+  console.log('✅ New membership counts:', counters);
+  return counters;
+}
+
 // Process revenue data from CSV or MHTML
 async function processRevenueData(csvFilePath) {
   console.log('Processing revenue data from:', csvFilePath);
@@ -1808,19 +1894,46 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     console.log('✅ Database client acquired from pool');
     try {
 
-      // Added By Kenson
-      // Update membership history before saving analytics
-      const { newMembers, cancelledMembers, reactivatedMembers } =
-        await updateMembershipHistory(
-          client,
-          membershipRows,
-          revenueRows,
-          combinedData.week_start_date,
-          combinedData.week_end_date
-        );
+      // NEW REGISTRY-BASED MEMBERSHIP TRACKING
+      // Process membership data using the new registry to prevent double counting
+      let newMembershipCounts = {
+        new_individual_members_weekly: 0,
+        new_family_members_weekly: 0,
+        new_concierge_members_weekly: 0,
+        new_corporate_members_weekly: 0,
+      };
 
-      // Optionally, use these counts to override metrics in combinedData
-      combinedData.new_individual_members_weekly = newMembers;
+      if (membershipRows && membershipRows.length > 0) {
+        console.log('🔄 Processing memberships using registry-based tracking...');
+        
+        // Ensure membership_registry table exists
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS membership_registry (
+            member_key TEXT PRIMARY KEY,
+            patient TEXT NOT NULL,
+            membership_type TEXT NOT NULL,
+            title_raw TEXT NOT NULL,
+            start_date DATE NOT NULL,
+            first_seen_week DATE NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW()
+          )
+        `);
+        
+        // Create indexes if they don't exist
+        await client.query('CREATE INDEX IF NOT EXISTS idx_membership_registry_type ON membership_registry (membership_type)');
+        await client.query('CREATE INDEX IF NOT EXISTS idx_membership_registry_first_seen ON membership_registry (first_seen_week)');
+        
+        // Use the new registry-based counting function
+        newMembershipCounts = await computeNewMembershipsFromUpload(membershipRows, client);
+      } else {
+        console.log('📝 No membership rows provided, using zero counts');
+      }
+
+      // Update combined data with registry-based counts
+      combinedData.new_individual_members_weekly = newMembershipCounts.new_individual_members_weekly;
+      combinedData.new_family_members_weekly = newMembershipCounts.new_family_members_weekly;
+      combinedData.new_concierge_members_weekly = newMembershipCounts.new_concierge_members_weekly;
+      combinedData.new_corporate_members_weekly = newMembershipCounts.new_corporate_members_weekly;
 
       // Check if data already exists for this week
       console.log(`📅 Checking for existing data: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
@@ -2062,7 +2175,9 @@ module.exports = {
   importWeeklyData,
   processRevenueData,
   processMembershipData,
-  analyzeRevenueData
+  analyzeRevenueData,
+  getWeekWindow,
+  computeNewMembershipsFromUpload
 };
 
 // CLI usage
