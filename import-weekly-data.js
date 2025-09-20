@@ -210,6 +210,13 @@ function getWeekWindow(now = new Date(), weekStartsOn = 1 /* Mon */) {
   return { startPrev, endPrev };
 }
 
+// Add an datetime serializer converting to date figure
+function excelSerialToDate(serial) {
+  const utc_days = serial - 25569;
+  const utc_value = utc_days * 86400;
+  return new Date(utc_value * 1000);
+}
+
 // Compute new memberships from Active Memberships upload
 async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
   const { startPrev } = getWeekWindow(now, 1);
@@ -225,20 +232,36 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
   console.log(`🔍 Processing ${rows.length} membership rows for new signups`);
   console.log(`   Week boundary: ${startPrevDate.toISOString().split('T')[0]} (previous week or future)`);
 
+  // Insert or update membership_registry
+  const client = await pool.connect();
+
   for (const r of rows) {
     const patient = String(r.Patient || '').trim();
     const titleRaw = String(r.Title || '').trim();
-    const startDate = r['Start Date'] ? new Date(r['Start Date']) : null;
+    let startDate = r['Start Date'] ? new Date(r['Start Date']) : null;
+
+    if (r['Start Date']) {
+      if (typeof r['Start Date'] === 'number') {
+        startDate = excelSerialToDate(r['Start Date']);
+      } else {
+        startDate = new Date(r['Start Date']);
+      }
+    }
+
+    // Debug: Show raw values
+    console.log('Row:', { patient, titleRaw, rawStartDate: r['Start Date'], startDate });
 
     // Skip invalid entries
     if (!patient || !titleRaw || !startDate || Number.isNaN(startDate.getTime())) {
+      console.log('Skipping: missing required fields or invalid date');
       continue;
     }
 
     // Only count memberships with Start Date >= previous week
-    if (startDate < startPrevDate) {
-      continue;
-    }
+    // if (startDate < startPrevDate) {
+    //   console.log(`Skipping: Start Date (${startDate.toISOString().split('T')[0]}) before week boundary (${startPrevDate.toISOString().split('T')[0]})`);
+    //   continue;
+    // }
 
     // Normalize membership type from Title
     const t = titleRaw.toLowerCase();
@@ -249,6 +272,7 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
     else if (t.includes('corporate')) membershipType = 'corporate';
     
     if (!membershipType) {
+      console.log(`Skipping: Unrecognized membership type for patient "${patient}" with title "${titleRaw}"`);
       continue; // Skip if not a recognized membership type
     }
 
@@ -256,17 +280,18 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
     const memberKey = `${patient.toLowerCase()}|${membershipType}`;
 
     // Check if this membership already exists in registry
-    const exists = await db.oneOrNone(
+    const exists = await client.query(
       'SELECT 1 FROM membership_registry WHERE member_key = $1',
       [memberKey]
     );
     
-    if (exists) {
+    if (exists.rows.length > 0) {
+      console.log(`Skipping: Already counted membership for "${patient}" (${memberKey})`);
       continue; // Already counted this membership
     }
 
     // Insert into registry and increment counter
-    await db.none(
+    await client.query(
       `INSERT INTO membership_registry (member_key, patient, membership_type, title_raw, start_date, first_seen_week)
        VALUES ($1,$2,$3,$4,$5,$6)`,
       [memberKey, patient, membershipType, titleRaw, startDate, startPrevDate]
@@ -2202,79 +2227,4 @@ if (require.main === module) {
       console.error('Import failed:', error);
       process.exit(1);
     });
-}
-
-// Added By Kenson
-// Integrate membership and revenue files to update membership history
-async function updateMembershipHistory(client, membershipRows, revenueRows, weekStartDate, weekEndDate) {
-  // Build set of current members from membership file
-  const currentMembers = new Set(
-    membershipRows.map(row => (row['Patient'] || row['Name'] || '').trim().toLowerCase())
-  );
-
-  // Fetch all existing members from history
-  const res = await client.query('SELECT * FROM membership_history');
-  const existing = new Map(res.rows.map(r => [r.member_id, r]));
-
-  let newMembers = 0, cancelledMembers = 0, reactivatedMembers = 0;
-
-  // Process revenue file for new sign-ups
-  for (const row of revenueRows) {
-    const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
-    const patient = (row['Patient'] || '').trim().toLowerCase();
-    const date = parseDate(row['Date Of Payment'] || row['Date']);
-    if (!date || date < weekStartDate || date > weekEndDate) continue;
-
-    if (chargeDesc.includes('membership') && !currentMembers.has(patient)) {
-      // New sign-up detected in revenue file
-      if (!existing.has(patient)) {
-        await client.query(
-          `INSERT INTO membership_history (member_id, member_type, first_seen, last_seen, active)
-           VALUES ($1, $2, $3, $3, true)`,
-          [patient, chargeDesc, weekStartDate]
-        );
-        newMembers++;
-      }
-    }
-  }
-
-  // Process current members for reactivation/update
-  for (const id of currentMembers) {
-    if (!existing.has(id)) {
-      // New member from membership file (not seen before)
-      await client.query(
-        `INSERT INTO membership_history (member_id, member_type, first_seen, last_seen, active)
-         VALUES ($1, $2, $3, $3, true)`,
-        [id, '', weekStartDate]
-      );
-      newMembers++;
-    } else {
-      const prev = existing.get(id);
-      if (!prev.active) {
-        await client.query(
-          `UPDATE membership_history SET last_seen=$2, active=true, cancelled=NULL WHERE member_id=$1`,
-          [id, weekStartDate]
-        );
-        reactivatedMembers++;
-      } else {
-        await client.query(
-          `UPDATE membership_history SET last_seen=$2 WHERE member_id=$1`,
-          [id, weekStartDate]
-        );
-      }
-    }
-  }
-
-  // Process cancellations (members missing this week)
-  for (const [id, prev] of existing.entries()) {
-    if (!currentMembers.has(id) && prev.active) {
-      await client.query(
-        `UPDATE membership_history SET active=false, cancelled=$2 WHERE member_id=$1`,
-        [id, weekStartDate]
-      );
-      cancelledMembers++;
-    }
-  }
-
-  return { newMembers, cancelledMembers, reactivatedMembers };
 }
