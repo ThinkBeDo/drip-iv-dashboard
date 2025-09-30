@@ -658,7 +658,7 @@ const revenueCategoryMapping = {
   semaglutide_revenue: [
     'Semaglutide Monthly', 'Semaglutide Weekly', 'Tirzepatide Monthly', 
     'Tirzepatide Weekly', 'Partner Tirzepatide', 'Weight Loss Program Lab Bundle',
-    'Contrave Office Visit', 'Weight Management', 'GLP-1', 'Ozempic', 'Wegovy'
+    'Weight Management', 'GLP-1', 'Ozempic', 'Wegovy'
   ],
   ketamine_revenue: [
     'Ketamine', 'Ketamine Therapy', 'Spravato'
@@ -671,7 +671,7 @@ const revenueCategoryMapping = {
     'Hormones - Follow Up MALES', 'Hormone Therapy', 'HRT', 'Testosterone',
     'Estrogen', 'Progesterone', 'DHEA', 'Thyroid'
   ],
-  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS']
+  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS', 'Contrave Office Visit']
 };
 
 // Revenue categorization patterns for substring matching
@@ -944,10 +944,10 @@ function extractFromExcel(filePath) {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       
-      // Extract Column 8 (Charge Desc) and Column 14 (Calculated Payment)
-      // Note: Array is 0-indexed, so Column 8 = index 7, Column 14 = index 13
-      const chargeDesc = row[7]; // Column 8 - "Charge Desc"
-      const paymentAmount = row[13]; // Column 14 - "Calculated Payment (Line)"
+      // Extract Column 9 (Charge Desc) and Column 15 (Calculated Payment)
+      // Note: Array is 0-indexed, so Column 9 = index 8, Column 15 = index 14
+      const chargeDesc = row[8]; // Column 9 - "Charge Desc"
+      const paymentAmount = row[14]; // Column 15 - "Calculated Payment (Line)"
       
       // Enhanced validation for charge descriptions
       if (!chargeDesc || chargeDesc === 'undefined' || typeof chargeDesc === 'undefined') {
