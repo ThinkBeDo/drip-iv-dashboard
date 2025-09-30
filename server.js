@@ -1291,7 +1291,7 @@ function extractFromCSV(csvData) {
     dripConcierge: new Set()
   };
   
-  // Track new weekly membership signups - based on date within current week
+  // Track new weekly membership signups - based on "(NEW)" in Charge Desc
   const newMembershipCounts = {
     individual: new Set(),
     family: new Set(),
@@ -1445,6 +1445,9 @@ function extractFromCSV(csvData) {
       console.log(`Found membership indicator: "${chargeDesc}" for patient: "${patient}"`);
     }
     
+    // Check if this is a NEW membership signup (has "(NEW)" in Charge Desc)
+    const isNewMembership = chargeDesc.toUpperCase().includes('(NEW)');
+    
     // Map membership types based on charge descriptions - more flexible matching
     // Individual membership variations
     if ((chargeDescLower.includes('individual') && chargeDescLower.includes('membership')) ||
@@ -1452,9 +1455,10 @@ function extractFromCSV(csvData) {
         chargeDescLower === 'individual membership' ||
         chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      if (isWithinDataWeek) {
+      // Only count as NEW if it has "(NEW)" in the description
+      if (isNewMembership) {
         newMembershipCounts.individual.add(patient);
-        console.log(`New individual membership this week: ${patient} on ${dateStr}`);
+        console.log(`✓ NEW individual membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
     }
     // Family membership variations (excluding concierge combos)
@@ -1463,9 +1467,10 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'membership family' ||
              chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      if (isWithinDataWeek) {
+      // Only count as NEW if it has "(NEW)" in the description
+      if (isNewMembership) {
         newMembershipCounts.family.add(patient);
-        console.log(`New family membership this week: ${patient} on ${dateStr}`);
+        console.log(`✓ NEW family membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
     }
     // Family with Concierge combo
@@ -1488,9 +1493,10 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'concierge membership' ||
              chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      if (isWithinDataWeek) {
+      // Only count as NEW if it has "(NEW)" in the description
+      if (isNewMembership) {
         newMembershipCounts.concierge.add(patient);
-        console.log(`New concierge membership this week: ${patient} on ${dateStr}`);
+        console.log(`✓ NEW concierge membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
     }
     // Corporate membership variations
@@ -1499,9 +1505,10 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'corporate membership' ||
              chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      if (isWithinDataWeek) {
+      // Only count as NEW if it has "(NEW)" in the description
+      if (isNewMembership) {
         newMembershipCounts.corporate.add(patient);
-        console.log(`New corporate membership this week: ${patient} on ${dateStr}`);
+        console.log(`✓ NEW corporate membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
     }
   });
@@ -1533,6 +1540,14 @@ function extractFromCSV(csvData) {
   data.new_family_members_weekly = newMembershipCounts.family.size;
   data.new_concierge_members_weekly = newMembershipCounts.concierge.size;
   data.new_corporate_members_weekly = newMembershipCounts.corporate.size;
+  
+  // Log summary of NEW memberships found
+  console.log('\n📊 NEW Membership Signups Summary (with "(NEW)" in Charge Desc):');
+  console.log(`   - Individual: ${data.new_individual_members_weekly}`);
+  console.log(`   - Family: ${data.new_family_members_weekly}`);
+  console.log(`   - Concierge: ${data.new_concierge_members_weekly}`);
+  console.log(`   - Corporate: ${data.new_corporate_members_weekly}`);
+  console.log(`   - TOTAL NEW: ${data.new_individual_members_weekly + data.new_family_members_weekly + data.new_concierge_members_weekly + data.new_corporate_members_weekly}\n`);
   
   // Calculate total memberships
   data.total_drip_iv_members = data.individual_memberships + 
