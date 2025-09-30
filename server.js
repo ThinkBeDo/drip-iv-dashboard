@@ -2943,6 +2943,48 @@ app.get('/api/dashboard', async (req, res) => {
       });
     }
 
+    // CRITICAL FIX: Calculate actual monthly revenue by summing all weeks in the same month
+    if (result.rows[0] && result.rows[0].week_start_date) {
+      const weekStartDate = new Date(result.rows[0].week_start_date);
+      const monthStart = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), 1);
+      const monthEnd = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth() + 1, 0);
+      
+      console.log('📅 Calculating monthly revenue for:', {
+        month: monthStart.toISOString().split('T')[0],
+        monthStart: monthStart.toISOString().split('T')[0],
+        monthEnd: monthEnd.toISOString().split('T')[0]
+      });
+      
+      // Query all weeks that fall within this month
+      const monthlyQuery = await pool.query(`
+        SELECT 
+          SUM(drip_iv_revenue_weekly) as total_iv_revenue,
+          SUM(semaglutide_revenue_weekly) as total_sema_revenue,
+          SUM(actual_weekly_revenue) as total_revenue,
+          COUNT(*) as weeks_count
+        FROM analytics_data
+        WHERE week_start_date >= $1 AND week_start_date <= $2
+      `, [monthStart.toISOString().split('T')[0], monthEnd.toISOString().split('T')[0]]);
+      
+      if (monthlyQuery.rows[0] && monthlyQuery.rows[0].weeks_count > 0) {
+        const monthlyData = monthlyQuery.rows[0];
+        
+        // Override the monthly revenue fields with the actual sum of weekly revenues
+        result.rows[0].drip_iv_revenue_monthly = parseFloat(monthlyData.total_iv_revenue) || 0;
+        result.rows[0].semaglutide_revenue_monthly = parseFloat(monthlyData.total_sema_revenue) || 0;
+        result.rows[0].actual_monthly_revenue = parseFloat(monthlyData.total_revenue) || 0;
+        
+        console.log('✅ Monthly revenue calculated from database:', {
+          weeks_included: monthlyData.weeks_count,
+          iv_therapy: `$${result.rows[0].drip_iv_revenue_monthly.toFixed(2)}`,
+          weight_loss: `$${result.rows[0].semaglutide_revenue_monthly.toFixed(2)}`,
+          total: `$${result.rows[0].actual_monthly_revenue.toFixed(2)}`
+        });
+      } else {
+        console.log('⚠️ No weekly data found for this month in database');
+      }
+    }
+
     // Return the data
     res.json({
       success: true,
