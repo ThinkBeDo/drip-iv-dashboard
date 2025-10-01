@@ -105,10 +105,13 @@ function getServiceCategory(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
 
   // Weight Management
+  if (lowerDesc.includes('contrave')) {
+    return 'consultation';
+  }
+
   if (
     lowerDesc.includes('semaglutide') ||
     lowerDesc.includes('tirzepatide') ||
-    lowerDesc.includes('contrave') ||
     lowerDesc.includes('weight loss')
   ) {
     return 'weight_management';
@@ -1372,14 +1375,14 @@ function analyzeRevenueData(csvData) {
 
       if (isCurrentWeek) {
         if (lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') ||
-          lowerDesc.includes('weight loss')) {
+          lowerDesc.includes('weight loss') || lowerDesc.includes('contrave')) {
           metrics.semaglutide_consults_weekly++;
         }
       }
 
       if (isCurrentMonth) {
         if (lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') ||
-          lowerDesc.includes('weight loss')) {
+          lowerDesc.includes('weight loss') || lowerDesc.includes('contrave')) {
           metrics.semaglutide_consults_monthly++;
         }
       }
