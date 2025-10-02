@@ -308,8 +308,9 @@ function excelSerialToDate(serial) {
 
 // Compute new memberships from Active Memberships upload
 async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
-  const { startPrev } = getWeekWindow(now, 1);
+  const { startPrev, endPrev } = getWeekWindow(now, 1);
   const startPrevDate = new Date(startPrev);
+  const endPrevDate = new Date(endPrev);
 
   const counters = {
     new_individual_members_weekly: 0,
@@ -319,7 +320,7 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
   };
 
   console.log(`🔍 Processing ${rows.length} membership rows for new signups`);
-  console.log(`   Week boundary: ${startPrevDate.toISOString().split('T')[0]} (previous week or future)`);
+  console.log(`   Week window: ${startPrevDate.toISOString().split('T')[0]} to ${endPrevDate.toISOString().split('T')[0]}`);
 
   // Insert or update membership_registry
   const client = await pool.connect();
@@ -346,9 +347,11 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
       continue;
     }
 
-    // Only count memberships with Start Date >= previous week
-    if (startDate < startPrevDate) {
-      console.log(`Skipping: Start Date (${startDate.toISOString().split('T')[0]}) before week boundary (${startPrevDate.toISOString().split('T')[0]})`);
+    // CRITICAL FIX: Only count memberships with Start Date within the reporting week
+    // This prevents future memberships (e.g., Oct 5-26) from being counted as "new this week"
+    if (startDate < startPrevDate || startDate > endPrevDate) {
+      const reason = startDate < startPrevDate ? 'too old' : 'in the future';
+      console.log(`Skipping (${reason}): Start Date ${startDate.toISOString().split('T')[0]} outside week window ${startPrevDate.toISOString().split('T')[0]} to ${endPrevDate.toISOString().split('T')[0]}`);
       continue;
     }
 
@@ -391,14 +394,36 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
 
     // Increment appropriate counter
     switch (membershipType) {
-      case 'individual': counters.new_individual_members_weekly++; break;
-      case 'family': counters.new_family_members_weekly++; break;
-      case 'concierge': counters.new_concierge_members_weekly++; break;
-      case 'corporate': counters.new_corporate_members_weekly++; break;
+      case 'individual':
+        counters.new_individual_members_weekly++;
+        console.log(`   ✓ Counted: ${patient} - ${membershipType} (starts ${startDate.toISOString().split('T')[0]})`);
+        break;
+      case 'family':
+        counters.new_family_members_weekly++;
+        console.log(`   ✓ Counted: ${patient} - ${membershipType} (starts ${startDate.toISOString().split('T')[0]})`);
+        break;
+      case 'concierge':
+        counters.new_concierge_members_weekly++;
+        console.log(`   ✓ Counted: ${patient} - ${membershipType} (starts ${startDate.toISOString().split('T')[0]})`);
+        break;
+      case 'corporate':
+        counters.new_corporate_members_weekly++;
+        console.log(`   ✓ Counted: ${patient} - ${membershipType} (starts ${startDate.toISOString().split('T')[0]})`);
+        break;
     }
   }
 
-  console.log('✅ New membership counts:', counters);
+  const totalNew = counters.new_individual_members_weekly + counters.new_family_members_weekly +
+                   counters.new_concierge_members_weekly + counters.new_corporate_members_weekly;
+
+  console.log('\n📊 NEW MEMBERSHIP SUMMARY:');
+  console.log(`   Week window: ${startPrevDate.toISOString().split('T')[0]} to ${endPrevDate.toISOString().split('T')[0]}`);
+  console.log(`   Individual: ${counters.new_individual_members_weekly}`);
+  console.log(`   Family: ${counters.new_family_members_weekly}`);
+  console.log(`   Concierge: ${counters.new_concierge_members_weekly}`);
+  console.log(`   Corporate: ${counters.new_corporate_members_weekly}`);
+  console.log(`   TOTAL NEW: ${totalNew}`);
+
   return counters;
 }
 

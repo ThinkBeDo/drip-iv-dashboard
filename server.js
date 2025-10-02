@@ -84,16 +84,10 @@ if (process.env.DATABASE_URL) {
           console.warn('   Database may need initialization');
         }
 
-        // Remove data in analytics_data and membership_registry for clean slate of data
-        await pool.query(`
-          DELETE FROM analytics_data
-        `);
+        // REMOVED: Database wipe on startup - historical data should persist
+        // This allows monthly calculations to sum multiple weeks correctly
+        // To manually clear data, use the /api/clear-data endpoint instead
 
-        await pool.query(`
-          DELETE FROM membership_registry
-        `);
-        console.log('✅ Tables data wiped successfully!');
-        
         // Pass the pool to import-weekly-data module
         setDatabasePool(pool);
         console.log('✅ Database pool shared with import module');
