@@ -62,21 +62,32 @@ function parseDripCSV(csvContent) {
   return results;
 }
 
+// Normalization functions for service mapping
+function normalizeServiceName(chargeDesc) {
+  if (!chargeDesc) return '';
+  return chargeDesc.toString().toLowerCase().trim();
+}
+
+function normalizeServiceType(chargeType) {
+  if (!chargeType) return '';
+  return chargeType.toString().toLowerCase().trim();
+}
+
 // Process revenue data from CSV
 async function processRevenueData(csvFilePath) {
   console.log('Processing revenue data from:', csvFilePath);
-  
+
   // Check if file exists
   if (!fs.existsSync(csvFilePath)) {
     throw new Error(`Revenue CSV file not found: ${csvFilePath}`);
   }
-  
+
   // Read the file as a buffer
   const buffer = fs.readFileSync(csvFilePath);
   const firstBytes = buffer.slice(0, 4);
-  
+
   let csvContent;
-  
+
   // Check for UTF-16 LE BOM (FF FE)
   if (firstBytes[0] === 0xFF && firstBytes[1] === 0xFE) {
     console.log('Detected UTF-16 LE encoding with BOM');
@@ -85,17 +96,24 @@ async function processRevenueData(csvFilePath) {
     console.log('Processing as UTF-8 encoding');
     csvContent = buffer.toString('utf8');
   }
-  
+
   // Parse CSV using custom parser
   const records = parseDripCSV(csvContent);
-  
-  console.log(`Successfully parsed ${records.length} rows from CSV`);
-  
-  return records;
+
+  // Add normalized fields for mapping
+  const normalizedRecords = records.map(row => ({
+    ...row,
+    normalized_service_name: normalizeServiceName(row['Charge Desc'] || row['Service Name']),
+    normalized_service_type: normalizeServiceType(row['Charge Type'] || row['Service Type'])
+  }));
+
+  console.log(`Successfully parsed ${normalizedRecords.length} rows from CSV`);
+
+  return normalizedRecords;
 }
 
 // Export for use in import-weekly-data.js
-module.exports = { parseDripCSV, processRevenueData };
+module.exports = { parseDripCSV, processRevenueData, normalizeServiceName, normalizeServiceType };
 
 // Test if run directly
 if (require.main === module) {

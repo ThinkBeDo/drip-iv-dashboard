@@ -29,6 +29,92 @@ function createStandalonePool() {
   return pool;
 }
 
+// ============================================================================
+// Service Mapping Functions - Deterministic Categorization
+// ============================================================================
+
+/**
+ * Query service mapping for a given service
+ * Returns bins or null if not found
+ */
+async function lookupServiceMapping(normalizedName, normalizedType, client) {
+  if (!normalizedName) return null;
+
+  try {
+    // Try exact match first (name + type)
+    let result = await client.query(
+      `SELECT revenue_perf_bin, service_volume_bin, customer_bin
+       FROM service_mapping
+       WHERE normalized_service_name = $1
+         AND normalized_service_type = $2
+       LIMIT 1`,
+      [normalizedName, normalizedType || '']
+    );
+
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    }
+
+    // Fallback: try name-only match if unique
+    result = await client.query(
+      `SELECT revenue_perf_bin, service_volume_bin, customer_bin, COUNT(*) OVER() as total_matches
+       FROM service_mapping
+       WHERE normalized_service_name = $1
+       LIMIT 2`,
+      [normalizedName]
+    );
+
+    // Only return if exactly one match found (avoids ambiguity)
+    if (result.rows.length === 1 && result.rows[0].total_matches === 1) {
+      return result.rows[0];
+    }
+
+    return null;
+  } catch (err) {
+    console.error(`Error looking up service mapping for "${normalizedName}":`, err.message);
+    return null;
+  }
+}
+
+/**
+ * Track unmapped service for operational review
+ */
+async function trackUnmappedService(weekStart, row, normalizedName, normalizedType, client) {
+  try {
+    await client.query(
+      `INSERT INTO unmapped_services (week_start, file_row, normalized_service_name, normalized_service_type)
+       VALUES ($1, $2, $3, $4)`,
+      [weekStart, JSON.stringify(row), normalizedName, normalizedType]
+    );
+  } catch (err) {
+    // Silent fail to avoid breaking import
+    console.warn(`Warning: Could not track unmapped service: ${err.message}`);
+  }
+}
+
+/**
+ * Process a single row with service mapping
+ * Augments the row with mapping bins and returns enriched row
+ */
+async function processRowWithMapping(row, client) {
+  const normalizedName = row.normalized_service_name;
+  const normalizedType = row.normalized_service_type;
+
+  if (!normalizedName) {
+    return { ...row, mapping: null };
+  }
+
+  const mapping = await lookupServiceMapping(normalizedName, normalizedType, client);
+
+  return {
+    ...row,
+    mapping: mapping || null,
+    revenue_perf_bin: mapping?.revenue_perf_bin || null,
+    service_volume_bin: mapping?.service_volume_bin || null,
+    customer_bin: mapping?.customer_bin || null
+  };
+}
+
 // Service categorization functions (matching server.js logic)
 function isBaseInfusionService(chargeDesc) {
   const lowerDesc = chargeDesc.toLowerCase();
@@ -937,6 +1023,12 @@ function analyzeRevenueData(csvData) {
     new_individual_members_weekly: 0,
     new_family_members_weekly: 0,
     new_concierge_members_weekly: 0,
+
+    // Service-to-Bin mapping accumulators (from service_mapping table)
+    unmapped_services: [],
+    bin_revenue_perf: new Map(), // Track revenue by revenue_perf_bin
+    bin_service_volume: new Map(), // Track counts by service_volume_bin
+    bin_customer: new Map(), // Track customers by customer_bin
     new_corporate_members_weekly: 0,
     new_individual_members_monthly: 0,
     new_family_members_monthly: 0,

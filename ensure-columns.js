@@ -37,13 +37,21 @@ async function ensureColumns() {
       'hormone_followup_male_weekly',
       'hormone_followup_male_monthly'
     ];
+
+    // Service-to-bin mapping columns (TEXT type)
+    const textColumns = [
+      'revenue_perf_bin',
+      'service_volume_bin',
+      'customer_bin'
+    ];
     
     console.log('Adding missing columns to analytics_data table...\n');
-    
+
+    // Add INTEGER columns
     for (const column of requiredColumns) {
       try {
         await pool.query(`
-          ALTER TABLE analytics_data 
+          ALTER TABLE analytics_data
           ADD COLUMN IF NOT EXISTS ${column} INTEGER DEFAULT 0
         `);
         console.log(`✓ Column ${column} ensured`);
@@ -51,22 +59,38 @@ async function ensureColumns() {
         console.error(`✗ Error with column ${column}: ${err.message}`);
       }
     }
+
+    // Add TEXT columns for service-to-bin mapping
+    for (const column of textColumns) {
+      try {
+        await pool.query(`
+          ALTER TABLE analytics_data
+          ADD COLUMN IF NOT EXISTS ${column} TEXT
+        `);
+        console.log(`✓ Column ${column} ensured (TEXT)`);
+      } catch (err) {
+        console.error(`✗ Error with column ${column}: ${err.message}`);
+      }
+    }
     
     // Verify all columns exist
     console.log('\nVerifying column existence...');
+    const allColumns = [...requiredColumns, ...textColumns];
     const result = await pool.query(`
-      SELECT column_name 
+      SELECT column_name
       FROM information_schema.columns
       WHERE table_name = 'analytics_data'
       AND column_name = ANY($1)
       ORDER BY column_name
-    `, [requiredColumns]);
-    
+    `, [allColumns]);
+
     const existingColumns = result.rows.map(r => r.column_name);
-    const missingColumns = requiredColumns.filter(col => !existingColumns.includes(col));
-    
+    const missingColumns = allColumns.filter(col => !existingColumns.includes(col));
+
     if (missingColumns.length === 0) {
       console.log('\n✅ SUCCESS: All required columns exist!');
+      console.log(`   • ${requiredColumns.length} INTEGER columns`);
+      console.log(`   • ${textColumns.length} TEXT columns (service-to-bin mapping)`);
     } else {
       console.log('\n⚠️ WARNING: Some columns are still missing:');
       missingColumns.forEach(col => console.log(`   - ${col}`));
