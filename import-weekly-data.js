@@ -347,10 +347,10 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
     }
 
     // Only count memberships with Start Date >= previous week
-    // if (startDate < startPrevDate) {
-    //   console.log(`Skipping: Start Date (${startDate.toISOString().split('T')[0]}) before week boundary (${startPrevDate.toISOString().split('T')[0]})`);
-    //   continue;
-    // }
+    if (startDate < startPrevDate) {
+      console.log(`Skipping: Start Date (${startDate.toISOString().split('T')[0]}) before week boundary (${startPrevDate.toISOString().split('T')[0]})`);
+      continue;
+    }
 
     // Normalize membership type from Title
     const t = titleRaw.toLowerCase();
@@ -1671,6 +1671,14 @@ function analyzeRevenueData(csvData) {
   console.log(`  Weight Loss: $${debugInfo.categoryTotals.weight_loss.toFixed(2)}`);
   console.log(`  Memberships: $${debugInfo.categoryTotals.memberships.toFixed(2)}`);
   console.log(`  Other: $${debugInfo.categoryTotals.other.toFixed(2)}`);
+  console.log(`\nSERVICE COUNTS (WEEKLY):`);
+  console.log(`  💉 Weight Loss Injections: ${metrics.weight_loss_injections_weekly} (Semaglutide/Tirzepatide/Contrave)`);
+  console.log(`  📋 Weight Loss Consults: ${metrics.semaglutide_consults_weekly}`);
+  console.log(`  🩺 Hormone Services Total: ${metrics.hormone_initial_male_weekly + metrics.hormone_followup_male_weekly + metrics.hormone_initial_female_weekly + metrics.hormone_followup_female_weekly}`);
+  console.log(`     - Male Initial: ${metrics.hormone_initial_male_weekly}`);
+  console.log(`     - Male Followup: ${metrics.hormone_followup_male_weekly}`);
+  console.log(`     - Female Initial: ${metrics.hormone_initial_female_weekly}`);
+  console.log(`     - Female Followup: ${metrics.hormone_followup_female_weekly}`);
   console.log(`\nDISCREPANCY CHECK:`);
   console.log(`  File total - Tips - Empty = $${(debugInfo.fileTotal - debugInfo.excludedReasons.tips.amount - debugInfo.excludedReasons.emptyDesc.amount).toFixed(2)}`);
   console.log(`  Database storing: $${metrics.actual_weekly_revenue.toFixed(2)}`);

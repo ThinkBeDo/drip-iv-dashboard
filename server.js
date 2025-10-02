@@ -3013,7 +3013,11 @@ app.get('/api/dashboard', async (req, res) => {
         result.rows[0].drip_iv_revenue_monthly = parseFloat(monthlyData.total_iv_revenue) || 0;
         result.rows[0].semaglutide_revenue_monthly = parseFloat(monthlyData.total_sema_revenue) || 0;
         result.rows[0].actual_monthly_revenue = parseFloat(monthlyData.total_revenue) || 0;
-        
+
+        // Add metadata about how many weeks are included in monthly totals
+        result.rows[0].monthly_weeks_count = parseInt(monthlyData.weeks_count) || 0;
+        result.rows[0].monthly_calculation_note = `Based on ${monthlyData.weeks_count} week(s) of data`;
+
         console.log('✅ Monthly revenue calculated from database:', {
           weeks_included: monthlyData.weeks_count,
           iv_therapy: `$${result.rows[0].drip_iv_revenue_monthly.toFixed(2)}`,
@@ -3022,6 +3026,8 @@ app.get('/api/dashboard', async (req, res) => {
         });
       } else {
         console.log('⚠️ No weekly data found for this month in database');
+        result.rows[0].monthly_weeks_count = 0;
+        result.rows[0].monthly_calculation_note = 'No weekly data available for this month';
       }
     }
 
