@@ -294,10 +294,13 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
     }
 
     // Insert into registry and increment counter
+    // Calculate first_seen_week as the week boundary of startDate
+    const { startPrev: startDateWeekBoundary } = getWeekWindow(startDate, 1);
+    const firstSeenWeek = new Date(startDateWeekBoundary);
     await client.query(
       `INSERT INTO membership_registry (member_key, patient, membership_type, title_raw, start_date, first_seen_week)
        VALUES ($1,$2,$3,$4,$5,$6)`,
-      [memberKey, patient, membershipType, titleRaw, startDate, startPrevDate]
+      [memberKey, patient, membershipType, titleRaw, startDate, firstSeenWeek]
     );
 
     // Increment appropriate counter

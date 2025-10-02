@@ -81,6 +81,16 @@ if (process.env.DATABASE_URL) {
           console.warn('⚠️ analytics_data table does not exist!');
           console.warn('   Database may need initialization');
         }
+
+        // Remove data in analytics_data and membership_registry for clean slate of data
+        await pool.query(`
+          DELETE FROM analytics_data
+        `);
+
+        await pool.query(`
+          DELETE FROM membership_registry
+        `);
+        console.log('✅ Tables data wiped successfully!');
         
         // Pass the pool to import-weekly-data module
         setDatabasePool(pool);
