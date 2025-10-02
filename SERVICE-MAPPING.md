@@ -4,6 +4,8 @@
 
 The service-to-bin mapping system provides deterministic categorization of revenue line items from weekly Optimantra exports. This replaces heuristic-based categorization with an exact, versioned mapping that ensures every service lands in the correct database buckets.
 
+**✨ Fully Automatic:** Database migrations and service mapping load automatically on server startup. No manual steps required!
+
 ## Architecture
 
 ### Database Tables
@@ -55,11 +57,78 @@ lookupServiceMapping(normalized_name, normalized_type)
 INSERT/UPDATE analytics_data with bins
 ```
 
-## Usage
+## Automatic System
 
-### 1. Load Service Mapping
+### How It Works
 
-First time or after Excel file updates:
+**On Server Startup:**
+1. 🔧 Runs all pending SQL migrations from `database/migrations/` folder
+2. 🗺️  Auto-loads Excel mapping if `service_mapping` table is empty
+3. ✅ Server starts ready with up-to-date schema and mappings
+
+**Zero Manual Steps Required!** Just deploy your code and the system handles everything.
+
+### What Happens on Deploy
+
+```
+Railway Deploy → Server Starts
+  ↓
+database/run-migrations.js
+  ├─ Creates schema_migrations tracking table
+  ├─ Checks for new .sql files in migrations/
+  ├─ Runs only new migrations (001, 002, 003, 004...)
+  └─ Logs: "✅ X new migrations completed"
+  ↓
+database/auto-load-mapping.js
+  ├─ Checks if service_mapping table is empty
+  ├─ If empty: Loads from Excel automatically
+  ├─ If populated: Logs service count and last update
+  └─ Logs: "✅ 174 services loaded" or "Already loaded"
+  ↓
+Server Ready! 🚀
+```
+
+### Monitoring Status
+
+**Check via API:**
+```bash
+# Full health check with migration + mapping status
+curl https://your-app.railway.app/api/health
+
+# Migration status only
+curl https://your-app.railway.app/api/migrations
+
+# Service mapping status only
+curl https://your-app.railway.app/api/service-mapping
+```
+
+**Example Response:**
+```json
+{
+  "status": "ok",
+  "migrations": {
+    "status": "up_to_date",
+    "totalMigrations": 4,
+    "completedCount": 4,
+    "pendingCount": 0
+  },
+  "serviceMapping": {
+    "status": "loaded",
+    "serviceCount": 174,
+    "metadata": {
+      "loaded_at": "2025-01-02T15:30:00Z",
+      "row_count": 174,
+      "mapping_hash": "abc123..."
+    }
+  }
+}
+```
+
+## Manual Commands (Optional)
+
+You can still run these manually if needed:
+
+### Load/Reload Service Mapping
 
 ```bash
 npm run load:mapping
@@ -68,25 +137,12 @@ npm run load:mapping
 node scripts/load-service-mapping.js --file=path/to/mapping.xlsx
 ```
 
-This will:
-- Read Excel file
-- Normalize service names and types
-- Fix known typos ("Total Hormne Services" → "Total Hormone Services")
-- UPSERT into `service_mapping` table
-- Display bin distribution statistics
+Use this when:
+- Updating Excel mapping with new services
+- Fixing mapping errors
+- Force reloading after Excel changes
 
-### 2. Import Weekly Revenue
-
-Import works as before, but now also populates bin columns:
-
-```bash
-# Use existing web interface or CLI
-node import-weekly-data.js --file=weekly-revenue.csv --weekStart=2025-01-06
-```
-
-### 3. Audit Unmapped Services
-
-Check which services couldn't be matched:
+### Audit Unmapped Services
 
 ```bash
 # All unmapped services
@@ -105,14 +161,14 @@ Output shows:
 - Top unmapped services
 - Suggested next steps
 
-### 4. Update Mapping
+### Update Mapping Workflow
 
 When new services are added to Optimantra:
 
 1. Update Excel file with new services and their bins
-2. Run `npm run load:mapping` to reload
-3. Re-import affected weeks to populate bins
-4. Verify with `npm run audit:unmapped`
+2. Commit and push to GitHub
+3. Railway auto-deploys → Mapping auto-loads
+4. (Optional) Verify with `curl https://your-app/api/service-mapping`
 
 ## Idempotency & Safety
 
@@ -191,42 +247,56 @@ Tests verify:
    WHERE service_name ILIKE '%search term%';
    ```
 
-### Mapping file not loading
+### Mapping file not loading automatically
 
-1. Verify file path
-2. Check Excel file has correct columns:
+1. Check server startup logs for mapping load status
+2. Verify Excel file exists at project root: `Optimantra Services Export with Dashboard Bin Allocations.xlsx`
+3. Check Excel file has correct columns:
    - Service Name
    - Service Type
    - Charges
    - Revenue Performance Bins
    - Service Volume Analytics Bin
    - Customer Analytics Bin
+4. Check API status: `curl https://your-app/api/service-mapping`
 
-3. Check database connectivity
+### Migrations not running
+
+1. Check server logs for migration errors
+2. Verify migration files exist in `database/migrations/` folder
+3. Check migration status: `curl https://your-app/api/migrations`
+4. If stuck, check `schema_migrations` table for completed migrations
 
 ### Bins not appearing in dashboard
 
-1. Ensure `ensure-columns.js` has been run:
-   ```bash
-   npm run ensure:columns
-   ```
-
-2. Verify bin columns exist:
+1. Verify migrations ran successfully (creates bin columns):
    ```sql
    SELECT revenue_perf_bin, service_volume_bin, customer_bin
    FROM analytics_data
    LIMIT 5;
    ```
 
-## Migration Checklist
+2. Check that mapping is loaded:
+   ```sql
+   SELECT COUNT(*) FROM service_mapping;
+   ```
 
-- [x] Run migration: `database/migrations/004_add_service_mapping.sql`
-- [x] Ensure columns: `npm run ensure:columns`
-- [x] Load mapping: `npm run load:mapping`
-- [x] Test categorization: `npm run test:categorization`
-- [ ] Re-import last 2 weeks
-- [ ] Audit unmapped: `npm run audit:unmapped`
-- [ ] Verify dashboard displays correct bins
+## Deployment Checklist
+
+**Fully Automated - Just Deploy!**
+
+- [x] Create migration files in `database/migrations/`
+- [x] Commit Excel mapping file to repo
+- [x] Push to GitHub
+- [ ] Railway auto-deploys
+- [ ] Server starts → Migrations run automatically
+- [ ] Service mapping loads automatically
+- [ ] Verify with `/api/health` endpoint
+
+**Optional Post-Deploy:**
+- [ ] Check logs for migration success
+- [ ] Verify mapping loaded: `curl https://your-app/api/service-mapping`
+- [ ] Audit unmapped: `npm run audit:unmapped` (if any exist)
 
 ## Operational Workflow
 

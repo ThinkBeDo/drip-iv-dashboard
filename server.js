@@ -11,6 +11,8 @@ const fs = require('fs');
 const XLSX = require('xlsx');
 require('dotenv').config();
 const { importWeeklyData, setDatabasePool } = require('./import-weekly-data');
+const { runMigrations, getMigrationStatus } = require('./database/run-migrations');
+const { autoLoadMapping, getMappingStatus } = require('./database/auto-load-mapping');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -2579,11 +2581,19 @@ app.get('/api/health', async (req, res) => {
       health.database = 'connected';
       health.databaseTime = result.rows[0].time;
       health.tableCount = parseInt(result.rows[0].table_count);
-      
+
       // Check analytics_data table
       const analyticsCheck = await pool.query('SELECT COUNT(*) as record_count FROM analytics_data');
       health.analyticsRecords = parseInt(analyticsCheck.rows[0].record_count);
-      
+
+      // Get migration status
+      const migrationStatus = await getMigrationStatus(pool);
+      health.migrations = migrationStatus;
+
+      // Get mapping status
+      const mappingStatus = await getMappingStatus(pool);
+      health.serviceMapping = mappingStatus;
+
       res.json(health);
     } catch (error) {
       health.database = 'error';
@@ -2593,6 +2603,26 @@ app.get('/api/health', async (req, res) => {
   } else {
     health.database = 'not configured';
     res.status(503).json(health);
+  }
+});
+
+// Migration status endpoint
+app.get('/api/migrations', async (req, res) => {
+  try {
+    const status = await getMigrationStatus(pool);
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Service mapping status endpoint
+app.get('/api/service-mapping', async (req, res) => {
+  try {
+    const status = await getMappingStatus(pool);
+    res.json(status);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -3432,87 +3462,17 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 // Placeholder for remaining endpoints
 console.log('Server setup complete');
 
-// Run migrations on startup
-async function runMigrations() {
-  try {
-    console.log('🔧 Running database migrations...');
-    
-    // Add missing columns if they don't exist
-    const columns = [
-      'semaglutide_injections_weekly',
-      'semaglutide_injections_monthly', 
-      'new_individual_members_weekly',
-      'new_family_members_weekly',
-      'new_concierge_members_weekly',
-      'new_corporate_members_weekly',
-      'hormone_followup_female_weekly',
-      'hormone_followup_female_monthly',
-      'hormone_initial_male_weekly',
-      'hormone_initial_male_monthly',
-      'hormone_followup_male_weekly',
-      'hormone_followup_male_monthly'
-    ];
-    
-    // Add revenue columns with proper data type
-    const revenueColumns = [
-      'membership_revenue_weekly',
-      'membership_revenue_monthly',
-      'other_revenue_weekly',
-      'other_revenue_monthly'
-    ];
-    
-    for (const col of columns) {
-      try {
-        await pool.query(`ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS ${col} INTEGER DEFAULT 0`);
-        console.log(`   ✅ Column ${col} verified`);
-      } catch (err) {
-        if (!err.message.includes('already exists')) {
-          console.error(`   ⚠️ Could not add ${col}: ${err.message}`);
-        }
-      }
-    }
-    
-    // Add revenue columns with DECIMAL data type for proper monetary values
-    for (const col of revenueColumns) {
-      try {
-        await pool.query(`ALTER TABLE analytics_data ADD COLUMN IF NOT EXISTS ${col} DECIMAL(10,2) DEFAULT 0.00`);
-        console.log(`   ✅ Revenue column ${col} verified`);
-      } catch (err) {
-        if (!err.message.includes('already exists')) {
-          console.error(`   ⚠️ Could not add ${col}: ${err.message}`);
-        }
-      }
-    }
-
-    // Add membership_history table if it doesn't exist
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS membership_history (
-        member_id TEXT PRIMARY KEY,
-        member_type TEXT,
-        first_seen DATE,
-        last_seen DATE,
-        cancelled DATE,
-        active BOOLEAN DEFAULT true
-      )
-    `);
-    console.log('✅ membership_history table verified');
-
-    // DELETE ALL DATA AFTER MIGRATION
-    // await pool.query('DELETE FROM analytics_data');
-    // console.log('🗑️ All records deleted from analytics_data after migration.');
-    
-    console.log('✅ Migrations complete');
-  } catch (error) {
-    console.error('⚠️ Migration warning:', error.message);
-    // Don't crash the server if migrations fail
-  }
-}
-
-// Start server
+// Start server with automatic migrations and mapping
 app.listen(port, async () => {
   console.log(`🌟 Drip IV Dashboard server running on port ${port}`);
-  await runMigrations();
-  console.log('🚀 Server initialization complete - Database pool configured during startup');
+
+  // Run database migrations automatically
+  await runMigrations(pool);
+
+  // Auto-load service mapping if needed
+  await autoLoadMapping(pool);
+
+  console.log('\n✅ Server initialization complete - Ready to accept requests!\n');
 });
 
 // Graceful shutdown
