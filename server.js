@@ -1461,8 +1461,8 @@ function extractFromCSV(csvData) {
         chargeDescLower === 'individual membership' ||
         chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description
-      if (isNewMembership) {
+      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.individual.add(patient);
         console.log(`✓ NEW individual membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
@@ -1473,8 +1473,8 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'membership family' ||
              chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description
-      if (isNewMembership) {
+      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.family.add(patient);
         console.log(`✓ NEW family membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
@@ -1499,8 +1499,8 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'concierge membership' ||
              chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description
-      if (isNewMembership) {
+      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.concierge.add(patient);
         console.log(`✓ NEW concierge membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
@@ -1511,8 +1511,8 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'corporate membership' ||
              chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description
-      if (isNewMembership) {
+      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.corporate.add(patient);
         console.log(`✓ NEW corporate membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
       }
@@ -2990,14 +2990,17 @@ app.get('/api/dashboard', async (req, res) => {
       });
       
       // Query all weeks that fall within this month
+      // CRITICAL FIX: Changed to overlap query to catch all weeks that touch the month
+      // Old: week_start_date >= $1 AND week_start_date <= $2 (only weeks STARTING in month)
+      // New: week_start_date <= $2 AND week_end_date >= $1 (all weeks OVERLAPPING month)
       const monthlyQuery = await pool.query(`
-        SELECT 
+        SELECT
           SUM(drip_iv_revenue_weekly) as total_iv_revenue,
           SUM(semaglutide_revenue_weekly) as total_sema_revenue,
           SUM(actual_weekly_revenue) as total_revenue,
           COUNT(*) as weeks_count
         FROM analytics_data
-        WHERE week_start_date >= $1 AND week_start_date <= $2
+        WHERE week_start_date <= $2 AND week_end_date >= $1
       `, [monthStart.toISOString().split('T')[0], monthEnd.toISOString().split('T')[0]]);
       
       if (monthlyQuery.rows[0] && monthlyQuery.rows[0].weeks_count > 0) {
