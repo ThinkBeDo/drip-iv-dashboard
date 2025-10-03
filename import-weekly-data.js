@@ -6,6 +6,7 @@ const XLSX = require('xlsx');
 const iconv = require('iconv-lite');
 const { parse } = require('csv-parse/sync');
 const { Console } = require('console');
+const { normalizeServiceName, normalizeServiceType } = require('./parse-drip-csv');
 require('dotenv').config();
 
 // Database pool will be passed from server.js to avoid multiple connections
@@ -102,6 +103,16 @@ async function processRowWithMapping(row, client) {
 
   if (!normalizedName) {
     return { ...row, mapping: null };
+  }
+
+  if (!client || typeof client.query !== 'function') {
+    return {
+      ...row,
+      mapping: null,
+      revenue_perf_bin: null,
+      service_volume_bin: null,
+      customer_bin: null
+    };
   }
 
   const mapping = await lookupServiceMapping(normalizedName, normalizedType, client);
@@ -282,6 +293,59 @@ function parseDate(dateStr) {
   return null;
 }
 
+const DATE_FIELD_CANDIDATES = [
+  'Date',
+  'Date Of Payment',
+  'Date of Payment',
+  'Payment Date',
+  'Service Date',
+  'Date of payment'
+];
+
+function resolveRowDate(row) {
+  if (!row || typeof row !== 'object') {
+    return { date: null, rawValue: null, sourceField: null };
+  }
+
+  if (row.__resolved_date instanceof Date && !isNaN(row.__resolved_date.getTime())) {
+    return {
+      date: row.__resolved_date,
+      rawValue: row.__resolved_date_raw || null,
+      sourceField: row.__resolved_date_source || null
+    };
+  }
+
+  let lastCandidate = null;
+
+  for (const field of DATE_FIELD_CANDIDATES) {
+    const value = row[ field ];
+    if (!value || value === 'Total') {
+      continue;
+    }
+
+    lastCandidate = { field, value };
+    const parsed = parseDate(value);
+
+    if (parsed) {
+      row.__resolved_date = parsed;
+      row.__resolved_date_raw = value;
+      row.__resolved_date_source = field;
+
+      if ((!row.Date || row.Date === '') && field !== 'Date') {
+        row.Date = value;
+      }
+
+      return { date: parsed, rawValue: value, sourceField: field };
+    }
+  }
+
+  if (lastCandidate) {
+    return { date: null, rawValue: lastCandidate.value, sourceField: lastCandidate.field };
+  }
+
+  return { date: null, rawValue: null, sourceField: null };
+}
+
 // Check if date is weekend
 function isWeekend(date) {
   const dayOfWeek = date.getDay();
@@ -428,7 +492,7 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
 }
 
 // Process revenue data from CSV or MHTML
-async function processRevenueData(csvFilePath) {
+async function processRevenueData(csvFilePath, client) {
   console.log('Processing revenue data from:', csvFilePath);
 
   // Validate input
@@ -441,8 +505,7 @@ async function processRevenueData(csvFilePath) {
     throw new Error(`Revenue file not found: ${csvFilePath}`);
   }
 
-  return new Promise((resolve, reject) => {
-    try {
+  try {
       // Read file content for detection
       const fileContent = fs.readFileSync(csvFilePath, 'utf8');
       const fileExt = path.extname(csvFilePath).toLowerCase();
@@ -504,8 +567,7 @@ async function processRevenueData(csvFilePath) {
 
         if (!tableHtml) {
           console.error('   ❌ No table data found in file');
-          reject(new Error('No table data found in MHTML/HTML file'));
-          return;
+          throw new Error('No table data found in MHTML/HTML file');
         }
 
         // Clean up quoted-printable encoding
@@ -530,8 +592,7 @@ async function processRevenueData(csvFilePath) {
 
         if (!rowMatches || rowMatches.length === 0) {
           console.error('   ❌ No rows found in table');
-          reject(new Error('No rows found in MHTML table'));
-          return;
+          throw new Error('No rows found in MHTML table');
         }
 
         console.log(`   ✅ Found ${rowMatches.length} rows in MHTML table`);
@@ -701,9 +762,9 @@ async function processRevenueData(csvFilePath) {
         }
 
         // Analyze the parsed data
-        const analyzedData = analyzeRevenueData(records);
-        resolve(analyzedData);
-        return;
+        const analyzedData = await analyzeRevenueData(records, client);
+        analyzedData.rawRows = records;
+        return analyzedData;
       }
 
       // If not MHTML, process as regular CSV
@@ -730,8 +791,9 @@ async function processRevenueData(csvFilePath) {
       const lines = csvContent.split(/\r?\n/);
 
       if (lines.length === 0) {
-        resolve([]);
-        return;
+        const analyzedData = await analyzeRevenueData([], client);
+        analyzedData.rawRows = [];
+        return analyzedData;
       }
 
       // Check if this is the special Drip IV format
@@ -976,19 +1038,17 @@ async function processRevenueData(csvFilePath) {
       console.log(`Successfully parsed ${records.length} rows from CSV`);
 
       // Analyze the parsed data
-      // const analyzedData = analyzeRevenueData(records);
-      // resolve(analyzedData);
-
-      resolve({ metrics: analyzeRevenueData(records), rawRows: records });
-    } catch (error) {
-      console.error('Error parsing CSV file:', error);
-      reject(new Error(`Failed to parse CSV file: ${error.message}`));
-    }
-  });
+      const analyzedData = await analyzeRevenueData(records, client);
+      analyzedData.rawRows = records;
+      return analyzedData;
+  } catch (error) {
+    console.error('Error parsing CSV file:', error);
+    throw new Error(`Failed to parse CSV file: ${error.message}`);
+  }
 }
 
 // Analyze revenue data and calculate metrics
-function analyzeRevenueData(csvData) {
+async function analyzeRevenueData(csvData, client) {
   console.log('Analyzing revenue data...');
   console.log(`Processing ${csvData.length} rows of data`);
 
@@ -1067,6 +1127,10 @@ function analyzeRevenueData(csvData) {
     monthEndDate: null
   };
 
+  const mappingCache = new Map();
+  const unmappedTracker = new Set();
+  const canQueryMapping = client && typeof client.query === 'function';
+
   // Log available columns from first row
   if (csvData.length > 0) {
     console.log('📊 Available columns in revenue data:');
@@ -1123,13 +1187,15 @@ function analyzeRevenueData(csvData) {
 
   // Process each row
   for (const row of csvData) {
-    // Try to find the date column - support both 'Date' and 'Date Of Payment'
-    const dateStr = row[ 'Date' ] || row[ 'Date Of Payment' ] || row[ 'Date of Payment' ];
-    if (!dateStr || dateStr === 'Total') continue;
+    const { date, rawValue, sourceField } = resolveRowDate(row);
 
-    const date = parseDate(dateStr);
-    if (!date || isNaN(date.getTime())) {
-      console.warn(`Skipping row with invalid date: ${dateStr}`);
+    if (!date) {
+      const rawText = rawValue ? rawValue.toString().trim().toLowerCase() : '';
+
+      if (rawText && rawText !== 'total') {
+        console.warn(`Skipping row with invalid date${sourceField ? ` (${sourceField})` : ''}: ${rawValue}`);
+      }
+
       continue;
     }
 
@@ -1137,6 +1203,46 @@ function analyzeRevenueData(csvData) {
 
     const chargeDesc = row[ 'Charge Desc' ] || '';
     const patient = row.Patient || '';
+
+    const normalizedName = row.normalized_service_name || normalizeServiceName(chargeDesc || row[ 'Service Name' ]);
+    const normalizedType = row.normalized_service_type || normalizeServiceType(row[ 'Charge Type' ] || row[ 'Service Type' ]);
+
+    row.normalized_service_name = normalizedName;
+    row.normalized_service_type = normalizedType;
+
+    let mappingDetails = null;
+    let cacheKey = null;
+
+    if (normalizedName) {
+      cacheKey = `${normalizedName}|${normalizedType || ''}`;
+
+      if (mappingCache.has(cacheKey)) {
+        mappingDetails = mappingCache.get(cacheKey);
+      } else if (canQueryMapping) {
+        const lookedUp = await processRowWithMapping(row, client);
+        mappingDetails = lookedUp.mapping;
+        Object.assign(row, lookedUp);
+        mappingCache.set(cacheKey, mappingDetails || null);
+      } else {
+        mappingCache.set(cacheKey, null);
+      }
+
+      if (mappingDetails === null && mappingCache.has(cacheKey)) {
+        mappingDetails = mappingCache.get(cacheKey);
+      }
+    }
+
+    if (mappingDetails) {
+      row.mapping = mappingDetails;
+      row.revenue_perf_bin = mappingDetails.revenue_perf_bin || null;
+      row.service_volume_bin = mappingDetails.service_volume_bin || null;
+      row.customer_bin = mappingDetails.customer_bin || null;
+    } else {
+      row.mapping = row.mapping || null;
+      row.revenue_perf_bin = row.revenue_perf_bin || null;
+      row.service_volume_bin = row.service_volume_bin || null;
+      row.customer_bin = row.customer_bin || null;
+    }
 
     // Try multiple possible payment columns
     let chargeAmount = cleanCurrency(row[ 'Calculated Payment (Line)' ]) ||
@@ -1326,17 +1432,61 @@ function analyzeRevenueData(csvData) {
 
   // Second pass: Process service counts and revenue with proper week detection
   for (const row of csvData) {
-    if (!row.Date || row.Date === 'Total') continue;
+    const { date, rawValue } = resolveRowDate(row);
 
-    const date = parseDate(row.Date);
-    if (!date || isNaN(date)) {
-      debugInfo.excludedRows++;
-      debugInfo.excludedReasons.invalidDate.count++;
+    if (!date) {
+      const rawText = rawValue ? rawValue.toString().trim().toLowerCase() : '';
+
+      if (rawText && rawText !== 'total') {
+        debugInfo.excludedRows++;
+        debugInfo.excludedReasons.invalidDate.count++;
+      }
+
       continue;
     }
 
     const chargeDesc = row[ 'Charge Desc' ] || '';
     const patient = row.Patient || '';
+
+    const normalizedName = row.normalized_service_name || normalizeServiceName(chargeDesc || row[ 'Service Name' ]);
+    const normalizedType = row.normalized_service_type || normalizeServiceType(row[ 'Charge Type' ] || row[ 'Service Type' ]);
+
+    row.normalized_service_name = normalizedName;
+    row.normalized_service_type = normalizedType;
+
+    let mappingDetails = null;
+    let cacheKey = null;
+
+    if (normalizedName) {
+      cacheKey = `${normalizedName}|${normalizedType || ''}`;
+
+      if (mappingCache.has(cacheKey)) {
+        mappingDetails = mappingCache.get(cacheKey);
+      } else if (canQueryMapping) {
+        const lookedUp = await processRowWithMapping(row, client);
+        mappingDetails = lookedUp.mapping;
+        Object.assign(row, lookedUp);
+        mappingCache.set(cacheKey, mappingDetails || null);
+      } else {
+        mappingCache.set(cacheKey, null);
+      }
+
+      if (mappingDetails === null && mappingCache.has(cacheKey)) {
+        mappingDetails = mappingCache.get(cacheKey);
+      }
+    }
+
+    if (mappingDetails) {
+      row.mapping = mappingDetails;
+      row.revenue_perf_bin = mappingDetails.revenue_perf_bin || null;
+      row.service_volume_bin = mappingDetails.service_volume_bin || null;
+      row.customer_bin = mappingDetails.customer_bin || null;
+    } else {
+      row.mapping = row.mapping || null;
+      row.revenue_perf_bin = row.revenue_perf_bin || null;
+      row.service_volume_bin = row.service_volume_bin || null;
+      row.customer_bin = row.customer_bin || null;
+    }
 
     // Try multiple possible payment columns
     const chargeAmount = cleanCurrency(row[ 'Calculated Payment (Line)' ]) ||
@@ -1395,6 +1545,50 @@ function analyzeRevenueData(csvData) {
       date >= metrics.weekStartDate && date <= metrics.weekEndDate;
     const isCurrentMonth = monthStart && monthEnd &&
       date >= monthStart && date <= monthEnd;
+
+    const currentMapping = mappingDetails || row.mapping || null;
+
+    if (isCurrentWeek && chargeAmount > 0 && currentMapping) {
+      if (currentMapping.revenue_perf_bin) {
+        const prev = metrics.bin_revenue_perf.get(currentMapping.revenue_perf_bin) || 0;
+        metrics.bin_revenue_perf.set(currentMapping.revenue_perf_bin, prev + chargeAmount);
+      }
+
+      if (currentMapping.service_volume_bin) {
+        const prevCount = metrics.bin_service_volume.get(currentMapping.service_volume_bin) || 0;
+        metrics.bin_service_volume.set(currentMapping.service_volume_bin, prevCount + 1);
+      }
+
+      if (currentMapping.customer_bin && patient) {
+        const customerSet = metrics.bin_customer.get(currentMapping.customer_bin) || new Set();
+        customerSet.add(patient);
+        metrics.bin_customer.set(currentMapping.customer_bin, customerSet);
+      }
+    } else if (isCurrentWeek && canQueryMapping && normalizedName && !currentMapping) {
+      const unmappedKey = `${normalizedName}|${normalizedType || ''}`;
+
+      if (!unmappedTracker.has(unmappedKey)) {
+        const weekStartIso = metrics.weekStartDate ? metrics.weekStartDate.toISOString().split('T')[ 0 ] : null;
+
+        if (weekStartIso) {
+          try {
+            await trackUnmappedService(weekStartIso, row, normalizedName, normalizedType, client);
+          } catch (err) {
+            console.warn(`Warning: Could not track unmapped service ${normalizedName}: ${err.message}`);
+          }
+        }
+
+        metrics.unmapped_services.push({
+          normalized_service_name: normalizedName,
+          normalized_service_type: normalizedType || null,
+          charge_desc: chargeDesc,
+          amount: chargeAmount,
+          date: row[ 'Date' ] || row[ 'Date Of Payment' ] || null
+        });
+
+        unmappedTracker.add(unmappedKey);
+      }
+    }
 
     // Get service category
     const serviceCategory = getServiceCategory(chargeDesc);
@@ -1674,6 +1868,20 @@ function analyzeRevenueData(csvData) {
   metrics.member_customers_weekly = metrics.member_customers_weekly.size;
   metrics.non_member_customers_weekly = metrics.non_member_customers_weekly.size;
 
+  const revenuePerfSummary = Object.fromEntries(Array.from(metrics.bin_revenue_perf.entries()).map(([ bin, amount ]) => [ bin, Number(amount.toFixed(2)) ]));
+  const serviceVolumeSummary = Object.fromEntries(Array.from(metrics.bin_service_volume.entries()).map(([ bin, count ]) => [ bin, count ]));
+  const customerSummary = Object.fromEntries(Array.from(metrics.bin_customer.entries()).map(([ bin, customerSet ]) => [ bin, customerSet instanceof Set ? customerSet.size : customerSet ]));
+
+  metrics.bin_revenue_perf = revenuePerfSummary;
+  metrics.bin_service_volume = serviceVolumeSummary;
+  metrics.bin_customer = customerSummary;
+  metrics.revenue_perf_bin_summary = revenuePerfSummary;
+  metrics.service_volume_bin_summary = serviceVolumeSummary;
+  metrics.customer_bin_summary = customerSummary;
+  metrics.revenue_perf_bin = JSON.stringify(revenuePerfSummary);
+  metrics.service_volume_bin = JSON.stringify(serviceVolumeSummary);
+  metrics.customer_bin = JSON.stringify(customerSummary);
+
   // Calculate legacy totals for backward compatibility
   metrics.drip_iv_weekday_weekly = metrics.iv_infusions_weekday_weekly + metrics.injections_weekday_weekly;
   metrics.drip_iv_weekend_weekly = metrics.iv_infusions_weekend_weekly + metrics.injections_weekend_weekly;
@@ -1734,6 +1942,8 @@ function analyzeRevenueData(csvData) {
       });
     }
   }
+
+  metrics.rawRows = csvData;
 
   return metrics;
 }
@@ -1832,6 +2042,8 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     }
   }
 
+  let client = null;
+
   try {
     console.log('Starting weekly data import...');
     console.log('Revenue file:', revenueFilePath || 'Not provided');
@@ -1894,13 +2106,29 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       marketing_initiatives: 0
     };
 
+    console.log('\n📊 DATABASE OPERATION:');
+
+    try {
+      client = await pool.connect();
+      console.log('✅ Database client acquired from pool');
+      await client.query('SELECT 1 as test');
+      console.log('✅ Database connection verified');
+    } catch (connError) {
+      if (client) {
+        client.release();
+        client = null;
+      }
+      console.error('❌ Database connection test failed:', connError.message);
+      console.error('   Cannot proceed with data import');
+      throw new Error(`Database not accessible: ${connError.message}`);
+    }
+
     // Process revenue data if file is provided
     let revenueRows = [];
     if (revenueFilePath) {
-      // processRevenueData now returns analyzed metrics directly
-      const result = await processRevenueData(revenueFilePath);
-      revenueMetrics = result.metrics;
-      revenueRows = result.rawRows;
+      const result = await processRevenueData(revenueFilePath, client);
+      revenueMetrics = result;
+      revenueRows = result.rawRows || [];
     } else {
       console.log('No revenue file provided, using default revenue metrics');
     }
@@ -1945,6 +2173,10 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       popular_injections: ['B12', 'Vitamin D', 'Metabolism Boost'],
       popular_injections_status: 'Active'
     };
+
+    combinedData.revenue_perf_bin = revenueMetrics.revenue_perf_bin || JSON.stringify(revenueMetrics.bin_revenue_perf_summary || revenueMetrics.bin_revenue_perf || {});
+    combinedData.service_volume_bin = revenueMetrics.service_volume_bin || JSON.stringify(revenueMetrics.service_volume_bin_summary || revenueMetrics.bin_service_volume || {});
+    combinedData.customer_bin = revenueMetrics.customer_bin || JSON.stringify(revenueMetrics.customer_bin_summary || revenueMetrics.bin_customer || {});
 
     // Set week start and end dates - Convert to ISO string format for PostgreSQL
     // CRITICAL: Ensure dates are converted to strings to prevent PostgreSQL type errors
@@ -2039,27 +2271,9 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       }
     }
 
-    // Validate database connection before operations
-    console.log('\n📊 DATABASE OPERATION:');
-
-    if (!pool) {
-      throw new Error('Database pool not initialized - cannot save data');
+    if (!client) {
+      throw new Error('Database client not initialized - cannot save data');
     }
-
-    // Test connection before proceeding
-    try {
-      const testQuery = await pool.query('SELECT 1 as test');
-      console.log('✅ Database connection verified');
-    } catch (connError) {
-      console.error('❌ Database connection test failed:', connError.message);
-      console.error('   Cannot proceed with data import');
-      throw new Error(`Database not accessible: ${connError.message}`);
-    }
-
-    // Insert or update database
-    const client = await pool.connect();
-    console.log('✅ Database client acquired from pool');
-    try {
 
       // NEW REGISTRY-BASED MEMBERSHIP TRACKING
       // Process membership data using the new registry to prevent double counting
@@ -2149,8 +2363,11 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
             new_family_members_weekly = $29,
             new_concierge_members_weekly = $30,
             new_corporate_members_weekly = $31,
+            revenue_perf_bin = $32,
+            service_volume_bin = $33,
+            customer_bin = $34,
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = $32
+          WHERE id = $35
         `;
 
         await client.query(updateQuery, [
@@ -2185,6 +2402,9 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.new_family_members_weekly || 0,
           combinedData.new_concierge_members_weekly || 0,
           combinedData.new_corporate_members_weekly || 0,
+          combinedData.revenue_perf_bin || JSON.stringify({}),
+          combinedData.service_volume_bin || JSON.stringify({}),
+          combinedData.customer_bin || JSON.stringify({}),
           existingCheck.rows[ 0 ].id
         ]);
 
@@ -2205,6 +2425,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     injections_weekday_monthly, injections_weekend_monthly,
     unique_customers_weekly, unique_customers_monthly,
     member_customers_weekly, non_member_customers_weekly,
+    revenue_perf_bin, service_volume_bin, customer_bin,
     actual_weekly_revenue, weekly_revenue_goal,
     actual_monthly_revenue, monthly_revenue_goal,
     drip_iv_revenue_weekly, semaglutide_revenue_weekly,
@@ -2226,7 +2447,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
     $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
     $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
-    $41, $42, $43, $44, $45, $46
+    $41, $42, $43, $44, $45, $46, $47, $48, $49
   )
 `;
 
@@ -2245,6 +2466,9 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.unique_customers_monthly,
           combinedData.member_customers_weekly,
           combinedData.non_member_customers_weekly,
+          combinedData.revenue_perf_bin || JSON.stringify({}),
+          combinedData.service_volume_bin || JSON.stringify({}),
+          combinedData.customer_bin || JSON.stringify({}),
           combinedData.actual_weekly_revenue,
           combinedData.weekly_revenue_goal,
           combinedData.actual_monthly_revenue,
@@ -2301,10 +2525,6 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
       } else {
         console.log('⚠️ WARNING: Could not verify saved data!');
       }
-    } finally {
-      client.release();
-    }
-
     console.log('Import completed successfully!');
     return combinedData;
 
@@ -2335,6 +2555,10 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     }
 
     throw error;
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 }
 
