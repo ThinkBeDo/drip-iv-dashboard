@@ -197,6 +197,7 @@ function analyzeRevenueDataByWeeks(csvData) {
         const isNewMembership = /\bnew\b/i.test(chargeDesc);
 
         if (isNewMembership) {
+          const lowerChargeDesc = chargeDesc.toLowerCase();
           if (lowerChargeDesc.includes('individual')) {
             metrics.new_individual_members_weekly++;
           } else if (lowerChargeDesc.includes('family')) {
