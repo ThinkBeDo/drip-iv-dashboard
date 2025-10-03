@@ -293,7 +293,11 @@ async function saveWeekToDatabase(weekData) {
         weekData.iv_infusions_weekend_weekly,
         weekData.injections_weekday_weekly,
         weekData.injections_weekend_weekly,
-        weekData.semaglutide_injections_weekly
+        weekData.semaglutide_injections_weekly,
+        weekData.new_individual_members_weekly || 0,
+        weekData.new_family_members_weekly || 0,
+        weekData.new_concierge_members_weekly || 0,
+        weekData.new_corporate_members_weekly || 0
       ]);
       
       return result.rows[0];
@@ -315,7 +319,7 @@ async function saveWeekToDatabase(weekData) {
           weekly_revenue_goal, monthly_revenue_goal,
           upload_date, created_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
           CURRENT_DATE, NOW()
         ) RETURNING *
       `;
