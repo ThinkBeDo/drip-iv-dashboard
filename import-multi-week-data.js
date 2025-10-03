@@ -12,8 +12,7 @@ const {
   processRevenueData, 
   processMembershipData, 
   getServiceCategory,
-  setDatabasePool,
-  cleanCurrency
+  setDatabasePool 
 } = require('./import-weekly-data');
 
 // Database pool will be passed from server.js
@@ -150,84 +149,72 @@ function analyzeRevenueDataByWeeks(csvData) {
       const date = parseRowDate(row);
       const patient = (row['Patient'] || '').trim();
       const chargeDesc = row['Charge Desc'] || '';
-      const lowerChargeDesc = chargeDesc.toLowerCase();
-      const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']) ||
-        cleanCurrency(row['Charge Amount']) ||
-        cleanCurrency(row['Payment Amount']) ||
-        cleanCurrency(row['Amount']) ||
-        cleanCurrency(row['Total']) ||
-        cleanCurrency(row['Paid']);
-
-      if (!chargeAmount || chargeAmount <= 0 || !date) return;
-
-      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      const isWeightLossInjection = lowerChargeDesc.includes('semaglutide') ||
-        lowerChargeDesc.includes('tirzepatide') ||
-        lowerChargeDesc.includes('contrave');
-
+      const chargeAmount = parseFloat(
+        row['Calculated Payment (Line)'] || 
+        row['Total'] || 
+        row['Paid'] || 
+        0
+      );
+      
+      if (!chargeAmount || chargeAmount <= 0) return;
+      
       // Add to weekly totals
       metrics.actual_weekly_revenue += chargeAmount;
-
-      // Categorize service using shared helper to mirror weekly import logic
+      
+      // Categorize service
       const serviceCategory = getServiceCategory(chargeDesc);
-
-      if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
+      
+      if (serviceCategory === 'drip_iv') {
         metrics.drip_iv_revenue_weekly += chargeAmount;
-
-        if (lowerChargeDesc.includes('infusion')) {
+        
+        // Count service instances
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        if (chargeDesc.toLowerCase().includes('infusion')) {
           if (isWeekend) {
             metrics.iv_infusions_weekend_weekly++;
           } else {
             metrics.iv_infusions_weekday_weekly++;
           }
-        }
-
-        if (lowerChargeDesc.includes('injection')) {
+        } else if (chargeDesc.toLowerCase().includes('injection')) {
           if (isWeekend) {
             metrics.injections_weekend_weekly++;
           } else {
             metrics.injections_weekday_weekly++;
           }
         }
-
-      } else if (serviceCategory === 'injection') {
-        if (isWeightLossInjection) {
-          metrics.semaglutide_revenue_weekly += chargeAmount;
-          metrics.semaglutide_injections_weekly++;
-          metrics.weight_loss_injections_weekly++;
-        } else {
-          metrics.other_revenue_weekly += chargeAmount;
-          if (isWeekend) {
-            metrics.injections_weekend_weekly++;
-          } else {
-            metrics.injections_weekday_weekly++;
-          }
-        }
-
-      } else if (serviceCategory === 'weight_management') {
+      } else if (serviceCategory === 'semaglutide') {
         metrics.semaglutide_revenue_weekly += chargeAmount;
-        metrics.semaglutide_injections_weekly++;
-        metrics.weight_loss_injections_weekly++;
-
+        
+        if (chargeDesc.toLowerCase().includes('semaglutide') || 
+            chargeDesc.toLowerCase().includes('tirzepatide')) {
+          metrics.semaglutide_injections_weekly++;
+        }
       } else if (serviceCategory === 'membership') {
         metrics.membership_revenue_weekly += chargeAmount;
 
-      } else if (serviceCategory === 'consultation') {
-        if (isWeightLossInjection || lowerChargeDesc.includes('weight loss')) {
-          metrics.semaglutide_revenue_weekly += chargeAmount;
-        } else {
-          metrics.other_revenue_weekly += chargeAmount;
-        }
+        // Track new membership signups - ONLY count those marked with "(NEW)"
+        const lowerChargeDesc = chargeDesc.toLowerCase();
+        const isNewMembership = lowerChargeDesc.includes('(new)') || lowerChargeDesc.includes(' new');
 
-      } else {
-        metrics.other_revenue_weekly += chargeAmount;
+        if (isNewMembership) {
+          if (lowerChargeDesc.includes('individual')) {
+            metrics.new_individual_members_weekly++;
+          } else if (lowerChargeDesc.includes('family')) {
+            metrics.new_family_members_weekly++;
+          } else if (lowerChargeDesc.includes('concierge')) {
+            metrics.new_concierge_members_weekly++;
+          } else if (lowerChargeDesc.includes('corporate')) {
+            metrics.new_corporate_members_weekly++;
+          }
+        }
       }
 
       // Track unique customers for this week
       if (patient) {
         metrics.unique_customers_weekly.add(patient);
-
-        const isMember = lowerChargeDesc.includes('(member)') || lowerChargeDesc.includes('member');
+        
+        const isMember = chargeDesc.toLowerCase().includes('(member)') || 
+                        chargeDesc.toLowerCase().includes('member');
         if (isMember) {
           metrics.member_customers_weekly.add(patient);
         } else {
@@ -278,25 +265,13 @@ async function saveWeekToDatabase(weekData) {
           membership_revenue_weekly = $6,
           unique_customers_weekly = $7,
           member_customers_weekly = $8,
-          non_member_customers_weekly = $9,
-          iv_infusions_weekday_weekly = $10,
-          iv_infusions_weekend_weekly = $11,
-          injections_weekday_weekly = $12,
-          injections_weekend_weekly = $13,
-          semaglutide_injections_weekly = $14,
-          total_drip_iv_members = $15,
-          individual_memberships = $16,
-          family_memberships = $17,
-          family_concierge_memberships = $18,
-          drip_concierge_memberships = $19,
-          concierge_memberships = $20,
-          corporate_memberships = $21,
-          marketing_initiatives = $22,
-          weekly_revenue_goal = $23,
-          monthly_revenue_goal = $24,
-          days_left_in_month = $25,
+          iv_infusions_weekday_weekly = $9,
+          iv_infusions_weekend_weekly = $10,
+          injections_weekday_weekly = $11,
+          injections_weekend_weekly = $12,
+          semaglutide_injections_weekly = $13,
           upload_date = CURRENT_DATE,
-          updated_at = NOW()
+          created_at = NOW()
         WHERE week_start_date = $1 AND week_end_date = $2
         RETURNING *
       `;
@@ -310,23 +285,11 @@ async function saveWeekToDatabase(weekData) {
         weekData.membership_revenue_weekly || 0,
         weekData.unique_customers_weekly,
         weekData.member_customers_weekly,
-        weekData.non_member_customers_weekly || 0,
         weekData.iv_infusions_weekday_weekly,
         weekData.iv_infusions_weekend_weekly,
         weekData.injections_weekday_weekly,
         weekData.injections_weekend_weekly,
-        weekData.semaglutide_injections_weekly,
-        weekData.total_drip_iv_members || 0,
-        weekData.individual_memberships || 0,
-        weekData.family_memberships || 0,
-        weekData.family_concierge_memberships || 0,
-        weekData.drip_concierge_memberships || 0,
-        weekData.concierge_memberships || 0,
-        weekData.corporate_memberships || 0,
-        weekData.marketing_initiatives || 0,
-        weekData.weekly_revenue_goal || 32125,
-        weekData.monthly_revenue_goal || 128500,
-        weekData.days_left_in_month || 0
+        weekData.semaglutide_injections_weekly
       ]);
       
       return result.rows[0];
@@ -340,18 +303,13 @@ async function saveWeekToDatabase(weekData) {
           week_start_date, week_end_date,
           actual_weekly_revenue, drip_iv_revenue_weekly, semaglutide_revenue_weekly,
           membership_revenue_weekly, unique_customers_weekly, member_customers_weekly,
-          non_member_customers_weekly,
           iv_infusions_weekday_weekly, iv_infusions_weekend_weekly,
           injections_weekday_weekly, injections_weekend_weekly,
           semaglutide_injections_weekly,
-          total_drip_iv_members, individual_memberships, family_memberships,
-          family_concierge_memberships, drip_concierge_memberships, concierge_memberships,
-          corporate_memberships, marketing_initiatives,
-          weekly_revenue_goal, monthly_revenue_goal, days_left_in_month,
+          weekly_revenue_goal, monthly_revenue_goal,
           upload_date, created_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25,
           CURRENT_DATE, NOW()
         ) RETURNING *
       `;
@@ -365,23 +323,13 @@ async function saveWeekToDatabase(weekData) {
         weekData.membership_revenue_weekly || 0,
         weekData.unique_customers_weekly,
         weekData.member_customers_weekly,
-        weekData.non_member_customers_weekly || 0,
         weekData.iv_infusions_weekday_weekly,
         weekData.iv_infusions_weekend_weekly,
         weekData.injections_weekday_weekly,
         weekData.injections_weekend_weekly,
         weekData.semaglutide_injections_weekly,
-        weekData.total_drip_iv_members || 0,
-        weekData.individual_memberships || 0,
-        weekData.family_memberships || 0,
-        weekData.family_concierge_memberships || 0,
-        weekData.drip_concierge_memberships || 0,
-        weekData.concierge_memberships || 0,
-        weekData.corporate_memberships || 0,
-        weekData.marketing_initiatives || 0,
         weekData.weekly_revenue_goal || 32125,
-        weekData.monthly_revenue_goal || 128500,
-        weekData.days_left_in_month || 0
+        weekData.monthly_revenue_goal || 128500
       ]);
       
       return result.rows[0];
