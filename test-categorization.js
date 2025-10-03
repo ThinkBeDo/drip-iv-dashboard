@@ -66,7 +66,7 @@ require.cache[require.resolve('pg')] = {
 };
 
 // Load the actual module
-const { processRevenueData } = require('./import-weekly-data.js');
+const { processRevenueData, analyzeRevenueData } = require('./import-weekly-data.js');
 
 async function testCategorization() {
   console.log('🚀 Testing Revenue Categorization\n');
@@ -76,7 +76,7 @@ async function testCategorization() {
   
   try {
     console.log('\n📁 Processing TSV file:', testFile);
-    const result = await processRevenueData(testFile);
+    const result = await processRevenueData(testFile, mockClient);
     
     console.log('\n✅ PROCESSING SUCCESSFUL!');
     console.log('\n📊 Revenue Breakdown:');
@@ -92,7 +92,16 @@ async function testCategorization() {
     console.log('   IV Infusions (Weekend): ' + (result.iv_infusions_weekend_weekly || 0));
     console.log('   Injections (Weekday): ' + (result.injections_weekday_weekly || 0));
     console.log('   Weight Loss Injections: ' + (result.weight_loss_injections_weekly || 0));
-    
+
+    const revenuePerfBins = JSON.parse(result.revenue_perf_bin || '{}');
+    const serviceVolumeBins = JSON.parse(result.service_volume_bin || '{}');
+    const customerBins = JSON.parse(result.customer_bin || '{}');
+
+    console.log('\n📊 Bin Summaries:');
+    console.log('   Revenue Performance:', revenuePerfBins);
+    console.log('   Service Volume:', serviceVolumeBins);
+    console.log('   Customer Bins:', customerBins);
+
     console.log('\n✅ Test Analysis:');
     if (result.drip_iv_revenue_weekly === 45) {
       console.log('   ✅ SUCCESS: Saline 1L (Member) correctly categorized as IV Therapy ($45)');
@@ -106,6 +115,57 @@ async function testCategorization() {
     } else {
       console.log('   ❌ ERROR: Membership categorization issue');
       console.log('      Expected: $258, Got: $' + (result.membership_revenue_weekly || 0));
+    }
+
+    console.log('\n🧪 Bin Aggregation Checks:');
+    if (revenuePerfBins['IV therapy'] === 45) {
+      console.log('   ✅ Revenue bin captured $45 for IV therapy');
+    } else {
+      console.log('   ❌ Revenue bin missing or incorrect for IV therapy:', revenuePerfBins);
+    }
+
+    if (serviceVolumeBins['IV Infusions'] === 1) {
+      console.log('   ✅ Service volume bin counted 1 IV infusion');
+    } else {
+      console.log('   ❌ Service volume bin incorrect:', serviceVolumeBins);
+    }
+
+    if (customerBins.Member === 1) {
+      console.log('   ✅ Customer bin tracked 1 member patient');
+    } else {
+      console.log('   ❌ Customer bin incorrect:', customerBins);
+    }
+
+    if (Array.isArray(result.unmapped_services) && result.unmapped_services.length === 1) {
+      console.log('   ✅ Unmapped services captured for follow-up:', result.unmapped_services[0].normalized_service_name);
+    } else {
+      console.log('   ❌ Expected unmapped services to be tracked once, got:', result.unmapped_services);
+    }
+
+    console.log('\n🧪 Payment Date Fallback Check:');
+    const paymentDateOnlyRows = [{
+      'Date': '',
+      'Date Of Payment': '8/28/2025',
+      'Charge Desc': 'Saline 1L (Member)',
+      'Calculated Payment (Line)': '$45.00',
+      'Charge Type': 'PROCEDURE',
+      'Patient': 'Payment Date Only'
+    }];
+
+    const paymentDateResult = await analyzeRevenueData(paymentDateOnlyRows, mockClient);
+    const fallbackRevenueBins = JSON.parse(paymentDateResult.revenue_perf_bin || '{}');
+    const fallbackServiceBins = JSON.parse(paymentDateResult.service_volume_bin || '{}');
+
+    if (fallbackRevenueBins['IV therapy'] === 45) {
+      console.log('   ✅ Revenue bins honor rows that only provide Date Of Payment');
+    } else {
+      console.log('   ❌ Revenue bins missed Date Of Payment rows:', fallbackRevenueBins);
+    }
+
+    if (fallbackServiceBins['IV Infusions'] === 1) {
+      console.log('   ✅ Service volume counts rows with Date Of Payment only');
+    } else {
+      console.log('   ❌ Service volume bin missed Date Of Payment rows:', fallbackServiceBins);
     }
 
     console.log('\n🧪 Service Mapping Tests:');

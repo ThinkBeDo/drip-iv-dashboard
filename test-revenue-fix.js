@@ -26,11 +26,12 @@ async function testRevenueFix() {
     console.log('📊 Processing revenue data from CSV...\n');
     
     // Process the CSV data
-    const csvData = await processRevenueData(csvPath);
+    const csvResult = await processRevenueData(csvPath);
+    const csvData = csvResult.rawRows || [];
     console.log(`✅ Loaded ${csvData.length} rows from CSV\n`);
-    
+
     // Analyze with fixed logic
-    const metrics = analyzeRevenueData(csvData);
+    const metrics = await analyzeRevenueData(csvData);
     
     console.log('📈 ANALYSIS RESULTS:');
     console.log('=' .repeat(60));
