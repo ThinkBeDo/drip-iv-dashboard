@@ -2345,8 +2345,10 @@ module.exports = {
   processRevenueData,
   processMembershipData,
   analyzeRevenueData,
+  getServiceCategory,
   getWeekWindow,
-  computeNewMembershipsFromUpload
+  computeNewMembershipsFromUpload,
+  cleanCurrency
 };
 
 // CLI usage

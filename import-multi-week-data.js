@@ -12,7 +12,8 @@ const {
   processRevenueData, 
   processMembershipData, 
   getServiceCategory,
-  setDatabasePool 
+  setDatabasePool,
+  cleanCurrency
 } = require('./import-weekly-data');
 
 // Database pool will be passed from server.js
@@ -149,56 +150,84 @@ function analyzeRevenueDataByWeeks(csvData) {
       const date = parseRowDate(row);
       const patient = (row['Patient'] || '').trim();
       const chargeDesc = row['Charge Desc'] || '';
-      const chargeAmount = parseFloat(
-        row['Calculated Payment (Line)'] || 
-        row['Total'] || 
-        row['Paid'] || 
-        0
-      );
-      
-      if (!chargeAmount || chargeAmount <= 0) return;
-      
+      const lowerChargeDesc = chargeDesc.toLowerCase();
+      const chargeAmount = cleanCurrency(row['Calculated Payment (Line)']) ||
+        cleanCurrency(row['Charge Amount']) ||
+        cleanCurrency(row['Payment Amount']) ||
+        cleanCurrency(row['Amount']) ||
+        cleanCurrency(row['Total']) ||
+        cleanCurrency(row['Paid']);
+
+      if (!chargeAmount || chargeAmount <= 0 || !date) return;
+
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+      const isWeightLossInjection = lowerChargeDesc.includes('semaglutide') ||
+        lowerChargeDesc.includes('tirzepatide') ||
+        lowerChargeDesc.includes('contrave');
+
       // Add to weekly totals
       metrics.actual_weekly_revenue += chargeAmount;
-      
-      // Categorize service
+
+      // Categorize service using shared helper to mirror weekly import logic
       const serviceCategory = getServiceCategory(chargeDesc);
-      
-      if (serviceCategory === 'drip_iv') {
+
+      if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
         metrics.drip_iv_revenue_weekly += chargeAmount;
-        
-        // Count service instances
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        if (chargeDesc.toLowerCase().includes('infusion')) {
+
+        if (lowerChargeDesc.includes('infusion')) {
           if (isWeekend) {
             metrics.iv_infusions_weekend_weekly++;
           } else {
             metrics.iv_infusions_weekday_weekly++;
           }
-        } else if (chargeDesc.toLowerCase().includes('injection')) {
+        }
+
+        if (lowerChargeDesc.includes('injection')) {
           if (isWeekend) {
             metrics.injections_weekend_weekly++;
           } else {
             metrics.injections_weekday_weekly++;
           }
         }
-      } else if (serviceCategory === 'semaglutide') {
-        metrics.semaglutide_revenue_weekly += chargeAmount;
-        
-        if (chargeDesc.toLowerCase().includes('semaglutide') || 
-            chargeDesc.toLowerCase().includes('tirzepatide')) {
+
+      } else if (serviceCategory === 'injection') {
+        if (isWeightLossInjection) {
+          metrics.semaglutide_revenue_weekly += chargeAmount;
           metrics.semaglutide_injections_weekly++;
+          metrics.weight_loss_injections_weekly++;
+        } else {
+          metrics.other_revenue_weekly += chargeAmount;
+          if (isWeekend) {
+            metrics.injections_weekend_weekly++;
+          } else {
+            metrics.injections_weekday_weekly++;
+          }
         }
+
+      } else if (serviceCategory === 'weight_management') {
+        metrics.semaglutide_revenue_weekly += chargeAmount;
+        metrics.semaglutide_injections_weekly++;
+        metrics.weight_loss_injections_weekly++;
+
       } else if (serviceCategory === 'membership') {
         metrics.membership_revenue_weekly += chargeAmount;
+
+      } else if (serviceCategory === 'consultation') {
+        if (isWeightLossInjection || lowerChargeDesc.includes('weight loss')) {
+          metrics.semaglutide_revenue_weekly += chargeAmount;
+        } else {
+          metrics.other_revenue_weekly += chargeAmount;
+        }
+
+      } else {
+        metrics.other_revenue_weekly += chargeAmount;
       }
-      
+
       // Track unique customers for this week
       if (patient) {
         metrics.unique_customers_weekly.add(patient);
-        
-        const isMember = chargeDesc.toLowerCase().includes('(member)') || 
-                        chargeDesc.toLowerCase().includes('member');
+
+        const isMember = lowerChargeDesc.includes('(member)') || lowerChargeDesc.includes('member');
         if (isMember) {
           metrics.member_customers_weekly.add(patient);
         } else {
