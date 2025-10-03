@@ -278,13 +278,25 @@ async function saveWeekToDatabase(weekData) {
           membership_revenue_weekly = $6,
           unique_customers_weekly = $7,
           member_customers_weekly = $8,
-          iv_infusions_weekday_weekly = $9,
-          iv_infusions_weekend_weekly = $10,
-          injections_weekday_weekly = $11,
-          injections_weekend_weekly = $12,
-          semaglutide_injections_weekly = $13,
+          non_member_customers_weekly = $9,
+          iv_infusions_weekday_weekly = $10,
+          iv_infusions_weekend_weekly = $11,
+          injections_weekday_weekly = $12,
+          injections_weekend_weekly = $13,
+          semaglutide_injections_weekly = $14,
+          total_drip_iv_members = $15,
+          individual_memberships = $16,
+          family_memberships = $17,
+          family_concierge_memberships = $18,
+          drip_concierge_memberships = $19,
+          concierge_memberships = $20,
+          corporate_memberships = $21,
+          marketing_initiatives = $22,
+          weekly_revenue_goal = $23,
+          monthly_revenue_goal = $24,
+          days_left_in_month = $25,
           upload_date = CURRENT_DATE,
-          created_at = NOW()
+          updated_at = NOW()
         WHERE week_start_date = $1 AND week_end_date = $2
         RETURNING *
       `;
@@ -298,11 +310,23 @@ async function saveWeekToDatabase(weekData) {
         weekData.membership_revenue_weekly || 0,
         weekData.unique_customers_weekly,
         weekData.member_customers_weekly,
+        weekData.non_member_customers_weekly || 0,
         weekData.iv_infusions_weekday_weekly,
         weekData.iv_infusions_weekend_weekly,
         weekData.injections_weekday_weekly,
         weekData.injections_weekend_weekly,
-        weekData.semaglutide_injections_weekly
+        weekData.semaglutide_injections_weekly,
+        weekData.total_drip_iv_members || 0,
+        weekData.individual_memberships || 0,
+        weekData.family_memberships || 0,
+        weekData.family_concierge_memberships || 0,
+        weekData.drip_concierge_memberships || 0,
+        weekData.concierge_memberships || 0,
+        weekData.corporate_memberships || 0,
+        weekData.marketing_initiatives || 0,
+        weekData.weekly_revenue_goal || 32125,
+        weekData.monthly_revenue_goal || 128500,
+        weekData.days_left_in_month || 0
       ]);
       
       return result.rows[0];
@@ -316,13 +340,18 @@ async function saveWeekToDatabase(weekData) {
           week_start_date, week_end_date,
           actual_weekly_revenue, drip_iv_revenue_weekly, semaglutide_revenue_weekly,
           membership_revenue_weekly, unique_customers_weekly, member_customers_weekly,
+          non_member_customers_weekly,
           iv_infusions_weekday_weekly, iv_infusions_weekend_weekly,
           injections_weekday_weekly, injections_weekend_weekly,
           semaglutide_injections_weekly,
-          weekly_revenue_goal, monthly_revenue_goal,
+          total_drip_iv_members, individual_memberships, family_memberships,
+          family_concierge_memberships, drip_concierge_memberships, concierge_memberships,
+          corporate_memberships, marketing_initiatives,
+          weekly_revenue_goal, monthly_revenue_goal, days_left_in_month,
           upload_date, created_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+          $16, $17, $18, $19, $20, $21, $22, $23, $24, $25,
           CURRENT_DATE, NOW()
         ) RETURNING *
       `;
@@ -336,13 +365,23 @@ async function saveWeekToDatabase(weekData) {
         weekData.membership_revenue_weekly || 0,
         weekData.unique_customers_weekly,
         weekData.member_customers_weekly,
+        weekData.non_member_customers_weekly || 0,
         weekData.iv_infusions_weekday_weekly,
         weekData.iv_infusions_weekend_weekly,
         weekData.injections_weekday_weekly,
         weekData.injections_weekend_weekly,
         weekData.semaglutide_injections_weekly,
+        weekData.total_drip_iv_members || 0,
+        weekData.individual_memberships || 0,
+        weekData.family_memberships || 0,
+        weekData.family_concierge_memberships || 0,
+        weekData.drip_concierge_memberships || 0,
+        weekData.concierge_memberships || 0,
+        weekData.corporate_memberships || 0,
+        weekData.marketing_initiatives || 0,
         weekData.weekly_revenue_goal || 32125,
-        weekData.monthly_revenue_goal || 128500
+        weekData.monthly_revenue_goal || 128500,
+        weekData.days_left_in_month || 0
       ]);
       
       return result.rows[0];
