@@ -1300,7 +1300,7 @@ function extractFromCSV(csvData) {
     dripConcierge: new Set()
   };
   
-  // Track new weekly membership signups - based on "(NEW)" in Charge Desc
+  // Track new weekly membership signups - based on "NEW" flag in Charge Desc
   const newMembershipCounts = {
     individual: new Set(),
     family: new Set(),
@@ -1400,6 +1400,7 @@ function extractFromCSV(csvData) {
   filteredData.forEach(row => {
     const chargeDesc = (row['Charge Desc'] || '');
     const chargeDescLower = chargeDesc.toLowerCase();
+    const chargeDescUpper = chargeDesc.toUpperCase();
     const patient = row['Patient'] || '';
     const dateStr = row['Date'] || row['Date Of Payment'] || '';
     
@@ -1454,8 +1455,8 @@ function extractFromCSV(csvData) {
       console.log(`Found membership indicator: "${chargeDesc}" for patient: "${patient}"`);
     }
     
-    // Check if this is a NEW membership signup (has "(NEW)" in Charge Desc)
-    const isNewMembership = chargeDesc.toUpperCase().includes('(NEW)');
+    // Check if this is a NEW membership signup (has explicit "NEW" flag in Charge Desc)
+    const isNewMembership = /\bNEW\b/.test(chargeDescUpper);
     
     // Map membership types based on charge descriptions - more flexible matching
     // Individual membership variations
@@ -1464,7 +1465,7 @@ function extractFromCSV(csvData) {
         chargeDescLower === 'individual membership' ||
         chargeDescLower.includes('membership - individual')) {
       membershipCounts.individual.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      // Only count as NEW if it has the "NEW" flag in the description AND is within current week
       if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.individual.add(patient);
         console.log(`✓ NEW individual membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
@@ -1476,7 +1477,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'membership family' ||
              chargeDescLower === 'family membership') {
       membershipCounts.family.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      // Only count as NEW if it has the "NEW" flag in the description AND is within current week
       if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.family.add(patient);
         console.log(`✓ NEW family membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
@@ -1502,7 +1503,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'concierge membership' ||
              chargeDescLower === 'membership concierge') {
       membershipCounts.concierge.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      // Only count as NEW if it has the "NEW" flag in the description AND is within current week
       if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.concierge.add(patient);
         console.log(`✓ NEW concierge membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
@@ -1514,7 +1515,7 @@ function extractFromCSV(csvData) {
              chargeDescLower === 'corporate membership' ||
              chargeDescLower.includes('membership - corporate')) {
       membershipCounts.corporate.add(patient);
-      // Only count as NEW if it has "(NEW)" in the description AND is within current week
+      // Only count as NEW if it has the "NEW" flag in the description AND is within current week
       if (isNewMembership && isWithinDataWeek) {
         newMembershipCounts.corporate.add(patient);
         console.log(`✓ NEW corporate membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
@@ -1551,7 +1552,7 @@ function extractFromCSV(csvData) {
   data.new_corporate_members_weekly = newMembershipCounts.corporate.size;
   
   // Log summary of NEW memberships found
-  console.log('\n📊 NEW Membership Signups Summary (with "(NEW)" in Charge Desc):');
+  console.log('\n📊 NEW Membership Signups Summary (with "NEW" flag in Charge Desc):');
   console.log(`   - Individual: ${data.new_individual_members_weekly}`);
   console.log(`   - Family: ${data.new_family_members_weekly}`);
   console.log(`   - Concierge: ${data.new_concierge_members_weekly}`);

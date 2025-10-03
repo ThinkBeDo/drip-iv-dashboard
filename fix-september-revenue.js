@@ -114,7 +114,7 @@ try {
       }
       
       // Count new memberships
-      if (chargeDesc.toUpperCase().includes('(NEW)')) {
+      if (/\bNEW\b/.test(chargeDesc.toUpperCase())) {
         const desc = chargeDesc.toLowerCase();
         if (desc.includes('individual')) weekData.new_individual_members++;
         else if (desc.includes('family')) weekData.new_family_members++;

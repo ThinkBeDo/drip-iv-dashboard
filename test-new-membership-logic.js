@@ -1,4 +1,26 @@
+const path = require('path');
 const XLSX = require('xlsx');
+
+function excelSerialToDate(serial) {
+  const utcDays = serial - 25569;
+  const utcValue = utcDays * 86400;
+  return new Date(utcValue * 1000);
+}
+
+function normalizeDate(value) {
+  if (typeof value === 'number') {
+    const parsed = excelSerialToDate(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+  }
+
+  if (value && typeof value === 'string') {
+    return value;
+  }
+
+  return value || '';
+}
 
 // Simulate the extractFromCSV function's NEW membership logic
 function testNewMembershipDetection(filePath) {
@@ -11,7 +33,7 @@ function testNewMembershipDetection(filePath) {
   
   console.log(`Total rows in file: ${csvData.length}\n`);
   
-  // Track new membership signups - based on "(NEW)" in Charge Desc
+  // Track new membership signups - based on explicit "NEW" flag in Charge Desc
   const newMembershipCounts = {
     individual: new Set(),
     family: new Set(),
@@ -33,12 +55,12 @@ function testNewMembershipDetection(filePath) {
     const chargeDesc = (row['Charge Desc'] || '');
     const chargeDescLower = chargeDesc.toLowerCase();
     const patient = row['Patient'] || '';
-    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    const dateStr = normalizeDate(row['Date'] || row['Date Of Payment'] || '');
     
     if (!patient) return;
     
-    // Check if this is a NEW membership signup (has "(NEW)" in Charge Desc)
-    const isNewMembership = chargeDesc.toUpperCase().includes('(NEW)');
+    // Check if this is a NEW membership signup (has "NEW" flag in Charge Desc)
+    const isNewMembership = /\bNEW\b/.test(chargeDesc.toUpperCase());
     
     if (isNewMembership) {
       newMembershipRowsFound++;
@@ -91,7 +113,7 @@ function testNewMembershipDetection(filePath) {
   console.log('📊 TEST RESULTS');
   console.log('='.repeat(60));
   
-  console.log('\n🆕 NEW Membership Signups (with "(NEW)" in Charge Desc):');
+  console.log('\n🆕 NEW Membership Signups (with "NEW" flag in Charge Desc):');
   console.log(`   Individual: ${newMembershipCounts.individual.size}`);
   console.log(`   Family: ${newMembershipCounts.family.size}`);
   console.log(`   Concierge: ${newMembershipCounts.concierge.size}`);
@@ -116,14 +138,14 @@ function testNewMembershipDetection(filePath) {
   console.log(`   NEW CORPORATE: ${newMembershipCounts.corporate.size}`);
   
   console.log('\n' + '='.repeat(60));
-  console.log(`Total rows with "(NEW)" found: ${newMembershipRowsFound}`);
+  console.log(`Total rows with "NEW" flag found: ${newMembershipRowsFound}`);
   console.log('='.repeat(60) + '\n');
   
   // Verify the logic is working correctly
   if (totalNew === 0) {
     console.log('⚠️  WARNING: No NEW memberships detected!');
     console.log('   This could mean:');
-    console.log('   1. The file has no entries with "(NEW)" in Charge Desc');
+    console.log('   1. The file has no entries with a "NEW" flag in Charge Desc');
     console.log('   2. The logic needs adjustment');
   } else {
     console.log('✅ SUCCESS: NEW membership detection is working!');
@@ -131,5 +153,5 @@ function testNewMembershipDetection(filePath) {
 }
 
 // Run the test
-const filePath = '/Users/tylerlafleur/Library/Mobile Documents/com~apple~CloudDocs/CLAUDE Projects/drip-iv-dashboard/Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls';
+const filePath = path.join(__dirname, 'Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls');
 testNewMembershipDetection(filePath);
