@@ -11,6 +11,7 @@ const fs = require('fs');
 const XLSX = require('xlsx');
 require('dotenv').config();
 const { importWeeklyData, setDatabasePool } = require('./import-weekly-data');
+const { importMultiWeekData, setMultiWeekDatabasePool } = require('./import-multi-week-data');
 const { runMigrations, getMigrationStatus } = require('./database/run-migrations');
 const { autoLoadMapping, getMappingStatus } = require('./database/auto-load-mapping');
 
@@ -90,6 +91,7 @@ if (process.env.DATABASE_URL) {
 
         // Pass the pool to import-weekly-data module
         setDatabasePool(pool);
+        setMultiWeekDatabasePool(pool);
         console.log('✅ Database pool shared with import module');
         return true;
       } catch (err) {
@@ -119,6 +121,7 @@ if (process.env.DATABASE_URL) {
     
     // Still pass the pool even if connection fails (for later retry)
     setDatabasePool(pool);
+    setMultiWeekDatabasePool(pool);
     return false;
   };
   
@@ -3215,9 +3218,9 @@ app.post('/api/import-weekly-data', upload.fields([
     if (revenueFile) console.log(`   Revenue: ${revenueFile.originalname}`);
     if (membershipFile) console.log(`   Membership: ${membershipFile.originalname}`);
 
-    // Use the importWeeklyData function from import-weekly-data.js
-    console.log('📥 Calling import function...');
-    const importedData = await importWeeklyData(
+    // Use the importMultiWeekData function to process multiple weeks separately
+    console.log('📥 Calling multi-week import function...');
+    const importedData = await importMultiWeekData(
       revenueFile ? revenueFile.path : null,
       membershipFile ? membershipFile.path : null
     );
