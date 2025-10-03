@@ -257,18 +257,36 @@ function cleanCurrency(value) {
 }
 
 // Date parsing function - Enhanced to handle various formats
-function parseDate(dateStr) {
-  if (!dateStr || dateStr === 'Total') return null;
+function parseDate(rawDate) {
+  if (rawDate === null || rawDate === undefined || rawDate === '' || rawDate === 'Total') {
+    return null;
+  }
 
-  // Clean the date string
-  dateStr = dateStr.trim();
+  // Handle native Excel serial numbers (e.g., 45925 → 2025-09-25)
+  if (typeof rawDate === 'number') {
+    const excelDate = excelSerialToDate(rawDate);
+    if (!Number.isNaN(excelDate?.getTime()) && excelDate.getFullYear() >= 2020) {
+      return excelDate;
+    }
+  }
+
+  // Handle numeric strings that represent Excel serial numbers
+  if (typeof rawDate === 'string' && /^\d+(?:\.\d+)?$/.test(rawDate.trim())) {
+    const serial = parseFloat(rawDate.trim());
+    const excelDate = excelSerialToDate(serial);
+    if (!Number.isNaN(excelDate?.getTime()) && excelDate.getFullYear() >= 2020) {
+      return excelDate;
+    }
+  }
+
+  let dateStr = String(rawDate).trim();
 
   // Handle format like "8/22/25" or "8/22/2025"
   const parts = dateStr.split('/');
   if (parts.length === 3) {
-    const month = parseInt(parts[ 0 ]);
-    const day = parseInt(parts[ 1 ]);
-    let year = parseInt(parts[ 2 ]);
+    const month = parseInt(parts[ 0 ], 10);
+    const day = parseInt(parts[ 1 ], 10);
+    let year = parseInt(parts[ 2 ], 10);
 
     // Handle 2-digit year (25 = 2025, not 1925)
     if (year < 100) {
@@ -284,9 +302,9 @@ function parseDate(dateStr) {
   }
 
   // Try parsing as ISO date or other formats
-  const date = new Date(dateStr);
-  if (!isNaN(date.getTime()) && date.getFullYear() >= 2020) {
-    return date;
+  const fallbackDate = new Date(dateStr);
+  if (!isNaN(fallbackDate.getTime()) && fallbackDate.getFullYear() >= 2020) {
+    return fallbackDate;
   }
 
   console.warn(`Unable to parse date: "${dateStr}"`);
@@ -392,15 +410,7 @@ async function computeNewMembershipsFromUpload(rows, db, now = new Date()) {
   for (const r of rows) {
     const patient = String(r.Patient || '').trim();
     const titleRaw = String(r.Title || '').trim();
-    let startDate = r['Start Date'] ? new Date(r['Start Date']) : null;
-
-    if (r['Start Date']) {
-      if (typeof r['Start Date'] === 'number') {
-        startDate = excelSerialToDate(r['Start Date']);
-      } else {
-        startDate = new Date(r['Start Date']);
-      }
-    }
+    const startDate = parseDate(r['Start Date']);
 
     // Debug: Show raw values
     console.log('Row:', { patient, titleRaw, rawStartDate: r['Start Date'], startDate });
@@ -1785,9 +1795,9 @@ async function analyzeRevenueData(csvData, client) {
           metrics.membership_revenue_weekly += chargeAmount;
           debugInfo.categoryTotals.memberships += chargeAmount;
 
-          // Track new membership signups - ONLY count those marked with "(NEW)"
+          // Track new membership signups - ONLY count those marked with a "NEW" flag
           const lowerDesc = chargeDesc.toLowerCase();
-          const isNewMembership = lowerDesc.includes('(new)') || lowerDesc.includes(' new');
+          const isNewMembership = /\bnew\b/.test(lowerDesc);
           
           if (isNewMembership) {
             if (lowerDesc.includes('individual')) {
@@ -1836,9 +1846,9 @@ async function analyzeRevenueData(csvData, client) {
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_monthly += chargeAmount;
 
-          // Track new membership signups (monthly) - ONLY count those marked with "(NEW)"
+          // Track new membership signups (monthly) - ONLY count those marked with a "NEW" flag
           const lowerDesc = chargeDesc.toLowerCase();
-          const isNewMembership = lowerDesc.includes('(new)') || lowerDesc.includes(' new');
+          const isNewMembership = /\bnew\b/.test(lowerDesc);
           
           if (isNewMembership) {
             if (lowerDesc.includes('individual')) {

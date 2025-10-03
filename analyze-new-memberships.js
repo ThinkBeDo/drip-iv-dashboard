@@ -1,6 +1,29 @@
+const path = require('path');
 const XLSX = require('xlsx');
 
-const filePath = '/Users/tylerlafleur/Library/Mobile Documents/com~apple~CloudDocs/CLAUDE Projects/drip-iv-dashboard/Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls';
+const filePath = path.join(__dirname, 'Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls');
+const newFlagRegex = /\bNEW\b/;
+
+function excelSerialToDate(serial) {
+  const utcDays = serial - 25569;
+  const utcValue = utcDays * 86400;
+  return new Date(utcValue * 1000);
+}
+
+function normalizeDate(value) {
+  if (typeof value === 'number') {
+    const parsed = excelSerialToDate(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+  }
+
+  if (value && typeof value === 'string') {
+    return value;
+  }
+
+  return value || '';
+}
 
 console.log('Reading Excel file...');
 const wb = XLSX.readFile(filePath);
@@ -13,7 +36,7 @@ console.log('\n=== Searching for NEW memberships ===\n');
 // Find all rows with "NEW" in Charge Desc
 const newMemberships = data.filter(row => {
   const chargeDesc = row['Charge Desc'] || '';
-  return chargeDesc.toUpperCase().includes('NEW');
+  return newFlagRegex.test(chargeDesc.toUpperCase());
 });
 
 console.log('Rows with "NEW" in Charge Desc:', newMemberships.length);
@@ -52,7 +75,8 @@ console.log('Other:', byType.other.length);
 
 console.log('\n=== Sample NEW Memberships ===');
 newMemberships.slice(0, 15).forEach((row, i) => {
-  console.log(`${i + 1}. ${row['Charge Desc']} - ${row['Patient']} - ${row['Date']}`);
+  const formattedDate = normalizeDate(row['Date'] || row['Date Of Payment']);
+  console.log(`${i + 1}. ${row['Charge Desc']} - ${row['Patient']} - ${formattedDate}`);
 });
 
 console.log('\n=== All Unique Charge Descriptions with NEW ===');
@@ -73,6 +97,6 @@ const allMembershipDescs = [...new Set(membershipRows.map(row => row['Charge Des
 allMembershipDescs.sort();
 allMembershipDescs.forEach(desc => {
   const count = membershipRows.filter(row => row['Charge Desc'] === desc).length;
-  const hasNew = desc.toUpperCase().includes('NEW');
+  const hasNew = newFlagRegex.test(desc.toUpperCase());
   console.log(`${hasNew ? '✓ NEW' : '       '} - "${desc}" (${count} occurrences)`);
 });

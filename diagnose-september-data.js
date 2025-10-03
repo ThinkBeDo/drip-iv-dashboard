@@ -1,8 +1,9 @@
+const path = require('path');
 const XLSX = require('xlsx');
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const filePath = '/Users/tylerlafleur/Library/Mobile Documents/com~apple~CloudDocs/CLAUDE Projects/drip-iv-dashboard/Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls';
+const filePath = path.join(__dirname, 'Patient Analysis (Charge Details & Payments) - V3  - With COGS (2).xls');
 
 console.log('='.repeat(80));
 console.log('SEPTEMBER 2025 DATA DIAGNOSTIC');
@@ -33,7 +34,7 @@ data.forEach(row => {
   const chargeDesc = row['Charge Desc'] || '';
   let dateStr = row['Date'] || row['Date Of Payment'] || '';
 
-  if (!chargeDesc.toUpperCase().includes('(NEW)')) return;
+  if (!/\bNEW\b/.test(chargeDesc.toUpperCase())) return;
   if (!dateStr) return;
 
   // Convert to string if it's a number (Excel date serial)
