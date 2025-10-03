@@ -192,9 +192,9 @@ function analyzeRevenueDataByWeeks(csvData) {
       } else if (serviceCategory === 'membership') {
         metrics.membership_revenue_weekly += chargeAmount;
 
-        // Track new membership signups - ONLY count those marked with "(NEW)"
-        const lowerChargeDesc = chargeDesc.toLowerCase();
-        const isNewMembership = lowerChargeDesc.includes('(new)') || lowerChargeDesc.includes(' new');
+        // Track new membership signups - ONLY count those marked with "NEW" flag
+        // Use regex with word boundaries for reliable detection (case-insensitive)
+        const isNewMembership = /\bnew\b/i.test(chargeDesc);
 
         if (isNewMembership) {
           if (lowerChargeDesc.includes('individual')) {
