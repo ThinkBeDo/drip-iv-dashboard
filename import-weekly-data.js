@@ -1591,16 +1591,20 @@ function analyzeRevenueData(csvData) {
           metrics.membership_revenue_weekly += chargeAmount;
           debugInfo.categoryTotals.memberships += chargeAmount;
 
-          // Track new membership signups
+          // Track new membership signups - ONLY count those marked with "(NEW)"
           const lowerDesc = chargeDesc.toLowerCase();
-          if (lowerDesc.includes('individual')) {
-            metrics.new_individual_members_weekly++;
-          } else if (lowerDesc.includes('family')) {
-            metrics.new_family_members_weekly++;
-          } else if (lowerDesc.includes('concierge')) {
-            metrics.new_concierge_members_weekly++;
-          } else if (lowerDesc.includes('corporate')) {
-            metrics.new_corporate_members_weekly++;
+          const isNewMembership = lowerDesc.includes('(new)') || lowerDesc.includes(' new');
+          
+          if (isNewMembership) {
+            if (lowerDesc.includes('individual')) {
+              metrics.new_individual_members_weekly++;
+            } else if (lowerDesc.includes('family')) {
+              metrics.new_family_members_weekly++;
+            } else if (lowerDesc.includes('concierge')) {
+              metrics.new_concierge_members_weekly++;
+            } else if (lowerDesc.includes('corporate')) {
+              metrics.new_corporate_members_weekly++;
+            }
           }
         } else if (serviceCategory === 'consultation') {
           // Track consultation revenue separately
@@ -1638,16 +1642,20 @@ function analyzeRevenueData(csvData) {
         } else if (serviceCategory === 'membership') {
           metrics.membership_revenue_monthly += chargeAmount;
 
-          // Track new membership signups (monthly)
+          // Track new membership signups (monthly) - ONLY count those marked with "(NEW)"
           const lowerDesc = chargeDesc.toLowerCase();
-          if (lowerDesc.includes('individual')) {
-            metrics.new_individual_members_monthly++;
-          } else if (lowerDesc.includes('family')) {
-            metrics.new_family_members_monthly++;
-          } else if (lowerDesc.includes('concierge')) {
-            metrics.new_concierge_members_monthly++;
-          } else if (lowerDesc.includes('corporate')) {
-            metrics.new_corporate_members_monthly++;
+          const isNewMembership = lowerDesc.includes('(new)') || lowerDesc.includes(' new');
+          
+          if (isNewMembership) {
+            if (lowerDesc.includes('individual')) {
+              metrics.new_individual_members_monthly++;
+            } else if (lowerDesc.includes('family')) {
+              metrics.new_family_members_monthly++;
+            } else if (lowerDesc.includes('concierge')) {
+              metrics.new_concierge_members_monthly++;
+            } else if (lowerDesc.includes('corporate')) {
+              metrics.new_corporate_members_monthly++;
+            }
           }
         } else if (serviceCategory === 'consultation') {
           // Track consultation revenue separately
@@ -2084,15 +2092,17 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
         
         // Use the new registry-based counting function
         newMembershipCounts = await computeNewMembershipsFromUpload(membershipRows, client);
+        
+        // Update combined data with registry-based counts (only when membership file is provided)
+        combinedData.new_individual_members_weekly = newMembershipCounts.new_individual_members_weekly;
+        combinedData.new_family_members_weekly = newMembershipCounts.new_family_members_weekly;
+        combinedData.new_concierge_members_weekly = newMembershipCounts.new_concierge_members_weekly;
+        combinedData.new_corporate_members_weekly = newMembershipCounts.new_corporate_members_weekly;
       } else {
-        console.log('📝 No membership rows provided, using zero counts');
+        console.log('📝 No membership rows provided, using revenue-based "(NEW)" detection from Patient Analysis file');
+        // Keep the revenue-based counts that were calculated from the Patient Analysis file
+        // These are already in combinedData from the revenue processing
       }
-
-      // Update combined data with registry-based counts
-      combinedData.new_individual_members_weekly = newMembershipCounts.new_individual_members_weekly;
-      combinedData.new_family_members_weekly = newMembershipCounts.new_family_members_weekly;
-      combinedData.new_concierge_members_weekly = newMembershipCounts.new_concierge_members_weekly;
-      combinedData.new_corporate_members_weekly = newMembershipCounts.new_corporate_members_weekly;
 
       // Check if data already exists for this week
       console.log(`📅 Checking for existing data: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
