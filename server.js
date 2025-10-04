@@ -3094,6 +3094,48 @@ app.get('/api/dashboard', async (req, res) => {
         result.rows[0].monthly_weeks_count = 0;
         result.rows[0].monthly_calculation_note = 'No weekly data available for this month';
       }
+
+      // CRITICAL FIX: Calculate actual monthly SERVICE COUNTS by summing all weeks in the same month
+      // This fixes the bug where monthly counts were showing the same as weekly counts
+      console.log('🔢 Calculating monthly service counts from weekly data...');
+
+      const monthlyServiceQuery = await pool.query(`
+        SELECT
+          SUM(iv_infusions_weekday_weekly) as total_iv_infusions_weekday,
+          SUM(iv_infusions_weekend_weekly) as total_iv_infusions_weekend,
+          SUM(injections_weekday_weekly) as total_injections_weekday,
+          SUM(injections_weekend_weekly) as total_injections_weekend,
+          SUM(semaglutide_injections_weekly) as total_semaglutide_injections,
+          SUM(hormone_followup_female_weekly) as total_hormone_female,
+          SUM(hormone_initial_male_weekly) as total_hormone_male,
+          COUNT(*) as weeks_count
+        FROM analytics_data
+        WHERE week_start_date <= $2 AND week_end_date >= $1
+      `, [monthStart.toISOString().split('T')[0], monthEnd.toISOString().split('T')[0]]);
+
+      if (monthlyServiceQuery.rows[0] && monthlyServiceQuery.rows[0].weeks_count > 0) {
+        const monthlyServiceData = monthlyServiceQuery.rows[0];
+
+        // Override the monthly service count fields with the actual sum of weekly counts
+        result.rows[0].iv_infusions_weekday_monthly = parseInt(monthlyServiceData.total_iv_infusions_weekday) || 0;
+        result.rows[0].iv_infusions_weekend_monthly = parseInt(monthlyServiceData.total_iv_infusions_weekend) || 0;
+        result.rows[0].injections_weekday_monthly = parseInt(monthlyServiceData.total_injections_weekday) || 0;
+        result.rows[0].injections_weekend_monthly = parseInt(monthlyServiceData.total_injections_weekend) || 0;
+        result.rows[0].semaglutide_injections_monthly = parseInt(monthlyServiceData.total_semaglutide_injections) || 0;
+        result.rows[0].hormone_followup_female_monthly = parseInt(monthlyServiceData.total_hormone_female) || 0;
+        result.rows[0].hormone_initial_male_monthly = parseInt(monthlyServiceData.total_hormone_male) || 0;
+
+        console.log('✅ Monthly service counts calculated from database:', {
+          weeks_included: monthlyServiceData.weeks_count,
+          iv_weekday: result.rows[0].iv_infusions_weekday_monthly,
+          iv_weekend: result.rows[0].iv_infusions_weekend_monthly,
+          injections_weekday: result.rows[0].injections_weekday_monthly,
+          injections_weekend: result.rows[0].injections_weekend_monthly,
+          weight_loss_injections: result.rows[0].semaglutide_injections_monthly
+        });
+      } else {
+        console.log('⚠️ No weekly service data found for this month');
+      }
     }
 
     // Return the data
