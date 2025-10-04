@@ -1172,16 +1172,27 @@ function extractFromCSV(csvData) {
   const filteredData = csvData.filter(row => {
     const chargeType = row['Charge Type'] || '';
     const chargeDesc = (row['Charge Desc'] || '').toLowerCase();
+    const amount = parseFloat(row['Calculated Payment (Line)'] || 0);
     
     // Exclude TOTAL_TIPS entries
     if (chargeType === 'TOTAL_TIPS' || chargeDesc.includes('total_tips')) {
       return false;
     }
     
+    // Exclude UNKNOWN charge type (summary rows)
+    if (chargeType === 'UNKNOWN' || chargeType === '') {
+      return false;
+    }
+    
+    // Exclude refund/credit entries (negative amounts or refund in description)
+    if (chargeType.toLowerCase().includes('refund') || chargeType.toLowerCase().includes('credit')) {
+      return false;
+    }
+    
     return true;
   });
   
-  console.log(`Filtered ${csvData.length - filteredData.length} TOTAL_TIPS entries from ${csvData.length} total rows`);
+  console.log(`Filtered ${csvData.length - filteredData.length} non-transaction entries (tips, summaries, refunds) from ${csvData.length} total rows`);
 
   if (missingColumns.length > 0) {
     console.error('⚠️  WARNING: Missing required CSV columns:', missingColumns);
@@ -1585,6 +1596,64 @@ function extractFromCSV(csvData) {
     monthly: { start: monthStartDate.toISOString().split('T')[0], end: monthEndDate.toISOString().split('T')[0] }
   });
 
+  // DIRECT REVENUE CALCULATION: Sum all line items in date range (for validation)
+  let directWeeklyTotal = 0;
+  let directMonthlyTotal = 0;
+  filteredData.forEach(row => {
+    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    if (!dateStr) return;
+    
+    let date = null;
+    
+    // Handle ISO format (YYYY-MM-DD) from Excel conversion
+    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
+        const day = parseInt(parts[2]);
+        date = new Date(year, month - 1, day);
+      }
+    }
+    // Handle slash format (MM/DD/YY or MM/DD/YYYY)
+    else if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const month = parseInt(parts[0]);
+        const day = parseInt(parts[1]);
+        let year = parseInt(parts[2]);
+        if (year < 100) year = 2000 + year;
+        date = new Date(year, month - 1, day);
+      }
+    }
+    // Fallback: try parsing as-is
+    else {
+      date = new Date(dateStr);
+    }
+    
+    // Normalize to midnight
+    if (date && !isNaN(date.getTime())) {
+      date.setHours(0, 0, 0, 0);
+    }
+    
+    if (date && !isNaN(date.getTime()) && date.getFullYear() >= 2020) {
+      const dateTime = date.getTime();
+      const paymentValue = row['Calculated Payment (Line)'] || 0;
+      const amount = typeof paymentValue === 'number' ? paymentValue : parseFloat((paymentValue || '0').toString().replace(/[\$,()]/g, '')) || 0;
+      
+      if (dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime()) {
+        directWeeklyTotal += amount;
+      }
+      if (dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime()) {
+        directMonthlyTotal += amount;
+      }
+    }
+  });
+  
+  console.log(`💰 DIRECT LINE-ITEM REVENUE TOTALS (for validation):`);
+  console.log(`   Weekly: $${directWeeklyTotal.toFixed(2)}`);
+  console.log(`   Monthly: $${directMonthlyTotal.toFixed(2)}`);
+
   // CRITICAL FIX 2: Proper visit counting by grouping patient + date
   const visitMap = new Map(); // key: "patient|date", value: visit data
   const weeklyCustomers = new Set();
@@ -1604,6 +1673,8 @@ function extractFromCSV(csvData) {
   let injectionMonthlyRevenue = 0;
   let membershipWeeklyRevenue = 0;
   let membershipMonthlyRevenue = 0;
+  let weightLossWeeklyRevenue = 0;  // NEW: Track weight loss revenue separately
+  let weightLossMonthlyRevenue = 0;
   
   // Weight management and hormone service counters
   let semaglutideWeeklyCount = 0;
@@ -1704,20 +1775,46 @@ function extractFromCSV(csvData) {
     const isWithinWeek = dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime();
     const isWithinMonth = dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime();
     
-    // Track weight management and hormone services
+    // Track weight management and hormone services WITH REVENUE
     services.forEach(chargeDesc => {
       // Weight management tracking
       if (isWeightManagementService(chargeDesc)) {
         const lowerDesc = chargeDesc.toLowerCase();
-        if (lowerDesc.includes('semaglutide')) {
-          if (isWithinWeek) semaglutideWeeklyCount++;
-          if (isWithinMonth) semaglutideMonthlyCount++;
-          weightManagementServices['Semaglutide'] = (weightManagementServices['Semaglutide'] || 0) + 1;
-        } else if (lowerDesc.includes('tirzepatide')) {
-          if (isWithinWeek) tirzepatideWeeklyCount++;
-          if (isWithinMonth) tirzepatideMonthlyCount++;
-          weightManagementServices['Tirzepatide'] = (weightManagementServices['Tirzepatide'] || 0) + 1;
-        }
+        
+        // Get the revenue for THIS specific service from the original data
+        // We need to find the matching row to get the amount
+        const matchingRows = filteredData.filter(row => 
+          row['Patient'] === patient && 
+          row['Charge Desc'] === chargeDesc &&
+          new Date(row['Date'] || row['Date Of Payment']).toISOString().split('T')[0] === date.toISOString().split('T')[0]
+        );
+        
+        matchingRows.forEach(row => {
+          const paymentValue = row['Calculated Payment (Line)'] || 0;
+          const amount = typeof paymentValue === 'number' ? paymentValue : parseFloat((paymentValue || '0').toString().replace(/[\$,()]/g, '')) || 0;
+          
+          if (lowerDesc.includes('semaglutide')) {
+            if (isWithinWeek) {
+              semaglutideWeeklyCount++;
+              weightLossWeeklyRevenue += amount;
+            }
+            if (isWithinMonth) {
+              semaglutideMonthlyCount++;
+              weightLossMonthlyRevenue += amount;
+            }
+            weightManagementServices['Semaglutide'] = (weightManagementServices['Semaglutide'] || 0) + 1;
+          } else if (lowerDesc.includes('tirzepatide')) {
+            if (isWithinWeek) {
+              tirzepatideWeeklyCount++;
+              weightLossWeeklyRevenue += amount;
+            }
+            if (isWithinMonth) {
+              tirzepatideMonthlyCount++;
+              weightLossMonthlyRevenue += amount;
+            }
+            weightManagementServices['Tirzepatide'] = (weightManagementServices['Tirzepatide'] || 0) + 1;
+          }
+        });
       }
       
       // Hormone service tracking
@@ -1898,9 +1995,9 @@ function extractFromCSV(csvData) {
   data.drip_iv_weekday_monthly = data.iv_infusions_weekday_monthly + data.injections_weekday_monthly;
   data.drip_iv_weekend_monthly = data.iv_infusions_weekend_monthly + data.injections_weekend_monthly;
   
-  // Assign calculated revenue values
-  data.actual_weekly_revenue = totalWeeklyRevenue;
-  data.actual_monthly_revenue = totalMonthlyRevenue;
+  // Assign calculated revenue values - USE DIRECT TOTALS for accuracy
+  data.actual_weekly_revenue = directWeeklyTotal;
+  data.actual_monthly_revenue = directMonthlyTotal;
   data.infusion_revenue_weekly = infusionWeeklyRevenue;
   data.infusion_revenue_monthly = infusionMonthlyRevenue;
   data.injection_revenue_weekly = injectionWeeklyRevenue;
@@ -1909,11 +2006,11 @@ function extractFromCSV(csvData) {
   data.membership_revenue_monthly = membershipMonthlyRevenue;
   
   // For legacy compatibility, use infusion revenue as "drip IV" revenue
-  // and injection revenue as "semaglutide" revenue (approximate mapping)
+  // and ACTUAL weight loss revenue for semaglutide (not injection revenue!)
   data.drip_iv_revenue_weekly = infusionWeeklyRevenue;
   data.drip_iv_revenue_monthly = infusionMonthlyRevenue;
-  data.semaglutide_revenue_weekly = injectionWeeklyRevenue;
-  data.semaglutide_revenue_monthly = injectionMonthlyRevenue;
+  data.semaglutide_revenue_weekly = weightLossWeeklyRevenue;
+  data.semaglutide_revenue_monthly = weightLossMonthlyRevenue;
   
   // Calculate popular services (top 3)
   const topInfusions = Object.entries(infusionServices)
@@ -1975,6 +2072,7 @@ function extractFromCSV(csvData) {
     byCategory: {
       infusion: { weekly: `$${infusionWeeklyRevenue.toFixed(2)}`, monthly: `$${infusionMonthlyRevenue.toFixed(2)}` },
       injection: { weekly: `$${injectionWeeklyRevenue.toFixed(2)}`, monthly: `$${injectionMonthlyRevenue.toFixed(2)}` },
+      weightLoss: { weekly: `$${weightLossWeeklyRevenue.toFixed(2)}`, monthly: `$${weightLossMonthlyRevenue.toFixed(2)}` },
       membership: { weekly: `$${membershipWeeklyRevenue.toFixed(2)}`, monthly: `$${membershipMonthlyRevenue.toFixed(2)}` }
     },
     serviceVolumes: {
