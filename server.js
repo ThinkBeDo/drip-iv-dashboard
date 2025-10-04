@@ -1681,6 +1681,8 @@ function extractFromCSV(csvData) {
   let semaglutideMonthlyCount = 0;
   let tirzepatideWeeklyCount = 0;
   let tirzepatideMonthlyCount = 0;
+  let semaglutideConsultsWeekly = 0;
+  let semaglutideConsultsMonthly = 0;
   let hormoneInitialFemaleWeekly = 0;
   let hormoneInitialFemaleMonthly = 0;
   let hormoneInitialMaleWeekly = 0;
@@ -1793,7 +1795,14 @@ function extractFromCSV(csvData) {
           const paymentValue = row['Calculated Payment (Line)'] || 0;
           const amount = typeof paymentValue === 'number' ? paymentValue : parseFloat((paymentValue || '0').toString().replace(/[\$,()]/g, '')) || 0;
           
+          // Check if this is a consultation service
+          const isConsultation = lowerDesc.includes('consult') || lowerDesc.includes('consultation');
+          
           if (lowerDesc.includes('semaglutide')) {
+            if (isConsultation) {
+              if (isWithinWeek) semaglutideConsultsWeekly++;
+              if (isWithinMonth) semaglutideConsultsMonthly++;
+            }
             if (isWithinWeek) {
               semaglutideWeeklyCount++;
               weightLossWeeklyRevenue += amount;
@@ -1804,6 +1813,10 @@ function extractFromCSV(csvData) {
             }
             weightManagementServices['Semaglutide'] = (weightManagementServices['Semaglutide'] || 0) + 1;
           } else if (lowerDesc.includes('tirzepatide')) {
+            if (isConsultation) {
+              if (isWithinWeek) semaglutideConsultsWeekly++;
+              if (isWithinMonth) semaglutideConsultsMonthly++;
+            }
             if (isWithinWeek) {
               tirzepatideWeeklyCount++;
               weightLossWeeklyRevenue += amount;
@@ -2011,6 +2024,10 @@ function extractFromCSV(csvData) {
   data.drip_iv_revenue_monthly = infusionMonthlyRevenue;
   data.semaglutide_revenue_weekly = weightLossWeeklyRevenue;
   data.semaglutide_revenue_monthly = weightLossMonthlyRevenue;
+  
+  // Set weight management consultation counts
+  data.semaglutide_consults_weekly = semaglutideConsultsWeekly;
+  data.semaglutide_consults_monthly = semaglutideConsultsMonthly;
   
   // Calculate popular services (top 3)
   const topInfusions = Object.entries(infusionServices)
@@ -3567,13 +3584,16 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         injections_weekday_monthly, injections_weekend_monthly,
         unique_customers_monthly,
         actual_monthly_revenue, drip_iv_revenue_monthly, semaglutide_revenue_monthly,
-        membership_revenue_monthly, other_revenue_monthly
+        membership_revenue_monthly, other_revenue_monthly,
+        weekly_revenue_goal, monthly_revenue_goal,
+        semaglutide_consults_weekly, semaglutide_consults_monthly
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, NOW(),
         $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
         $20, $21, $22, $23, $24, $25, $26,
         $27, $28, $29, $30, $31,
-        $32, $33, $34, $35, $36
+        $32, $33, $34, $35, $36,
+        $37, $38, $39, $40
       )
       RETURNING id
     `;
@@ -3621,7 +3641,11 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.drip_iv_revenue_monthly || 0,
       extractedData.semaglutide_revenue_monthly || 0,
       extractedData.membership_revenue_monthly || 0,
-      extractedData.other_revenue_monthly || 0
+      extractedData.other_revenue_monthly || 0,
+      extractedData.weekly_revenue_goal || 32125.00,
+      extractedData.monthly_revenue_goal || 128500.00,
+      extractedData.semaglutide_consults_weekly || 0,
+      extractedData.semaglutide_consults_monthly || 0
     ]);
     
     console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
