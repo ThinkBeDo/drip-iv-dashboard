@@ -3605,6 +3605,29 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     console.log(`📅 Using week dates from file: ${weekStart} to ${weekEnd}`);
     console.log(`📊 New memberships: Individual=${extractedData.new_individual_members_weekly}, Family=${extractedData.new_family_members_weekly}`);
     
+    // Check if this week already exists in the database
+    const existingWeek = await pool.query(
+      'SELECT id, week_start_date, week_end_date FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
+      [weekStart, weekEnd]
+    );
+    
+    if (existingWeek.rows.length > 0) {
+      console.log(`⚠️  Week ${weekStart} to ${weekEnd} already exists in database (ID: ${existingWeek.rows[0].id})`);
+      
+      // Clean up uploaded file
+      try {
+        fs.unlinkSync(uploadedFile.path);
+      } catch (cleanupError) {
+        console.warn('Warning: Could not clean up temp file:', cleanupError.message);
+      }
+      
+      return res.status(409).json({
+        error: 'Duplicate week data',
+        message: `Data for week ${weekStart} to ${weekEnd} already exists in the database. Please delete the existing record first if you want to re-upload.`,
+        existingRecordId: existingWeek.rows[0].id
+      });
+    }
+    
     const result = await pool.query(insertQuery, [
       extractedData.actual_weekly_revenue,
       extractedData.drip_iv_revenue_weekly, 
