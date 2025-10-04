@@ -2029,6 +2029,10 @@ function extractFromCSV(csvData) {
   data.semaglutide_consults_weekly = semaglutideConsultsWeekly;
   data.semaglutide_consults_monthly = semaglutideConsultsMonthly;
   
+  // Set weight management injection counts (Semaglutide + Tirzepatide)
+  data.semaglutide_injections_weekly = semaglutideWeeklyCount + tirzepatideWeeklyCount;
+  data.semaglutide_injections_monthly = semaglutideMonthlyCount + tirzepatideMonthlyCount;
+  
   // Calculate popular services (top 3)
   const topInfusions = Object.entries(infusionServices)
     .sort(([,a], [,b]) => b - a)
@@ -3586,14 +3590,15 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         actual_monthly_revenue, drip_iv_revenue_monthly, semaglutide_revenue_monthly,
         membership_revenue_monthly, other_revenue_monthly,
         weekly_revenue_goal, monthly_revenue_goal,
-        semaglutide_consults_weekly, semaglutide_consults_monthly
+        semaglutide_consults_weekly, semaglutide_consults_monthly,
+        semaglutide_injections_weekly, semaglutide_injections_monthly
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, NOW(),
         $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
         $20, $21, $22, $23, $24, $25, $26,
         $27, $28, $29, $30, $31,
         $32, $33, $34, $35, $36,
-        $37, $38, $39, $40
+        $37, $38, $39, $40, $41, $42
       )
       RETURNING id
     `;
@@ -3668,7 +3673,9 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.weekly_revenue_goal || 32125.00,
       extractedData.monthly_revenue_goal || 128500.00,
       extractedData.semaglutide_consults_weekly || 0,
-      extractedData.semaglutide_consults_monthly || 0
+      extractedData.semaglutide_consults_monthly || 0,
+      extractedData.semaglutide_injections_weekly || 0,
+      extractedData.semaglutide_injections_monthly || 0
     ]);
     
     console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
