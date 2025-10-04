@@ -3106,8 +3106,10 @@ app.get('/api/dashboard', async (req, res) => {
           SUM(injections_weekday_weekly) as total_injections_weekday,
           SUM(injections_weekend_weekly) as total_injections_weekend,
           SUM(semaglutide_injections_weekly) as total_semaglutide_injections,
-          SUM(hormone_followup_female_weekly) as total_hormone_female,
-          SUM(hormone_initial_male_weekly) as total_hormone_male,
+          SUM(hormone_followup_female_weekly) as total_hormone_followup_female,
+          SUM(hormone_initial_female_weekly) as total_hormone_initial_female,
+          SUM(hormone_initial_male_weekly) as total_hormone_initial_male,
+          SUM(hormone_followup_male_weekly) as total_hormone_followup_male,
           COUNT(*) as weeks_count
         FROM analytics_data
         WHERE week_start_date <= $2 AND week_end_date >= $1
@@ -3122,8 +3124,10 @@ app.get('/api/dashboard', async (req, res) => {
         result.rows[0].injections_weekday_monthly = parseInt(monthlyServiceData.total_injections_weekday) || 0;
         result.rows[0].injections_weekend_monthly = parseInt(monthlyServiceData.total_injections_weekend) || 0;
         result.rows[0].semaglutide_injections_monthly = parseInt(monthlyServiceData.total_semaglutide_injections) || 0;
-        result.rows[0].hormone_followup_female_monthly = parseInt(monthlyServiceData.total_hormone_female) || 0;
-        result.rows[0].hormone_initial_male_monthly = parseInt(monthlyServiceData.total_hormone_male) || 0;
+        result.rows[0].hormone_followup_female_monthly = parseInt(monthlyServiceData.total_hormone_followup_female) || 0;
+        result.rows[0].hormone_initial_female_monthly = parseInt(monthlyServiceData.total_hormone_initial_female) || 0;
+        result.rows[0].hormone_initial_male_monthly = parseInt(monthlyServiceData.total_hormone_initial_male) || 0;
+        result.rows[0].hormone_followup_male_monthly = parseInt(monthlyServiceData.total_hormone_followup_male) || 0;
 
         console.log('✅ Monthly service counts calculated from database:', {
           weeks_included: monthlyServiceData.weeks_count,
@@ -3131,7 +3135,11 @@ app.get('/api/dashboard', async (req, res) => {
           iv_weekend: result.rows[0].iv_infusions_weekend_monthly,
           injections_weekday: result.rows[0].injections_weekday_monthly,
           injections_weekend: result.rows[0].injections_weekend_monthly,
-          weight_loss_injections: result.rows[0].semaglutide_injections_monthly
+          weight_loss_injections: result.rows[0].semaglutide_injections_monthly,
+          hormone_followup_female: result.rows[0].hormone_followup_female_monthly,
+          hormone_initial_female: result.rows[0].hormone_initial_female_monthly,
+          hormone_initial_male: result.rows[0].hormone_initial_male_monthly,
+          hormone_followup_male: result.rows[0].hormone_followup_male_monthly
         });
       } else {
         console.log('⚠️ No weekly service data found for this month');

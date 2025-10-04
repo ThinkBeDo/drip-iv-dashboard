@@ -35,7 +35,9 @@ async function ensureColumns() {
       'weight_loss_injections_weekly',
       'weight_loss_injections_monthly',
       'hormone_followup_male_weekly',
-      'hormone_followup_male_monthly'
+      'hormone_followup_male_monthly',
+      'hormone_initial_female_weekly',
+      'hormone_initial_female_monthly'
     ];
 
     // Service-to-bin mapping columns (TEXT type)

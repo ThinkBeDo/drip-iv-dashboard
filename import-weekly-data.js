@@ -2373,11 +2373,19 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
             new_family_members_weekly = $29,
             new_concierge_members_weekly = $30,
             new_corporate_members_weekly = $31,
-            revenue_perf_bin = $32,
-            service_volume_bin = $33,
-            customer_bin = $34,
+            hormone_followup_female_weekly = $32,
+            hormone_followup_female_monthly = $33,
+            hormone_initial_female_weekly = $34,
+            hormone_initial_female_monthly = $35,
+            hormone_initial_male_weekly = $36,
+            hormone_initial_male_monthly = $37,
+            hormone_followup_male_weekly = $38,
+            hormone_followup_male_monthly = $39,
+            revenue_perf_bin = $40,
+            service_volume_bin = $41,
+            customer_bin = $42,
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = $35
+          WHERE id = $43
         `;
 
         await client.query(updateQuery, [
@@ -2412,6 +2420,14 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.new_family_members_weekly || 0,
           combinedData.new_concierge_members_weekly || 0,
           combinedData.new_corporate_members_weekly || 0,
+          combinedData.hormone_followup_female_weekly || 0,
+          combinedData.hormone_followup_female_monthly || 0,
+          combinedData.hormone_initial_female_weekly || 0,
+          combinedData.hormone_initial_female_monthly || 0,
+          combinedData.hormone_initial_male_weekly || 0,
+          combinedData.hormone_initial_male_monthly || 0,
+          combinedData.hormone_followup_male_weekly || 0,
+          combinedData.hormone_followup_male_monthly || 0,
           combinedData.revenue_perf_bin || JSON.stringify({}),
           combinedData.service_volume_bin || JSON.stringify({}),
           combinedData.customer_bin || JSON.stringify({}),
@@ -2450,6 +2466,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     new_individual_members_weekly, new_family_members_weekly,
     new_concierge_members_weekly, new_corporate_members_weekly,
     hormone_followup_female_weekly, hormone_followup_female_monthly,
+    hormone_initial_female_weekly, hormone_initial_female_monthly,
     hormone_initial_male_weekly, hormone_initial_male_monthly,
     hormone_followup_male_weekly, hormone_followup_male_monthly
   ) VALUES (
@@ -2457,7 +2474,7 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
     $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
     $21, $22, $23, $24, $25, $26, $27, $28, $29, $30,
     $31, $32, $33, $34, $35, $36, $37, $38, $39, $40,
-    $41, $42, $43, $44, $45, $46, $47, $48, $49
+    $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51
   )
 `;
 
@@ -2507,6 +2524,8 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
           combinedData.new_corporate_members_weekly || 0,
           combinedData.hormone_followup_female_weekly || 0,
           combinedData.hormone_followup_female_monthly || 0,
+          combinedData.hormone_initial_female_weekly || 0,
+          combinedData.hormone_initial_female_monthly || 0,
           combinedData.hormone_initial_male_weekly || 0,
           combinedData.hormone_initial_male_monthly || 0,
           combinedData.hormone_followup_male_weekly || 0,

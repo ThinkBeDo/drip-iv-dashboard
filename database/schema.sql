@@ -29,13 +29,17 @@ CREATE TABLE IF NOT EXISTS analytics_data (
     semaglutide_consults_weekly INTEGER DEFAULT 0,
     semaglutide_injections_weekly INTEGER DEFAULT 0,
     hormone_followup_female_weekly INTEGER DEFAULT 0,
+    hormone_initial_female_weekly INTEGER DEFAULT 0,
     hormone_initial_male_weekly INTEGER DEFAULT 0,
+    hormone_followup_male_weekly INTEGER DEFAULT 0,
     drip_iv_weekday_monthly INTEGER DEFAULT 0,
     drip_iv_weekend_monthly INTEGER DEFAULT 0,
     semaglutide_consults_monthly INTEGER DEFAULT 0,
     semaglutide_injections_monthly INTEGER DEFAULT 0,
     hormone_followup_female_monthly INTEGER DEFAULT 0,
+    hormone_initial_female_monthly INTEGER DEFAULT 0,
     hormone_initial_male_monthly INTEGER DEFAULT 0,
+    hormone_followup_male_monthly INTEGER DEFAULT 0,
     
     -- Customer analytics
     unique_customers_weekly INTEGER DEFAULT 0,
