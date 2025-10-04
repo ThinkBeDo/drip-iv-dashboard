@@ -893,145 +893,51 @@ function extractFromExcel(filePath) {
       throw new Error('XLSX module not available');
     }
     
-    // Read Excel file
+    // Read Excel file and convert to JSON with column names
     const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    // Convert to array of arrays, preserving column structure
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    // Convert to JSON format to get column names (not array format)
+    const jsonData = XLSX.utils.sheet_to_json(worksheet);
     
-    console.log(`📊 Excel file loaded: ${data.length} rows, ${data[0]?.length || 0} columns`);
+    console.log(`📊 Excel file loaded: ${jsonData.length} rows`);
     
-    // Initialize data structure matching extractFromPDF format
-    const extractedData = {
-      // Default values matching extractFromPDF structure
-      drip_iv_weekday_weekly: 0,
-      drip_iv_weekend_weekly: 0,
-      semaglutide_consults_weekly: 0,
-      semaglutide_injections_weekly: 0,
-      hormone_followup_female_weekly: 0,
-      hormone_initial_male_weekly: 0,
-      actual_weekly_revenue: 0,
-      weekly_revenue_goal: 0,
-      actual_monthly_revenue: 0,
-      monthly_revenue_goal: 0,
-      drip_iv_revenue_weekly: 0,
-      semaglutide_revenue_weekly: 0,
-      drip_iv_revenue_monthly: 0,
-      semaglutide_revenue_monthly: 0,
-      ketamine_revenue_weekly: 0,
-      membership_revenue_weekly: 0,
-      other_revenue_weekly: 0,
-      total_drip_iv_members: 0,
-      individual_memberships: 0,
-      family_memberships: 0,
-      family_concierge_memberships: 0,
-      drip_concierge_memberships: 0,
-      marketing_initiatives: 0,
-      concierge_memberships: 0,
-      corporate_memberships: 0,
-      days_left_in_month: 0
-    };
-    
-    if (data.length <= 1) {
-      console.log('⚠️ Excel file has no data rows');
-      return extractedData;
-    }
-    
-    // Warn if the file seems to have very little data (less than expected for a full week)
-    if (data.length <= 5) {
-      console.log(`⚠️ WARNING: Excel file has only ${data.length - 1} data rows`);
-      console.log('   This seems unusually small for a weekly revenue report.');
-      console.log('   Please verify this is the complete data export.');
-    }
-    
-    // Track rows processed for validation
-    let rowsProcessed = 0;
-    
-    // Skip header row, process all data rows
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
+    // Convert Excel data to CSV-like format for extractFromCSV
+    // Handle Excel serial dates by converting them
+    const convertedData = jsonData.map(row => {
+      const converted = { ...row };
       
-      // Extract Column 9 (Charge Desc) and Column 15 (Calculated Payment)
-      // Note: Array is 0-indexed, so Column 9 = index 8, Column 15 = index 14
-      const chargeDesc = row[8]; // Column 9 - "Charge Desc"
-      const paymentAmount = row[14]; // Column 15 - "Calculated Payment (Line)"
-      
-      // Enhanced validation for charge descriptions
-      if (!chargeDesc || chargeDesc === 'undefined' || typeof chargeDesc === 'undefined') {
-        console.log(`⚠️ Row ${i}: Skipping row with missing/undefined charge description`);
-        continue;
+      // Convert Excel serial date to readable date if needed
+      if (row['Date'] && typeof row['Date'] === 'number') {
+        // Excel serial date to JS date
+        const excelDate = row['Date'];
+        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
+        converted['Date'] = jsDate.toISOString().split('T')[0]; // YYYY-MM-DD format
       }
       
-      if (paymentAmount === undefined || paymentAmount === null || paymentAmount === '') {
-        console.log(`⚠️ Row ${i}: Skipping row with missing payment amount for '${chargeDesc}'`);
-        continue;
+      // Also handle Date Of Payment if it exists and is a serial number
+      if (row['Date Of Payment'] && typeof row['Date Of Payment'] === 'number') {
+        const excelDate = row['Date Of Payment'];
+        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
+        converted['Date Of Payment'] = jsDate.toISOString().split('T')[0];
       }
       
-      // Parse payment amount - handle various formats
-      let amount = 0;
-      if (typeof paymentAmount === 'number') {
-        amount = paymentAmount;
-      } else if (typeof paymentAmount === 'string') {
-        // Remove currency symbols, commas, and parse
-        const cleanAmount = paymentAmount.replace(/[$,]/g, '');
-        amount = parseFloat(cleanAmount);
-      }
-      
-      if (isNaN(amount) || amount <= 0) {
-        continue; // Skip invalid amounts
-      }
-      
-      // Categorize the charge using the revenue mapping
-      const category = categorizeRevenue(chargeDesc);
-      
-      // Add to appropriate revenue category
-      switch (category) {
-        case 'drip_iv_revenue':
-          extractedData.drip_iv_revenue_weekly += amount;
-          break;
-        case 'semaglutide_revenue':
-          extractedData.semaglutide_revenue_weekly += amount;
-          break;
-        case 'ketamine_revenue':
-          extractedData.ketamine_revenue_weekly += amount;
-          break;
-        case 'membership_revenue':
-          extractedData.membership_revenue_weekly += amount;
-          break;
-        case 'other_revenue':
-          extractedData.other_revenue_weekly += amount;
-          break;
-      }
-      
-      // Add to total revenue
-      extractedData.actual_weekly_revenue += amount;
-      
-      // Increment rows processed counter
-      rowsProcessed++;
-    }
+      return converted;
+    });
     
-    // Round all revenue values to 2 decimal places
-    extractedData.actual_weekly_revenue = Math.round(extractedData.actual_weekly_revenue * 100) / 100;
-    extractedData.drip_iv_revenue_weekly = Math.round(extractedData.drip_iv_revenue_weekly * 100) / 100;
-    extractedData.semaglutide_revenue_weekly = Math.round(extractedData.semaglutide_revenue_weekly * 100) / 100;
-    extractedData.ketamine_revenue_weekly = Math.round(extractedData.ketamine_revenue_weekly * 100) / 100;
-    extractedData.membership_revenue_weekly = Math.round(extractedData.membership_revenue_weekly * 100) / 100;
-    extractedData.other_revenue_weekly = Math.round(extractedData.other_revenue_weekly * 100) / 100;
+    console.log('📅 Sample converted dates:', convertedData.slice(0, 3).map(r => ({ 
+      Date: r['Date'], 
+      'Date Of Payment': r['Date Of Payment'],
+      'Charge Desc': r['Charge Desc']
+    })));
     
-    console.log('✅ Excel processing complete:');
-    console.log(`   Total Weekly Revenue: $${extractedData.actual_weekly_revenue}`);
-    console.log(`   Drip IV Revenue: $${extractedData.drip_iv_revenue_weekly}`);
-    console.log(`   Semaglutide Revenue: $${extractedData.semaglutide_revenue_weekly}`);
-    console.log(`   Ketamine Revenue: $${extractedData.ketamine_revenue_weekly}`);
-    console.log(`   Membership Revenue: $${extractedData.membership_revenue_weekly}`);
-    console.log(`   Other Revenue: $${extractedData.other_revenue_weekly}`);
-    console.log(`   Rows Processed: ${rowsProcessed}`);
+    // Use extractFromCSV logic which has all the membership and revenue processing
+    const extractedData = extractFromCSV(convertedData);
     
     // Add validation data
-    extractedData.rows_processed = rowsProcessed;
-    extractedData.total_rows = data.length - 1; // Exclude header row
+    extractedData.rows_processed = jsonData.length;
+    extractedData.total_rows = jsonData.length;
     
     return extractedData;
     
@@ -1262,19 +1168,6 @@ function extractFromCSV(csvData) {
     missingColumns.push('Date or Date Of Payment');
   }
   
-  if (missingColumns.length > 0) {
-    console.error('⚠️  WARNING: Missing required CSV columns:', missingColumns);
-    console.log('Available columns in CSV:', headers);
-    console.log('This may cause incomplete data extraction!');
-  } else {
-    console.log('✅ All required CSV columns found');
-    console.log(`📊 Using date column: "${availableDateColumn || 'No date column found'}"`);
-    if (availableDateColumn) {
-      console.log(`   Sample dates from ${availableDateColumn}:`, 
-        filteredData.slice(0, 3).map(row => row[availableDateColumn] || 'empty').join(', '));
-    }
-  }
-
   // CRITICAL FIX 1: Filter out TOTAL_TIPS entries immediately
   const filteredData = csvData.filter(row => {
     const chargeType = row['Charge Type'] || '';
@@ -1289,6 +1182,19 @@ function extractFromCSV(csvData) {
   });
   
   console.log(`Filtered ${csvData.length - filteredData.length} TOTAL_TIPS entries from ${csvData.length} total rows`);
+
+  if (missingColumns.length > 0) {
+    console.error('⚠️  WARNING: Missing required CSV columns:', missingColumns);
+    console.log('Available columns in CSV:', headers);
+    console.log('This may cause incomplete data extraction!');
+  } else {
+    console.log('✅ All required CSV columns found');
+    console.log(`📊 Using date column: "${availableDateColumn || 'No date column found'}"`);
+    if (availableDateColumn) {
+      console.log(`   Sample dates from ${availableDateColumn}:`, 
+        filteredData.slice(0, 3).map(row => row[availableDateColumn] || 'empty').join(', '));
+    }
+  }
 
   // Track unique patients for membership counts
   const membershipCounts = {
@@ -1326,12 +1232,18 @@ function extractFromCSV(csvData) {
       // Handle various date formats
       let date = null;
       
-      // Try parsing as-is first
-      date = new Date(dateStr);
-      
-      // If that fails or gives wrong year, try manual parsing
-      if (isNaN(date.getTime()) || date.getFullYear() < 2020) {
-        // Handle "8/18/25" format
+      // Handle ISO format (YYYY-MM-DD) from Excel conversion
+      if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+          date = new Date(year, month - 1, day);
+        }
+      }
+      // Handle slash format (MM/DD/YY or MM/DD/YYYY)
+      else if (dateStr.includes('/')) {
         const parts = dateStr.split('/');
         if (parts.length === 3) {
           const month = parseInt(parts[0]);
@@ -1345,6 +1257,15 @@ function extractFromCSV(csvData) {
           
           date = new Date(year, month - 1, day);
         }
+      }
+      // Fallback: try parsing as-is
+      else {
+        date = new Date(dateStr);
+      }
+      
+      // Normalize to midnight local time
+      if (date && !isNaN(date.getTime())) {
+        date.setHours(0, 0, 0, 0);
       }
       
       if (date && !isNaN(date.getTime()) && date.getFullYear() >= 2020) {
@@ -1409,12 +1330,18 @@ function extractFromCSV(csvData) {
     // Parse the date for "New This Week" detection
     let transactionDate = null;
     if (dateStr) {
-      // Try parsing as-is first
-      transactionDate = new Date(dateStr);
-      
-      // If that fails or gives wrong year, try manual parsing
-      if (isNaN(transactionDate.getTime()) || transactionDate.getFullYear() < 2020) {
-        // Handle various date formats: "8/18/25", "8/18/2025", etc.
+      // Handle ISO format (YYYY-MM-DD) from Excel conversion
+      if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0]);
+          const month = parseInt(parts[1]);
+          const day = parseInt(parts[2]);
+          transactionDate = new Date(year, month - 1, day);
+        }
+      } 
+      // Handle slash format (MM/DD/YY or MM/DD/YYYY)
+      else if (dateStr.includes('/')) {
         const dateParts = dateStr.split('/');
         if (dateParts.length === 3) {
           let month = parseInt(dateParts[0]);
@@ -1429,9 +1356,18 @@ function extractFromCSV(csvData) {
           transactionDate = new Date(year, month - 1, day);
         }
       }
+      // Fallback: try parsing as-is
+      else {
+        transactionDate = new Date(dateStr);
+      }
+      
+      // Normalize to midnight local time for comparison
+      if (transactionDate && !isNaN(transactionDate.getTime())) {
+        transactionDate.setHours(0, 0, 0, 0);
+      }
       
       // Validate the parsed date
-      if (isNaN(transactionDate.getTime()) || transactionDate.getFullYear() < 2020) {
+      if (!transactionDate || isNaN(transactionDate.getTime()) || transactionDate.getFullYear() < 2020) {
         transactionDate = null; // Invalid date, set to null
       }
     }
@@ -1720,7 +1656,8 @@ function extractFromCSV(csvData) {
     const isMember = chargeDesc.toLowerCase().includes('member') && !chargeDesc.toLowerCase().includes('non-member');
     
     // Parse payment amount from "Calculated Payment (Line)" column
-    const paymentAmount = parseFloat((row['Calculated Payment (Line)'] || '0').replace(/[\$,()]/g, '')) || 0;
+    const paymentValue = row['Calculated Payment (Line)'] || 0;
+    const paymentAmount = typeof paymentValue === 'number' ? paymentValue : parseFloat((paymentValue || '0').toString().replace(/[\$,()]/g, '')) || 0;
     
     // CRITICAL FIX: Don't filter by charge type - include all transactions with amounts
     if (!patient || !chargeDesc) return;
@@ -1859,7 +1796,7 @@ function extractFromCSV(csvData) {
     // Count IV infusion visits (base infusion + any addons = 1 visit)
     if (hasBaseInfusion) {
       if (isWeekend) {
-        console.log(`🔍 WEEKEND IV INFUSION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${visitServices.length}`);
+        console.log(`🔍 WEEKEND IV INFUSION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${services.length}`);
         if (isWithinWeek) {
           data.iv_infusions_weekend_weekly++;
           console.log(`   ✅ Added to weekend weekly count (now: ${data.iv_infusions_weekend_weekly})`);
@@ -1887,7 +1824,7 @@ function extractFromCSV(csvData) {
     // Count standalone injection visits separately
     if (hasStandaloneInjection) {
       if (isWeekend) {
-        console.log(`🔍 WEEKEND INJECTION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${visitServices.length}`);
+        console.log(`🔍 WEEKEND INJECTION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${services.length}`);
         if (isWithinWeek) {
           data.injections_weekend_weekly++;
           console.log(`   ✅ Added to injection weekend weekly count (now: ${data.injections_weekend_weekly})`);
@@ -3391,22 +3328,40 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       throw new Error('Database connection not available');
     }
 
-    // Insert or update analytics data
+    // Insert or update analytics data with ALL fields from extractedData
     const insertQuery = `
       INSERT INTO analytics_data (
         actual_weekly_revenue, drip_iv_revenue_weekly, semaglutide_revenue_weekly, 
         ketamine_revenue_weekly, membership_revenue_weekly, other_revenue_weekly,
-        week_start_date, week_end_date, upload_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        week_start_date, week_end_date, upload_date,
+        new_individual_members_weekly, new_family_members_weekly,
+        new_concierge_members_weekly, new_corporate_members_weekly,
+        individual_memberships, family_memberships, concierge_memberships, corporate_memberships,
+        family_concierge_memberships, drip_concierge_memberships, total_drip_iv_members,
+        iv_infusions_weekday_weekly, iv_infusions_weekend_weekly,
+        injections_weekday_weekly, injections_weekend_weekly,
+        unique_customers_weekly, member_customers_weekly, non_member_customers_weekly,
+        iv_infusions_weekday_monthly, iv_infusions_weekend_monthly,
+        injections_weekday_monthly, injections_weekend_monthly,
+        unique_customers_monthly,
+        actual_monthly_revenue, drip_iv_revenue_monthly, semaglutide_revenue_monthly,
+        membership_revenue_monthly, other_revenue_monthly
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, NOW(),
+        $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
+        $20, $21, $22, $23, $24, $25, $26,
+        $27, $28, $29, $30, $31,
+        $32, $33, $34, $35, $36
+      )
       RETURNING id
     `;
     
-    // Use current week dates (can be enhanced to parse from Excel if needed)
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of week (Saturday)
+    // Use week dates extracted from the Excel file data
+    const weekStart = extractedData.week_start_date;
+    const weekEnd = extractedData.week_end_date;
+    
+    console.log(`📅 Using week dates from file: ${weekStart} to ${weekEnd}`);
+    console.log(`📊 New memberships: Individual=${extractedData.new_individual_members_weekly}, Family=${extractedData.new_family_members_weekly}`);
     
     const result = await pool.query(insertQuery, [
       extractedData.actual_weekly_revenue,
@@ -3415,8 +3370,36 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.ketamine_revenue_weekly,
       extractedData.membership_revenue_weekly,
       extractedData.other_revenue_weekly,
-      weekStart.toISOString().split('T')[0],
-      weekEnd.toISOString().split('T')[0]
+      weekStart,
+      weekEnd,
+      extractedData.new_individual_members_weekly || 0,
+      extractedData.new_family_members_weekly || 0,
+      extractedData.new_concierge_members_weekly || 0,
+      extractedData.new_corporate_members_weekly || 0,
+      extractedData.individual_memberships || 0,
+      extractedData.family_memberships || 0,
+      extractedData.concierge_memberships || 0,
+      extractedData.corporate_memberships || 0,
+      extractedData.family_concierge_memberships || 0,
+      extractedData.drip_concierge_memberships || 0,
+      extractedData.total_drip_iv_members || 0,
+      extractedData.iv_infusions_weekday_weekly || 0,
+      extractedData.iv_infusions_weekend_weekly || 0,
+      extractedData.injections_weekday_weekly || 0,
+      extractedData.injections_weekend_weekly || 0,
+      extractedData.unique_customers_weekly || 0,
+      extractedData.member_customers_weekly || 0,
+      extractedData.non_member_customers_weekly || 0,
+      extractedData.iv_infusions_weekday_monthly || 0,
+      extractedData.iv_infusions_weekend_monthly || 0,
+      extractedData.injections_weekday_monthly || 0,
+      extractedData.injections_weekend_monthly || 0,
+      extractedData.unique_customers_monthly || 0,
+      extractedData.actual_monthly_revenue || 0,
+      extractedData.drip_iv_revenue_monthly || 0,
+      extractedData.semaglutide_revenue_monthly || 0,
+      extractedData.membership_revenue_monthly || 0,
+      extractedData.other_revenue_monthly || 0
     ]);
     
     console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
@@ -3439,9 +3422,15 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         ketamineRevenue: extractedData.ketamine_revenue_weekly,
         membershipRevenue: extractedData.membership_revenue_weekly,
         otherRevenue: extractedData.other_revenue_weekly,
-        weekStart: weekStart.toISOString().split('T')[0],
-        weekEnd: weekEnd.toISOString().split('T')[0],
-        recordId: result.rows[0].id
+        weekStart: weekStart,
+        weekEnd: weekEnd,
+        recordId: result.rows[0].id,
+        newMemberships: {
+          individual: extractedData.new_individual_members_weekly || 0,
+          family: extractedData.new_family_members_weekly || 0,
+          concierge: extractedData.new_concierge_members_weekly || 0,
+          corporate: extractedData.new_corporate_members_weekly || 0
+        }
       }
     });
     
