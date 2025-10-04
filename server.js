@@ -2034,6 +2034,10 @@ function extractFromCSV(csvData) {
   data.semaglutide_injections_monthly = semaglutideMonthlyCount + tirzepatideMonthlyCount;
   
   // Calculate popular services (top 3)
+  console.log('🔍 Building popular services lists:');
+  console.log('   Injection Services:', Object.keys(injectionServices));
+  console.log('   Weight Management Services:', Object.keys(weightManagementServices));
+  
   const topInfusions = Object.entries(infusionServices)
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3)
@@ -2043,6 +2047,8 @@ function extractFromCSV(csvData) {
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3)
     .map(([name]) => name);
+  
+  console.log('   Top Injections (should NOT include WL meds):', topInjections);
   
   data.popular_infusions = topInfusions.length > 0 ? topInfusions : ['Energy', 'Performance & Recovery', 'Saline 1L'];
   data.popular_injections = topInjections.length > 0 ? topInjections : ['B12 Injection', 'Vitamin D', 'Metabolism Boost'];
@@ -2055,6 +2061,8 @@ function extractFromCSV(csvData) {
     .slice(0, 3)
     .map(([name]) => name);
   data.popular_weight_management = topWeightManagement.length > 0 ? topWeightManagement : ['Tirzepatide', 'Semaglutide'];
+  
+  console.log('   Top Weight Management:', topWeightManagement);
 
   // Enhanced logging for debugging revenue calculations
   let transactionsInWeek = 0;
@@ -3591,14 +3599,17 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         membership_revenue_monthly, other_revenue_monthly,
         weekly_revenue_goal, monthly_revenue_goal,
         semaglutide_consults_weekly, semaglutide_consults_monthly,
-        semaglutide_injections_weekly, semaglutide_injections_monthly
+        semaglutide_injections_weekly, semaglutide_injections_monthly,
+        popular_infusions, popular_injections, popular_weight_management,
+        popular_infusions_status, popular_injections_status
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, NOW(),
         $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
         $20, $21, $22, $23, $24, $25, $26,
         $27, $28, $29, $30, $31,
         $32, $33, $34, $35, $36,
-        $37, $38, $39, $40, $41, $42
+        $37, $38, $39, $40, $41, $42,
+        $43, $44, $45, $46, $47
       )
       RETURNING id
     `;
@@ -3675,7 +3686,12 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.semaglutide_consults_weekly || 0,
       extractedData.semaglutide_consults_monthly || 0,
       extractedData.semaglutide_injections_weekly || 0,
-      extractedData.semaglutide_injections_monthly || 0
+      extractedData.semaglutide_injections_monthly || 0,
+      extractedData.popular_infusions || ['Energy', 'Performance & Recovery', 'Saline 1L'],
+      extractedData.popular_injections || ['B12 Injection', 'Vitamin D', 'Metabolism Boost'],
+      extractedData.popular_weight_management || ['Tirzepatide', 'Semaglutide'],
+      extractedData.popular_infusions_status || 'Active',
+      extractedData.popular_injections_status || 'Active'
     ]);
     
     console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
