@@ -3307,6 +3307,130 @@ app.post('/api/import-weekly-data', upload.fields([
   }
 });
 
+// Upload endpoint for Active Memberships Excel file - updates membership counts for the most recent week
+app.post('/api/upload-memberships', upload.single('file'), async (req, res) => {
+  console.log('\n=== MEMBERSHIP FILE UPLOAD REQUEST ===');
+  console.log('Timestamp:', new Date().toISOString());
+  
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'Membership file is required'
+      });
+    }
+
+    const uploadedFile = req.file;
+    console.log(`📁 Processing membership file: ${uploadedFile.originalname}`);
+
+    // Read and process the Excel file
+    const workbook = XLSX.readFile(uploadedFile.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(worksheet);
+
+    // Count memberships by type
+    const membershipCounts = {
+      total_drip_iv_members: 0,
+      individual_memberships: 0,
+      family_memberships: 0,
+      concierge_memberships: 0,
+      corporate_memberships: 0,
+      family_concierge_memberships: 0,
+      drip_concierge_memberships: 0
+    };
+
+    data.forEach(row => {
+      const title = (row['Title'] || '').toLowerCase();
+      if (title) {
+        membershipCounts.total_drip_iv_members++;
+        
+        if (title.includes('individual')) {
+          membershipCounts.individual_memberships++;
+        } else if (title.includes('family') && title.includes('concierge')) {
+          membershipCounts.family_concierge_memberships++;
+        } else if (title.includes('concierge') && title.includes('drip')) {
+          membershipCounts.drip_concierge_memberships++;
+        } else if (title.includes('family')) {
+          membershipCounts.family_memberships++;
+        } else if (title.includes('concierge')) {
+          membershipCounts.concierge_memberships++;
+        } else if (title.includes('corporate')) {
+          membershipCounts.corporate_memberships++;
+        }
+      }
+    });
+
+    console.log('📊 Membership counts:', membershipCounts);
+
+    // Update the most recent week's record with membership data
+    const updateQuery = `
+      UPDATE analytics_data
+      SET 
+        total_drip_iv_members = $1,
+        individual_memberships = $2,
+        family_memberships = $3,
+        concierge_memberships = $4,
+        corporate_memberships = $5,
+        family_concierge_memberships = $6,
+        drip_concierge_memberships = $7
+      WHERE id = (SELECT id FROM analytics_data ORDER BY created_at DESC LIMIT 1)
+      RETURNING week_start_date, week_end_date
+    `;
+
+    const result = await pool.query(updateQuery, [
+      membershipCounts.total_drip_iv_members,
+      membershipCounts.individual_memberships,
+      membershipCounts.family_memberships,
+      membershipCounts.concierge_memberships,
+      membershipCounts.corporate_memberships,
+      membershipCounts.family_concierge_memberships,
+      membershipCounts.drip_concierge_memberships
+    ]);
+
+    // Clean up uploaded file
+    try {
+      fs.unlinkSync(uploadedFile.path);
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp file:', cleanupError.message);
+    }
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'No weekly data found to update. Please upload revenue data first.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Membership data updated successfully',
+      data: {
+        totalMembers: membershipCounts.total_drip_iv_members,
+        individual: membershipCounts.individual_memberships,
+        family: membershipCounts.family_memberships,
+        concierge: membershipCounts.concierge_memberships,
+        corporate: membershipCounts.corporate_memberships,
+        weekUpdated: `${result.rows[0].week_start_date} to ${result.rows[0].week_end_date}`
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Membership upload failed:', error.message);
+    
+    // Clean up file on error
+    try {
+      if (req.file?.path) {
+        fs.unlinkSync(req.file.path);
+      }
+    } catch (cleanupError) {
+      console.warn('Warning: Could not clean up temp file on error:', cleanupError.message);
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to process membership file',
+      details: error.message 
+    });
+  }
+});
+
 // Upload endpoint for Excel revenue files - processes Excel files directly with revenue categorization
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   console.log('\n=== EXCEL UPLOAD REQUEST ===');
@@ -3474,13 +3598,13 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.new_family_members_weekly || 0,
       extractedData.new_concierge_members_weekly || 0,
       extractedData.new_corporate_members_weekly || 0,
-      extractedData.individual_memberships || 0,
-      extractedData.family_memberships || 0,
-      extractedData.concierge_memberships || 0,
-      extractedData.corporate_memberships || 0,
-      extractedData.family_concierge_memberships || 0,
-      extractedData.drip_concierge_memberships || 0,
-      extractedData.total_drip_iv_members || 0,
+      0, // individual_memberships - should come from Active Memberships file only
+      0, // family_memberships - should come from Active Memberships file only
+      0, // concierge_memberships - should come from Active Memberships file only
+      0, // corporate_memberships - should come from Active Memberships file only
+      0, // family_concierge_memberships - should come from Active Memberships file only
+      0, // drip_concierge_memberships - should come from Active Memberships file only
+      0, // total_drip_iv_members - should come from Active Memberships file only
       extractedData.iv_infusions_weekday_weekly || 0,
       extractedData.iv_infusions_weekend_weekly || 0,
       extractedData.injections_weekday_weekly || 0,
