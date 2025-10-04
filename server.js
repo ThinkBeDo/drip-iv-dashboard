@@ -2831,8 +2831,10 @@ app.get('/api/dashboard', async (req, res) => {
         
         let whereClause = '';
         if (start_date && end_date) {
-          // Look for exact week match when dates are Monday-Sunday
+          // Check if this is a single week (7 days) or a longer range
           const startDateObj = new Date(start_date);
+          const endDateObj = new Date(end_date);
+          const daysDiff = Math.round((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
           const dayOfWeek = startDateObj.getDay();
           
           paramCount++;
@@ -2842,12 +2844,14 @@ app.get('/api/dashboard', async (req, res) => {
           const endParam = paramCount;
           params.push(end_date);
           
-          if (dayOfWeek === 1) { // Monday - look for exact match
+          // Only use exact match for single weeks (7 days, Monday-Sunday)
+          if (dayOfWeek === 1 && daysDiff === 6) { // Monday and exactly 7 days
             whereClause += ` AND week_start_date = $${startParam} AND week_end_date = $${endParam}`;
             console.log(`🎯 Exact week match query: ${start_date} to ${end_date}`);
           } else {
+            // Use overlap query for month ranges or non-standard date ranges
             whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
-            console.log(`🔍 Overlap query: ${start_date} to ${end_date}`);
+            console.log(`🔍 Overlap query: ${start_date} to ${end_date} (${daysDiff + 1} days)`);
           }
         } else if (start_date) {
           paramCount++;
@@ -2885,8 +2889,10 @@ app.get('/api/dashboard', async (req, res) => {
         
         let whereClause = '';
         if (start_date && end_date) {
-          // Look for exact week match when dates are Monday-Sunday
+          // Check if this is a single week (7 days) or a longer range
           const startDateObj = new Date(start_date);
+          const endDateObj = new Date(end_date);
+          const daysDiff = Math.round((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
           const dayOfWeek = startDateObj.getDay();
           
           paramCount++;
@@ -2896,12 +2902,14 @@ app.get('/api/dashboard', async (req, res) => {
           const endParam = paramCount;
           params.push(end_date);
           
-          if (dayOfWeek === 1) { // Monday - look for exact match
+          // Only use exact match for single weeks (7 days, Monday-Sunday)
+          if (dayOfWeek === 1 && daysDiff === 6) { // Monday and exactly 7 days
             whereClause += ` AND week_start_date = $${startParam} AND week_end_date = $${endParam}`;
             console.log(`🎯 Exact week match query: ${start_date} to ${end_date}`);
           } else {
+            // Use overlap query for month ranges or non-standard date ranges
             whereClause += ` AND (week_start_date <= $${endParam} AND week_end_date >= $${startParam})`;
-            console.log(`🔍 Overlap query: ${start_date} to ${end_date}`);
+            console.log(`🔍 Overlap query: ${start_date} to ${end_date} (${daysDiff + 1} days)`);
           }
         } else if (start_date) {
           paramCount++;
