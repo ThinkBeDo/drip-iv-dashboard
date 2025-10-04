@@ -3651,7 +3651,11 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         semaglutide_consults_weekly, semaglutide_consults_monthly,
         semaglutide_injections_weekly, semaglutide_injections_monthly,
         popular_infusions, popular_injections, popular_weight_management,
-        popular_infusions_status, popular_injections_status
+        popular_infusions_status, popular_injections_status,
+        hormone_followup_female_weekly, hormone_followup_female_monthly,
+        hormone_initial_female_weekly, hormone_initial_female_monthly,
+        hormone_initial_male_weekly, hormone_initial_male_monthly,
+        hormone_followup_male_weekly, hormone_followup_male_monthly
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, NOW(),
         $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
@@ -3659,7 +3663,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         $27, $28, $29, $30, $31,
         $32, $33, $34, $35, $36,
         $37, $38, $39, $40, $41, $42,
-        $43, $44, $45, $46, $47
+        $43, $44, $45, $46, $47,
+        $48, $49, $50, $51, $52, $53, $54, $55
       )
       RETURNING id
     `;
@@ -3741,7 +3746,15 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       extractedData.popular_injections || ['B12 Injection', 'Vitamin D', 'Metabolism Boost'],
       extractedData.popular_weight_management || ['Tirzepatide', 'Semaglutide'],
       extractedData.popular_infusions_status || 'Active',
-      extractedData.popular_injections_status || 'Active'
+      extractedData.popular_injections_status || 'Active',
+      extractedData.hormone_followup_female_weekly || 0,
+      extractedData.hormone_followup_female_monthly || 0,
+      extractedData.hormone_initial_female_weekly || 0,
+      extractedData.hormone_initial_female_monthly || 0,
+      extractedData.hormone_initial_male_weekly || 0,
+      extractedData.hormone_initial_male_monthly || 0,
+      extractedData.hormone_followup_male_weekly || 0,
+      extractedData.hormone_followup_male_monthly || 0
     ]);
     
     console.log(`💾 Data saved to database with ID: ${result.rows[0].id}`);
