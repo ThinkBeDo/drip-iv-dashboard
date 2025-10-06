@@ -916,11 +916,20 @@ function extractFromExcel(filePath) {
         converted['Date'] = jsDate.toISOString().split('T')[0]; // YYYY-MM-DD format
       }
       
-      // Also handle Date Of Payment if it exists and is a serial number
-      if (row['Date Of Payment'] && typeof row['Date Of Payment'] === 'number') {
-        const excelDate = row['Date Of Payment'];
-        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
-        converted['Date Of Payment'] = jsDate.toISOString().split('T')[0];
+      // Also handle Date Of Payment if it exists (either serial number or string)
+      if (row['Date Of Payment']) {
+        if (typeof row['Date Of Payment'] === 'number') {
+          // Excel serial number
+          const excelDate = row['Date Of Payment'];
+          const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
+          converted['Date Of Payment'] = jsDate.toISOString().split('T')[0];
+        } else if (typeof row['Date Of Payment'] === 'string') {
+          // Already a string, parse and convert to YYYY-MM-DD format
+          const d = new Date(row['Date Of Payment']);
+          if (!isNaN(d.getTime())) {
+            converted['Date Of Payment'] = d.toISOString().split('T')[0];
+          }
+        }
       }
       
       return converted;
@@ -1236,13 +1245,15 @@ function extractFromCSV(csvData) {
   let invalidDateCount = 0;
   
   filteredData.forEach(row => {
-    // Check both Date and Date Of Payment columns
-    const dateStr = row['Date'] || row['Date Of Payment'] || '';
-    
+    // CRITICAL FIX: Prioritize 'Date Of Payment' over 'Date' for revenue week calculation
+    // 'Date Of Payment' is when the revenue was actually collected (more accurate)
+    // Only use 'Date' as fallback if 'Date Of Payment' is missing
+    const dateStr = row['Date Of Payment'] || row['Date'] || '';
+
     if (dateStr) {
       // Handle various date formats
       let date = null;
-      
+
       // Handle ISO format (YYYY-MM-DD) from Excel conversion
       if (dateStr.includes('-')) {
         const parts = dateStr.split('-');
@@ -1260,12 +1271,12 @@ function extractFromCSV(csvData) {
           const month = parseInt(parts[0]);
           const day = parseInt(parts[1]);
           let year = parseInt(parts[2]);
-          
+
           // Convert 2-digit year to 4-digit
           if (year < 100) {
             year = 2000 + year;
           }
-          
+
           date = new Date(year, month - 1, day);
         }
       }
@@ -1273,12 +1284,12 @@ function extractFromCSV(csvData) {
       else {
         date = new Date(dateStr);
       }
-      
+
       // Normalize to midnight local time
       if (date && !isNaN(date.getTime())) {
         date.setHours(0, 0, 0, 0);
       }
-      
+
       if (date && !isNaN(date.getTime()) && date.getFullYear() >= 2020) {
         validDateCount++;
         if (!minDate || date < minDate) minDate = date;
@@ -1334,7 +1345,8 @@ function extractFromCSV(csvData) {
     const chargeDescLower = chargeDesc.toLowerCase();
     const chargeDescUpper = chargeDesc.toUpperCase();
     const patient = row['Patient'] || '';
-    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    // CRITICAL FIX: Use same date prioritization (Date Of Payment first)
+    const dateStr = row['Date Of Payment'] || row['Date'] || '';
     
     if (!patient) return; // Skip rows without patient info
     
@@ -1600,7 +1612,8 @@ function extractFromCSV(csvData) {
   let directWeeklyTotal = 0;
   let directMonthlyTotal = 0;
   filteredData.forEach(row => {
-    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+    // CRITICAL FIX: Use same date prioritization as above (Date Of Payment first)
+    const dateStr = row['Date Of Payment'] || row['Date'] || '';
     if (!dateStr) return;
     
     let date = null;
@@ -1698,9 +1711,9 @@ function extractFromCSV(csvData) {
     const chargeType = row['Charge Type'] || '';
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row['Patient'] || '';
-    
-    // CRITICAL FIX: Check both Date and Date Of Payment columns
-    const dateStr = row['Date'] || row['Date Of Payment'] || '';
+
+    // CRITICAL FIX: Prioritize Date Of Payment over Date for consistency
+    const dateStr = row['Date Of Payment'] || row['Date'] || '';
     if (!dateStr) return; // Skip rows without dates
     
     // Parse the date properly
@@ -1785,10 +1798,11 @@ function extractFromCSV(csvData) {
         
         // Get the revenue for THIS specific service from the original data
         // We need to find the matching row to get the amount
-        const matchingRows = filteredData.filter(row => 
-          row['Patient'] === patient && 
+        // CRITICAL FIX: Prioritize Date Of Payment for consistency
+        const matchingRows = filteredData.filter(row =>
+          row['Patient'] === patient &&
           row['Charge Desc'] === chargeDesc &&
-          new Date(row['Date'] || row['Date Of Payment']).toISOString().split('T')[0] === date.toISOString().split('T')[0]
+          new Date(row['Date Of Payment'] || row['Date']).toISOString().split('T')[0] === date.toISOString().split('T')[0]
         );
         
         matchingRows.forEach(row => {
