@@ -263,17 +263,45 @@ function analyzeRevenueDataByWeeks(csvData) {
 // Save individual week to database
 async function saveWeekToDatabase(weekData) {
   const client = await pool.connect();
-  
+
   try {
+    // VALIDATION: Ensure revenue data is present
+    const hasRevenue = weekData.actual_weekly_revenue && weekData.actual_weekly_revenue > 0;
+    if (!hasRevenue) {
+      console.error('❌ VALIDATION FAILED: No revenue data found in upload');
+      console.error(`   Week: ${weekData.week_start_date} to ${weekData.week_end_date}`);
+      console.error(`   Revenue: $${weekData.actual_weekly_revenue || 0}`);
+      throw new Error('Import validation failed: No revenue transactions found in uploaded file. Please check the Excel file format and ensure it contains transaction data.');
+    }
+
     // Check if data already exists for this week
     console.log(`📅 Checking for existing data: ${weekData.week_start_date} to ${weekData.week_end_date}`);
     const existingCheck = await client.query(
-      'SELECT id FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
+      'SELECT id, actual_weekly_revenue, unique_customers_weekly FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
       [weekData.week_start_date, weekData.week_end_date]
     );
-    
+
     if (existingCheck.rows.length > 0) {
-      console.log(`📝 Found existing record (ID: ${existingCheck.rows[0].id}), updating...`);
+      const existingRecord = existingCheck.rows[0];
+      console.log(`📝 Found existing record (ID: ${existingRecord.id})`);
+      console.log(`   Existing: $${existingRecord.actual_weekly_revenue}, ${existingRecord.unique_customers_weekly} customers`);
+      console.log(`   New:      $${weekData.actual_weekly_revenue}, ${weekData.unique_customers_weekly} customers`);
+
+      // DATA INTEGRITY CHECK: Prevent overwriting good data with bad data
+      const existingRevenue = parseFloat(existingRecord.actual_weekly_revenue || 0);
+      const newRevenue = parseFloat(weekData.actual_weekly_revenue || 0);
+
+      if (existingRevenue > 0 && newRevenue === 0) {
+        console.error('❌ DATA INTEGRITY ERROR: Refusing to overwrite existing revenue data with zero');
+        throw new Error(`Data integrity check failed: Existing data has $${existingRevenue} revenue, new upload has $0. Refusing to overwrite good data with empty data.`);
+      }
+
+      if (existingRevenue > 0 && newRevenue < (existingRevenue * 0.1)) {
+        console.warn('⚠️  WARNING: New revenue is significantly less than existing (< 10% of original)');
+        console.warn(`   This may indicate a data parsing issue. Proceeding with update...`);
+      }
+
+      console.log(`✅ Validation passed, updating record...`);
       
       // Update existing record with only essential fields
       const updateQuery = `
@@ -455,13 +483,23 @@ async function importMultiWeekData(revenueFilePath, membershipFilePath) {
     }
     
     console.log(`\n🎉 Successfully imported ${savedRecords.length} weeks to database!`);
-    
+
     // Return summary
     const totalRevenue = savedRecords.reduce((sum, record) => sum + parseFloat(record.actual_weekly_revenue || 0), 0);
     console.log(`💰 Total monthly revenue: $${totalRevenue.toFixed(2)}`);
-    
-    // Return the most recent week for compatibility
-    return savedRecords[savedRecords.length - 1];
+
+    // Return the most recent week (by week_end_date) for compatibility
+    // Sort by week_end_date to ensure we get the truly most recent week
+    const mostRecentWeek = savedRecords.reduce((latest, current) => {
+      const latestEndDate = new Date(latest.week_end_date);
+      const currentEndDate = new Date(current.week_end_date);
+      return currentEndDate > latestEndDate ? current : latest;
+    }, savedRecords[0]);
+
+    console.log(`📅 Most recent week: ${mostRecentWeek.week_start_date} to ${mostRecentWeek.week_end_date}`);
+    console.log(`   Revenue: $${mostRecentWeek.actual_weekly_revenue}, Members: ${mostRecentWeek.total_drip_iv_members}`);
+
+    return mostRecentWeek;
     
   } catch (error) {
     console.error('❌ ERROR IMPORTING MULTI-WEEK DATA:');

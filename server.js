@@ -3372,13 +3372,18 @@ app.post('/api/import-weekly-data', upload.fields([
         totalMembers: importedData.total_drip_iv_members,
         weekStart: importedData.week_start_date,
         weekEnd: importedData.week_end_date
+      },
+      validation: {
+        revenuePresent: importedData.actual_weekly_revenue > 0,
+        customersPresent: importedData.unique_customers_weekly > 0,
+        transactionCount: importedData.unique_customers_weekly || 0
       }
     });
-    
+
   } catch (error) {
     console.error('❌ Import failed:', error.message);
     console.error('Stack trace:', error.stack);
-    
+
     // Clean up files on error
     try {
       if (req.files?.revenueFile?.[0]?.path) fs.unlinkSync(req.files.revenueFile[0].path);
@@ -3386,10 +3391,18 @@ app.post('/api/import-weekly-data', upload.fields([
     } catch (cleanupError) {
       console.warn('Warning: Could not clean up temp files on error:', cleanupError.message);
     }
-    
-    res.status(500).json({ 
+
+    // Provide detailed error feedback based on error type
+    const isValidationError = error.message.includes('validation') || error.message.includes('integrity');
+    const statusCode = isValidationError ? 400 : 500;
+
+    res.status(statusCode).json({
       error: 'Failed to import weekly data',
-      details: error.message 
+      details: error.message,
+      isValidationError: isValidationError,
+      troubleshooting: isValidationError ?
+        'Please check that your Excel file contains transaction data with dates, patient names, and revenue amounts.' :
+        'An unexpected error occurred. Please check the server logs for details.'
     });
   }
 });
