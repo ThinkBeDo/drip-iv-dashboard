@@ -126,12 +126,12 @@ function analyzeRevenueDataByWeeks(csvData) {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6); // Monday + 6 days = Sunday
     
-    const weekKey = weekStart.toISOString().split('T')[0]; // Use Monday as key
+    const weekKey = monday.toISOString().split('T')[0]; // Use Monday as key
     
     if (!weekGroups.has(weekKey)) {
       weekGroups.set(weekKey, {
-        weekStart: weekStart,
-        weekEnd: weekEnd,
+        weekStart: monday,
+        weekEnd: sunday,
         rows: [],
         metrics: initializeWeekMetrics()
       });
