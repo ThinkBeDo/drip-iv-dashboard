@@ -109,13 +109,22 @@ function analyzeRevenueDataByWeeks(csvData) {
     
     // Calculate Monday of this week (week start)
     const dayOfWeek = date.getDay();
-    const daysFromMonday = (dayOfWeek + 6) % 7; // Convert Sunday=0 to Monday=0 system
-    const weekStart = new Date(date);
-    weekStart.setDate(date.getDate() - daysFromMonday);
+    const monday = new Date(date);
+
+    // Convert to Monday-based week (Monday = 0, Sunday = 6)
+    // If today is Sunday (0), go back 6 days to Monday
+    // If today is Monday (1), stay on same day
+    // If today is Tuesday (2), go back 1 day to Monday
+    // etc.
+    if (dayOfWeek === 0) {
+      monday.setDate(date.getDate() - 6); // Sunday -> Previous Monday
+    } else {
+      monday.setDate(date.getDate() - (dayOfWeek - 1)); // Any other day -> That Monday
+    }
     
-    // Calculate Sunday of this week (week end)  
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
+    // Calculate Sunday of this week (week end)
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6); // Monday + 6 days = Sunday
     
     const weekKey = weekStart.toISOString().split('T')[0]; // Use Monday as key
     
