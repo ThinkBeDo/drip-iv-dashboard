@@ -268,10 +268,13 @@ async function saveWeekToDatabase(weekData) {
     // VALIDATION: Ensure revenue data is present
     const hasRevenue = weekData.actual_weekly_revenue && weekData.actual_weekly_revenue > 0;
     if (!hasRevenue) {
-      console.error('❌ VALIDATION FAILED: No revenue data found in upload');
+      console.error('❌ VALIDATION FAILED: No revenue calculated for week');
       console.error(`   Week: ${weekData.week_start_date} to ${weekData.week_end_date}`);
       console.error(`   Revenue: $${weekData.actual_weekly_revenue || 0}`);
-      throw new Error('Import validation failed: No revenue transactions found in uploaded file. Please check the Excel file format and ensure it contains transaction data.');
+      console.error(`   Customers: ${weekData.unique_customers_weekly || 0}`);
+      console.error('   This means transactions were parsed but had no revenue amounts');
+      console.error('   Check that the revenue columns (Calculated Payment, Total, Paid) contain values');
+      throw new Error('Import validation failed: Transactions found but no revenue amounts detected. Please verify the "Calculated Payment (Line)", "Total", or "Paid" columns contain dollar amounts in your Excel file.');
     }
 
     // Check if data already exists for this week
@@ -433,6 +436,20 @@ async function importMultiWeekData(revenueFilePath, membershipFilePath) {
     let weeklyMetricsArray = [];
     if (revenueFilePath) {
       const result = await processRevenueData(revenueFilePath);
+
+      // VALIDATION: Check if parsing returned any data
+      if (!result.rawRows || result.rawRows.length === 0) {
+        console.error('❌ PARSING FAILED: No transaction records found in uploaded file');
+        console.error('   The file was read but contained no parseable data rows');
+        console.error('   Possible causes:');
+        console.error('     - File format has changed (different column structure)');
+        console.error('     - File is empty or contains only headers');
+        console.error('     - File encoding is unsupported');
+        throw new Error('Parsing failed: No transaction records found in uploaded file. Please verify the file format matches previous uploads (Excel .xls with transaction data including Date, Patient, Charge Desc, and payment columns).');
+      }
+
+      console.log(`✅ Successfully parsed ${result.rawRows.length} transaction records from file`);
+
       // Use new multi-week analysis instead of single aggregate
       weeklyMetricsArray = analyzeRevenueDataByWeeks(result.rawRows);
     } else {

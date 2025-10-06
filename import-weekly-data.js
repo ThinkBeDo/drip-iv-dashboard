@@ -768,7 +768,43 @@ async function processRevenueData(csvFilePath, client) {
             console.log('  Sample dates:', allDates.slice(0, 5));
           }
         } else {
-          console.log('WARNING: No records were parsed from MHTML!');
+          console.log('⚠️ WARNING: No records were parsed from MHTML!');
+          console.log('   File may have unexpected format or structure');
+        }
+
+        // DIAGNOSTIC LOGGING: Show what was actually parsed
+        console.log(`\n📊 PARSING DIAGNOSTICS:`);
+        console.log(`   Total records parsed: ${records.length}`);
+        if (records.length > 0) {
+          console.log(`   First record keys:`, Object.keys(records[0]));
+          console.log(`   First record sample:`, JSON.stringify(records[0]).substring(0, 200));
+
+          // Check for revenue fields
+          const hasCalculatedPayment = records[0].hasOwnProperty('Calculated Payment (Line)');
+          const hasTotal = records[0].hasOwnProperty('Total');
+          const hasPaid = records[0].hasOwnProperty('Paid');
+          console.log(`   Revenue field detection:`);
+          console.log(`     'Calculated Payment (Line)': ${hasCalculatedPayment}`);
+          console.log(`     'Total': ${hasTotal}`);
+          console.log(`     'Paid': ${hasPaid}`);
+
+          // Count records with revenue
+          let revenueCount = 0;
+          let totalRevenue = 0;
+          records.forEach(record => {
+            const amount = parseFloat(
+              record['Calculated Payment (Line)'] ||
+              record['Total'] ||
+              record['Paid'] ||
+              0
+            );
+            if (amount > 0) {
+              revenueCount++;
+              totalRevenue += amount;
+            }
+          });
+          console.log(`   Records with revenue > 0: ${revenueCount} / ${records.length}`);
+          console.log(`   Total revenue in file: $${totalRevenue.toFixed(2)}`);
         }
 
         // Analyze the parsed data
@@ -1047,12 +1083,48 @@ async function processRevenueData(csvFilePath, client) {
 
       console.log(`Successfully parsed ${records.length} rows from CSV`);
 
+      // DIAGNOSTIC LOGGING: Show what was actually parsed from CSV
+      console.log(`\n📊 CSV PARSING DIAGNOSTICS:`);
+      console.log(`   Total records parsed: ${records.length}`);
+      if (records.length > 0) {
+        console.log(`   First record keys:`, Object.keys(records[0]));
+        console.log(`   First record sample:`, JSON.stringify(records[0]).substring(0, 200));
+
+        // Check for revenue fields
+        const hasCalculatedPayment = records[0].hasOwnProperty('Calculated Payment (Line)');
+        const hasTotal = records[0].hasOwnProperty('Total');
+        const hasPaid = records[0].hasOwnProperty('Paid');
+        console.log(`   Revenue field detection:`);
+        console.log(`     'Calculated Payment (Line)': ${hasCalculatedPayment}`);
+        console.log(`     'Total': ${hasTotal}`);
+        console.log(`     'Paid': ${hasPaid}`);
+
+        // Count records with revenue
+        let revenueCount = 0;
+        let totalRevenue = 0;
+        records.forEach(record => {
+          const amount = parseFloat(
+            record['Calculated Payment (Line)'] ||
+            record['Total'] ||
+            record['Paid'] ||
+            0
+          );
+          if (amount > 0) {
+            revenueCount++;
+            totalRevenue += amount;
+          }
+        });
+        console.log(`   Records with revenue > 0: ${revenueCount} / ${records.length}`);
+        console.log(`   Total revenue in file: $${totalRevenue.toFixed(2)}`);
+      }
+
       // Analyze the parsed data
       const analyzedData = await analyzeRevenueData(records, client);
       analyzedData.rawRows = records;
       return analyzedData;
   } catch (error) {
-    console.error('Error parsing CSV file:', error);
+    console.error('❌ Error parsing CSV file:', error);
+    console.error('   Error details:', error.message);
     throw new Error(`Failed to parse CSV file: ${error.message}`);
   }
 }
