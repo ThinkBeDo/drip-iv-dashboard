@@ -248,6 +248,15 @@ function analyzeRevenueDataByWeeks(csvData) {
   
   console.log(`\n✅ Successfully processed ${weeklyResults.length} weeks`);
   
+  // Sort weeks chronologically by start date (earliest to latest)
+  weeklyResults.sort((a, b) => a.weekStartDate - b.weekStartDate);
+  
+  // Log the sorted weeks for debugging
+  console.log('\n📅 Weeks in chronological order:');
+  weeklyResults.forEach((week, index) => {
+    console.log(`   ${index + 1}. ${week.weekStartDate.toISOString().split('T')[0]} to ${week.weekEndDate.toISOString().split('T')[0]} ($${week.actual_weekly_revenue.toFixed(2)}, ${week.unique_customers_weekly} customers)`);
+  });
+  
   return weeklyResults; // Return array of weekly metrics instead of single aggregate
 }
 
