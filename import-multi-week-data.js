@@ -174,31 +174,41 @@ function analyzeRevenueDataByWeeks(csvData) {
       // Categorize service
       const serviceCategory = getServiceCategory(chargeDesc);
       
-      if (serviceCategory === 'drip_iv') {
+      // Map categories from getServiceCategory to revenue buckets
+      // getServiceCategory returns: base_infusion, injection, infusion_addon, weight_management, consultation, membership, other
+      if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
         metrics.drip_iv_revenue_weekly += chargeAmount;
         
-        // Count service instances
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        if (chargeDesc.toLowerCase().includes('infusion')) {
+        // Count service instances for base infusions only
+        if (serviceCategory === 'base_infusion') {
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
           if (isWeekend) {
             metrics.iv_infusions_weekend_weekly++;
           } else {
             metrics.iv_infusions_weekday_weekly++;
           }
-        } else if (chargeDesc.toLowerCase().includes('injection')) {
-          if (isWeekend) {
-            metrics.injections_weekend_weekly++;
-          } else {
-            metrics.injections_weekday_weekly++;
-          }
         }
-      } else if (serviceCategory === 'semaglutide') {
+      } else if (serviceCategory === 'injection') {
+        // Regular injections (B12, etc.) go to IV revenue
+        metrics.drip_iv_revenue_weekly += chargeAmount;
+        
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        if (isWeekend) {
+          metrics.injections_weekend_weekly++;
+        } else {
+          metrics.injections_weekday_weekly++;
+        }
+      } else if (serviceCategory === 'weight_management') {
         metrics.semaglutide_revenue_weekly += chargeAmount;
         
         if (chargeDesc.toLowerCase().includes('semaglutide') || 
             chargeDesc.toLowerCase().includes('tirzepatide')) {
           metrics.semaglutide_injections_weekly++;
+          metrics.weight_loss_injections_weekly++;
         }
+      } else if (serviceCategory === 'consultation') {
+        // Consultations go to other revenue
+        metrics.other_revenue_weekly += chargeAmount;
       } else if (serviceCategory === 'membership') {
         metrics.membership_revenue_weekly += chargeAmount;
 
