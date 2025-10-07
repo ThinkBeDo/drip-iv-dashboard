@@ -158,12 +158,13 @@ function analyzeRevenueDataByWeeks(csvData) {
       const date = parseRowDate(row);
       const patient = (row['Patient'] || '').trim();
       const chargeDesc = row['Charge Desc'] || '';
-      const chargeAmount = parseFloat(
-        row['Calculated Payment (Line)'] || 
-        row['Total'] || 
-        row['Paid'] || 
-        0
-      );
+      
+      // Extract and clean currency value (remove $ and commas)
+      const paymentValue = row['Calculated Payment (Line)'] || row['Total'] || row['Paid'] || '0';
+      const cleanedValue = typeof paymentValue === 'string' 
+        ? paymentValue.replace(/[$,]/g, '').trim()
+        : String(paymentValue);
+      const chargeAmount = parseFloat(cleanedValue) || 0;
       
       if (!chargeAmount || chargeAmount <= 0) return;
       
