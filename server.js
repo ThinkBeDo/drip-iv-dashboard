@@ -2334,11 +2334,36 @@ app.post('/api/migrate', async (req, res) => {
     }
     console.log(`✅ Updated ${updateResult.rowCount} rows with membership data`);
 
+    // Fix popular_injections by removing Tirzepatide and Semaglutide
+    console.log('Fixing popular_injections to remove weight management medications...');
+    const fixPopularInjectionsResult = await pool.query(`
+      UPDATE analytics_data
+      SET popular_injections = ARRAY(
+        SELECT elem FROM unnest(popular_injections) AS elem
+        WHERE elem NOT ILIKE '%tirzepatide%' AND elem NOT ILIKE '%semaglutide%'
+      )
+      WHERE EXISTS (
+        SELECT 1 FROM unnest(popular_injections) AS elem
+        WHERE elem ILIKE '%tirzepatide%' OR elem ILIKE '%semaglutide%'
+      )
+    `);
+    console.log(`✅ Fixed ${fixPopularInjectionsResult.rowCount} rows - removed weight management meds from popular_injections`);
+
+    // Set default if empty
+    const setDefaultResult = await pool.query(`
+      UPDATE analytics_data
+      SET popular_injections = ARRAY['B12 Injection', 'Vitamin D', 'Metabolism Boost']
+      WHERE (popular_injections IS NULL OR array_length(popular_injections, 1) IS NULL OR array_length(popular_injections, 1) = 0)
+    `);
+    console.log(`✅ Set default popular_injections for ${setDefaultResult.rowCount} rows`);
+
     res.json({
       success: true,
       message: 'Migration completed successfully',
       columnsAdded: migrationQueries.length,
-      rowsUpdated: updateResult.rowCount
+      rowsUpdated: updateResult.rowCount,
+      popularInjectionsFixed: fixPopularInjectionsResult.rowCount,
+      defaultsSet: setDefaultResult.rowCount
     });
 
   } catch (error) {
