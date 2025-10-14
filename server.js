@@ -2058,6 +2058,11 @@ function extractFromCSV(csvData) {
     .map(([name]) => name);
   
   const topInjections = Object.entries(injectionServices)
+    .filter(([name]) => {
+      const lowerName = name.toLowerCase();
+      // Explicitly exclude weight management medications
+      return !lowerName.includes('semaglutide') && !lowerName.includes('tirzepatide');
+    })
     .sort(([,a], [,b]) => b - a)
     .slice(0, 3)
     .map(([name]) => name);
