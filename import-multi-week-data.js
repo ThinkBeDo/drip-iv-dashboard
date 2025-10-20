@@ -340,6 +340,8 @@ async function saveWeekToDatabase(weekData) {
           family_memberships = $20,
           concierge_memberships = $21,
           corporate_memberships = $22,
+          family_concierge_memberships = $23,
+          drip_concierge_memberships = $24,
           upload_date = CURRENT_DATE,
           updated_at = NOW()
         WHERE week_start_date = $1 AND week_end_date = $2
@@ -368,7 +370,9 @@ async function saveWeekToDatabase(weekData) {
         weekData.individual_memberships || 0,
         weekData.family_memberships || 0,
         weekData.concierge_memberships || 0,
-        weekData.corporate_memberships || 0
+        weekData.corporate_memberships || 0,
+        weekData.family_concierge_memberships || 0,
+        weekData.drip_concierge_memberships || 0
       ]);
       
       return result.rows[0];
@@ -389,10 +393,11 @@ async function saveWeekToDatabase(weekData) {
           new_concierge_members_weekly, new_corporate_members_weekly,
           total_drip_iv_members, individual_memberships, family_memberships,
           concierge_memberships, corporate_memberships,
+          family_concierge_memberships, drip_concierge_memberships,
           weekly_revenue_goal, monthly_revenue_goal,
           upload_date, created_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24,
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26,
           CURRENT_DATE, NOW()
         ) RETURNING *
       `;
@@ -420,6 +425,8 @@ async function saveWeekToDatabase(weekData) {
         weekData.family_memberships || 0,
         weekData.concierge_memberships || 0,
         weekData.corporate_memberships || 0,
+        weekData.family_concierge_memberships || 0,
+        weekData.drip_concierge_memberships || 0,
         weekData.weekly_revenue_goal || 32125,
         weekData.monthly_revenue_goal || 128500
       ]);
