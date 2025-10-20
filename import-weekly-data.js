@@ -2107,18 +2107,17 @@ async function processMembershipData(excelFilePath) {
     }
   }
 
-  // AGGREGATION FIX: Combine sub-categories for dashboard display
-  // The dashboard displays family_memberships and concierge_memberships
-  // but we also track hybrid types (family+concierge, drip+concierge)
-  // These hybrids need to be added to their parent categories
-  membershipTotals.family_memberships += membershipTotals.family_concierge_memberships;
-  membershipTotals.concierge_memberships += membershipTotals.family_concierge_memberships + membershipTotals.drip_concierge_memberships;
+  // NOTE: Dashboard has separate tiles for combined memberships
+  // Do NOT aggregate - keep family_concierge and drip_concierge separate
+  // The dashboard will display them in their own tiles
 
   console.log('Membership analysis complete:', membershipTotals);
   console.log('  Breakdown:');
   console.log(`    Individual: ${membershipTotals.individual_memberships}`);
-  console.log(`    Family: ${membershipTotals.family_memberships} (includes ${membershipTotals.family_concierge_memberships} hybrid)`);
-  console.log(`    Concierge: ${membershipTotals.concierge_memberships} (includes ${membershipTotals.family_concierge_memberships} family+concierge + ${membershipTotals.drip_concierge_memberships} drip+concierge)`);
+  console.log(`    Family: ${membershipTotals.family_memberships}`);
+  console.log(`    Concierge: ${membershipTotals.concierge_memberships}`);
+  console.log(`    Family & Concierge: ${membershipTotals.family_concierge_memberships}`);
+  console.log(`    Drip & Concierge: ${membershipTotals.drip_concierge_memberships}`);
   console.log(`    Corporate: ${membershipTotals.corporate_memberships}`);
   console.log(`    Total: ${membershipTotals.total_drip_iv_members}`);
 
