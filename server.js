@@ -3479,31 +3479,167 @@ app.post('/api/upload-memberships', upload.single('file'), async (req, res) => {
       concierge_memberships: 0,
       corporate_memberships: 0,
       family_concierge_memberships: 0,
-      drip_concierge_memberships: 0
+      drip_concierge_memberships: 0,
+      new_individual_members_weekly: 0,
+      new_family_members_weekly: 0,
+      new_concierge_members_weekly: 0,
+      new_corporate_members_weekly: 0,
+      new_family_concierge_members_weekly: 0,
+      new_drip_concierge_members_weekly: 0
     };
 
-    data.forEach(row => {
-      const title = (row['Title'] || '').toLowerCase();
-      if (title) {
-        membershipCounts.total_drip_iv_members++;
-        
-        if (title.includes('individual')) {
-          membershipCounts.individual_memberships++;
-        } else if (title.includes('family') && title.includes('concierge')) {
-          membershipCounts.family_concierge_memberships++;
-        } else if (title.includes('concierge') && title.includes('drip')) {
-          membershipCounts.drip_concierge_memberships++;
-        } else if (title.includes('family')) {
-          membershipCounts.family_memberships++;
-        } else if (title.includes('concierge')) {
-          membershipCounts.concierge_memberships++;
-        } else if (title.includes('corporate')) {
-          membershipCounts.corporate_memberships++;
-        }
+    // Track unique patients to avoid counting duplicates
+    const uniquePatients = new Map();
+    const newSignups = {
+      individual: new Set(),
+      family: new Set(),
+      concierge: new Set(),
+      corporate: new Set(),
+      familyConcierge: new Set(),
+      dripConcierge: new Set()
+    };
+
+    console.log(`📊 Processing ${data.length} membership records...`);
+
+    data.forEach((row, index) => {
+      // Create unique patient identifier using name and email
+      const patientName = (row['Customer'] || row['Name'] || row['Patient'] || '').toString().trim().toLowerCase();
+      const patientEmail = (row['Email'] || row['Email Address'] || '').toString().trim().toLowerCase();
+      const patientKey = patientEmail || patientName || `row_${index}`;
+      
+      // Get membership type from Title column
+      const title = (row['Title'] || row['Membership Type'] || row['Type'] || '').toString().trim();
+      const titleLower = title.toLowerCase();
+      
+      // Check if this is a new signup
+      const isNew = title.toUpperCase().includes('(NEW)');
+      
+      if (index < 5) {
+        console.log(`Row ${index + 1}: Patient="${patientName}", Email="${patientEmail}", Title="${title}", IsNew=${isNew}`);
+      }
+      
+      // Skip empty rows
+      if (!title || !titleLower) {
+        return;
+      }
+      
+      // Check if patient already exists
+      if (!uniquePatients.has(patientKey)) {
+        uniquePatients.set(patientKey, {
+          name: patientName,
+          email: patientEmail,
+          memberships: [],
+          isNew: isNew
+        });
+      }
+      
+      // Add membership type to patient
+      uniquePatients.get(patientKey).memberships.push(titleLower);
+      // Track if ANY of their memberships are marked as new
+      if (isNew) {
+        uniquePatients.get(patientKey).isNew = true;
       }
     });
 
+    console.log(`📊 Found ${uniquePatients.size} unique patients from ${data.length} records`);
+
+    // Analyze membership types for each unique patient
+    uniquePatients.forEach((patient, patientKey) => {
+      const allMemberships = patient.memberships.join(' | ');
+      
+      // Determine membership classification based on combined memberships
+      let hasFamily = false;
+      let hasConcierge = false;
+      let hasIndividual = false;
+      let hasCorporate = false;
+      let hasDrip = false;
+      
+      patient.memberships.forEach(membershipType => {
+        if (membershipType.includes('family')) hasFamily = true;
+        if (membershipType.includes('concierge')) hasConcierge = true;
+        if (membershipType.includes('individual')) hasIndividual = true;
+        if (membershipType.includes('corporate')) hasCorporate = true;
+        // Check for "drip" in membership type (not just anywhere in the string)
+        if (membershipType.includes('drip') && membershipType.includes('membership')) hasDrip = true;
+      });
+      
+      // Classify based on membership combinations
+      // Check for combined memberships first (most specific)
+      if (hasFamily && hasConcierge) {
+        membershipCounts.family_concierge_memberships++;
+        if (patient.isNew) {
+          newSignups.familyConcierge.add(patientKey);
+        }
+        console.log(`👥 Family+Concierge: ${patient.name} - ${allMemberships}${patient.isNew ? ' (NEW)' : ''}`);
+      } else if (hasConcierge && (hasDrip || hasIndividual)) {
+        // Check if it's explicitly a combined "Concierge & Drip" membership
+        const hasCombinedDripConcierge = patient.memberships.some(m => 
+          (m.includes('concierge') && m.includes('drip')) || 
+          (m.includes('drip') && m.includes('concierge'))
+        );
+        if (hasCombinedDripConcierge) {
+          membershipCounts.drip_concierge_memberships++;
+          if (patient.isNew) {
+            newSignups.dripConcierge.add(patientKey);
+          }
+          console.log(`💎 Drip+Concierge: ${patient.name} - ${allMemberships}${patient.isNew ? ' (NEW)' : ''}`);
+        } else {
+          // Has both but not combined - count as concierge
+          membershipCounts.concierge_memberships++;
+          if (patient.isNew) {
+            newSignups.concierge.add(patientKey);
+          }
+        }
+      } else if (hasFamily) {
+        membershipCounts.family_memberships++;
+        if (patient.isNew) {
+          newSignups.family.add(patientKey);
+        }
+      } else if (hasConcierge) {
+        membershipCounts.concierge_memberships++;
+        if (patient.isNew) {
+          newSignups.concierge.add(patientKey);
+        }
+      } else if (hasIndividual) {
+        membershipCounts.individual_memberships++;
+        if (patient.isNew) {
+          newSignups.individual.add(patientKey);
+        }
+      } else if (hasCorporate) {
+        membershipCounts.corporate_memberships++;
+        if (patient.isNew) {
+          newSignups.corporate.add(patientKey);
+        }
+      } else {
+        // Default to individual for unknown types
+        membershipCounts.individual_memberships++;
+        if (patient.isNew) {
+          newSignups.individual.add(patientKey);
+        }
+        console.log(`⚠️ Unknown membership type defaulted to individual: ${patient.name} - ${allMemberships}${patient.isNew ? ' (NEW)' : ''}`);
+      }
+    });
+
+    // Set total members
+    membershipCounts.total_drip_iv_members = uniquePatients.size;
+    
+    // Set new signup counts
+    membershipCounts.new_individual_members_weekly = newSignups.individual.size;
+    membershipCounts.new_family_members_weekly = newSignups.family.size;
+    membershipCounts.new_concierge_members_weekly = newSignups.concierge.size;
+    membershipCounts.new_corporate_members_weekly = newSignups.corporate.size;
+    membershipCounts.new_family_concierge_members_weekly = newSignups.familyConcierge.size;
+    membershipCounts.new_drip_concierge_members_weekly = newSignups.dripConcierge.size;
+
     console.log('📊 Membership counts:', membershipCounts);
+    console.log('📊 New signups this week:', {
+      individual: membershipCounts.new_individual_members_weekly,
+      family: membershipCounts.new_family_members_weekly,
+      concierge: membershipCounts.new_concierge_members_weekly,
+      corporate: membershipCounts.new_corporate_members_weekly,
+      familyConcierge: membershipCounts.new_family_concierge_members_weekly,
+      dripConcierge: membershipCounts.new_drip_concierge_members_weekly
+    });
 
     // Update the most recent week's record with membership data
     const updateQuery = `
@@ -3515,7 +3651,11 @@ app.post('/api/upload-memberships', upload.single('file'), async (req, res) => {
         concierge_memberships = $4,
         corporate_memberships = $5,
         family_concierge_memberships = $6,
-        drip_concierge_memberships = $7
+        drip_concierge_memberships = $7,
+        new_individual_members_weekly = $8,
+        new_family_members_weekly = $9,
+        new_concierge_members_weekly = $10,
+        new_corporate_members_weekly = $11
       WHERE id = (SELECT id FROM analytics_data ORDER BY created_at DESC LIMIT 1)
       RETURNING week_start_date, week_end_date
     `;
@@ -3527,7 +3667,11 @@ app.post('/api/upload-memberships', upload.single('file'), async (req, res) => {
       membershipCounts.concierge_memberships,
       membershipCounts.corporate_memberships,
       membershipCounts.family_concierge_memberships,
-      membershipCounts.drip_concierge_memberships
+      membershipCounts.drip_concierge_memberships,
+      membershipCounts.new_individual_members_weekly,
+      membershipCounts.new_family_members_weekly,
+      membershipCounts.new_concierge_members_weekly,
+      membershipCounts.new_corporate_members_weekly
     ]);
 
     // Clean up uploaded file
@@ -3552,6 +3696,16 @@ app.post('/api/upload-memberships', upload.single('file'), async (req, res) => {
         family: membershipCounts.family_memberships,
         concierge: membershipCounts.concierge_memberships,
         corporate: membershipCounts.corporate_memberships,
+        familyConcierge: membershipCounts.family_concierge_memberships,
+        dripConcierge: membershipCounts.drip_concierge_memberships,
+        newSignups: {
+          individual: membershipCounts.new_individual_members_weekly,
+          family: membershipCounts.new_family_members_weekly,
+          concierge: membershipCounts.new_concierge_members_weekly,
+          corporate: membershipCounts.new_corporate_members_weekly,
+          familyConcierge: membershipCounts.new_family_concierge_members_weekly,
+          dripConcierge: membershipCounts.new_drip_concierge_members_weekly
+        },
         weekUpdated: `${result.rows[0].week_start_date} to ${result.rows[0].week_end_date}`
       }
     });
