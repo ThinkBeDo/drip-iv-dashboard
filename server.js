@@ -1231,7 +1231,9 @@ function extractFromCSV(csvData) {
     individual: new Set(),
     family: new Set(),
     concierge: new Set(),
-    corporate: new Set()
+    corporate: new Set(),
+    familyConcierge: new Set(),
+    dripConcierge: new Set()
   };
   
   // FIRST: Calculate date ranges from the data to determine "New This Week" period
@@ -1448,6 +1450,11 @@ function extractFromCSV(csvData) {
              (chargeDescLower.includes('family') && chargeDescLower.includes('concierge') && 
               chargeDescLower.includes('membership'))) {
       membershipCounts.familyConcierge.add(patient);
+      console.log(`✓ Family+Concierge membership: ${patient} - "${chargeDesc}"`);
+      if (isNewMembership && isWithinDataWeek) {
+        newMembershipCounts.familyConcierge.add(patient);
+        console.log(`✓ NEW Family+Concierge membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
+      }
     }
     // Drip & Concierge combo
     else if (chargeDescLower.includes('concierge & drip membership') ||
@@ -1455,6 +1462,11 @@ function extractFromCSV(csvData) {
              chargeDescLower.includes('drip & concierge membership') ||
              chargeDescLower.includes('drip and concierge membership')) {
       membershipCounts.dripConcierge.add(patient);
+      console.log(`✓ Drip+Concierge membership: ${patient} - "${chargeDesc}"`);
+      if (isNewMembership && isWithinDataWeek) {
+        newMembershipCounts.dripConcierge.add(patient);
+        console.log(`✓ NEW Drip+Concierge membership: ${patient} - "${chargeDesc}" on ${dateStr}`);
+      }
     }
     // Standalone Concierge membership
     else if ((chargeDescLower.includes('concierge') && chargeDescLower.includes('membership') &&
@@ -1485,13 +1497,13 @@ function extractFromCSV(csvData) {
   console.log(`Total membership transactions found in CSV: ${membershipTransactionsFound}`);
   console.log(`Total unique member patients found: ${allMemberPatients.size}`);
 
-  // Set membership counts (active totals)
+  // Set membership counts (active totals) - these are ACCOUNT counts, not person counts
   data.individual_memberships = membershipCounts.individual.size;
-  data.family_memberships = membershipCounts.family.size * 2; // Family = 2 members
+  data.family_memberships = membershipCounts.family.size; // Count of family accounts
   data.concierge_memberships = membershipCounts.concierge.size;
-  data.corporate_memberships = membershipCounts.corporate.size * 10; // Corporate = 10 members
-  data.family_concierge_memberships = membershipCounts.familyConcierge.size * 2;
-  data.drip_concierge_memberships = membershipCounts.dripConcierge.size * 2; // Both Drip + Concierge
+  data.corporate_memberships = membershipCounts.corporate.size; // Count of corporate accounts
+  data.family_concierge_memberships = membershipCounts.familyConcierge.size;
+  data.drip_concierge_memberships = membershipCounts.dripConcierge.size;
   
   // IMPROVED FALLBACK: If specific membership types weren't detected but we found member patients
   // Use the allMemberPatients count as a fallback
@@ -1509,6 +1521,9 @@ function extractFromCSV(csvData) {
   data.new_family_members_weekly = newMembershipCounts.family.size;
   data.new_concierge_members_weekly = newMembershipCounts.concierge.size;
   data.new_corporate_members_weekly = newMembershipCounts.corporate.size;
+  // Note: Combined memberships are tracked but not stored separately in the database yet
+  const newFamilyConcierge = newMembershipCounts.familyConcierge.size;
+  const newDripConcierge = newMembershipCounts.dripConcierge.size;
   
   // Log summary of NEW memberships found
   console.log('\n📊 NEW Membership Signups Summary (with "NEW" flag in Charge Desc):');
@@ -1516,7 +1531,9 @@ function extractFromCSV(csvData) {
   console.log(`   - Family: ${data.new_family_members_weekly}`);
   console.log(`   - Concierge: ${data.new_concierge_members_weekly}`);
   console.log(`   - Corporate: ${data.new_corporate_members_weekly}`);
-  console.log(`   - TOTAL NEW: ${data.new_individual_members_weekly + data.new_family_members_weekly + data.new_concierge_members_weekly + data.new_corporate_members_weekly}\n`);
+  console.log(`   - Family+Concierge: ${newFamilyConcierge}`);
+  console.log(`   - Drip+Concierge: ${newDripConcierge}`);
+  console.log(`   - TOTAL NEW: ${data.new_individual_members_weekly + data.new_family_members_weekly + data.new_concierge_members_weekly + data.new_corporate_members_weekly + newFamilyConcierge + newDripConcierge}\n`);
   
   // Calculate total memberships
   data.total_drip_iv_members = data.individual_memberships + 
@@ -1539,7 +1556,9 @@ function extractFromCSV(csvData) {
       individual: newMembershipCounts.individual.size,
       family: newMembershipCounts.family.size,
       concierge: newMembershipCounts.concierge.size,
-      corporate: newMembershipCounts.corporate.size
+      corporate: newMembershipCounts.corporate.size,
+      familyConcierge: newMembershipCounts.familyConcierge.size,
+      dripConcierge: newMembershipCounts.dripConcierge.size
     }
   });
 
