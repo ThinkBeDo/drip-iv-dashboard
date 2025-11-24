@@ -651,7 +651,7 @@ async function processRevenueData(csvFilePath, client) {
             let cellIndex = 0;
 
             // Process each column position, accounting for rowspans
-            for (let colIndex = 0; colIndex < 16; colIndex++) {
+            for (let colIndex = 0; colIndex < 18; colIndex++) {
               // Check if this column has an active rowspan from a previous row
               if (rowspanTracker[ colIndex ] && rowspanTracker[ colIndex ].count > 0) {
                 // Use inherited value from rowspan
@@ -705,15 +705,18 @@ async function processRevenueData(csvFilePath, client) {
 
             // DEBUG: Log row parsing for first few rows
             if (i < 4) {  // First 3 data rows (i starts at 1)
-              console.log(`   Row ${i}: ${cellMatches.length} actual cells, 16 processed`);
+              console.log(`   Row ${i}: ${cellMatches.length} actual cells, 18 processed`);
               if (i === 1) {
                 console.log('     First 5 values:', processedCells.slice(0, 5));
-                console.log('     Payment cell [13]:', processedCells[ 13 ]);
+                console.log('     Tax cell [11]:', processedCells[ 11 ]);
+                console.log('     Total cell [13]:', processedCells[ 13 ]);
+                console.log('     Paid cell [14]:', processedCells[ 14 ]);
+                console.log('     Calculated Payment cell [15]:', processedCells[ 15 ]);
               }
             }
 
             // Map processed cells to expected columns
-            // Now all rows have exactly 16 processed cells due to rowspan handling
+            // Now all rows have exactly 18 processed cells due to rowspan handling
             row[ 'Practitioner' ] = processedCells[ 0 ] || previousRow[ 'Practitioner' ] || '';
             row[ 'Date' ] = processedCells[ 1 ] || previousRow[ 'Date' ] || '';
             row[ 'Date Of Payment' ] = processedCells[ 2 ] || previousRow[ 'Date Of Payment' ] || '';
@@ -727,9 +730,11 @@ async function processRevenueData(csvFilePath, client) {
             row[ 'Total Discount' ] = processedCells[ 10 ] || '';
             row[ 'Tax' ] = processedCells[ 11 ] || '';
             row[ 'Charges - Discount' ] = processedCells[ 12 ] || '';
-            row[ 'Calculated Payment (Line)' ] = processedCells[ 13 ] || '';
-            row[ 'COGS' ] = processedCells[ 14 ] || '';
-            row[ 'Qty' ] = processedCells[ 15 ] || '';
+            row[ 'Total' ] = processedCells[ 13 ] || '';
+            row[ 'Paid' ] = processedCells[ 14 ] || '';
+            row[ 'Calculated Payment (Line)' ] = processedCells[ 15 ] || '';
+            row[ 'COGS' ] = processedCells[ 16 ] || '';
+            row[ 'Qty' ] = processedCells[ 17 ] || '';
 
             // Store current row data for next iteration (for rowspan inheritance)
             if (row[ 'Date' ] && row[ 'Date' ].trim()) {
