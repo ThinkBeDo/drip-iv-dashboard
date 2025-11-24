@@ -276,16 +276,16 @@ async function saveWeekToDatabase(weekData) {
   const client = await pool.connect();
 
   try {
-    // VALIDATION: Ensure revenue data is present
+    // VALIDATION: Skip weeks with no revenue (likely summary rows or incomplete data)
     const hasRevenue = weekData.actual_weekly_revenue && weekData.actual_weekly_revenue > 0;
     if (!hasRevenue) {
-      console.error('❌ VALIDATION FAILED: No revenue calculated for week');
-      console.error(`   Week: ${weekData.week_start_date} to ${weekData.week_end_date}`);
-      console.error(`   Revenue: $${weekData.actual_weekly_revenue || 0}`);
-      console.error(`   Customers: ${weekData.unique_customers_weekly || 0}`);
-      console.error('   This means transactions were parsed but had no revenue amounts');
-      console.error('   Check that the revenue columns (Calculated Payment, Total, Paid) contain values');
-      throw new Error('Import validation failed: Transactions found but no revenue amounts detected. Please verify the "Calculated Payment (Line)", "Total", or "Paid" columns contain dollar amounts in your Excel file.');
+      console.warn('⚠️  SKIPPING WEEK: No revenue calculated for week');
+      console.warn(`   Week: ${weekData.week_start_date} to ${weekData.week_end_date}`);
+      console.warn(`   Revenue: $${weekData.actual_weekly_revenue || 0}`);
+      console.warn(`   Customers: ${weekData.unique_customers_weekly || 0}`);
+      console.warn('   This may be a summary row or incomplete data - skipping this week');
+      console.warn('   You can upload the correct data for this week later');
+      return null; // Skip this week instead of throwing error
     }
 
     // Check if data already exists for this week
@@ -512,12 +512,26 @@ async function importMultiWeekData(revenueFilePath, membershipFilePath) {
       
       // Save to database
       const savedRecord = await saveWeekToDatabase(combinedData);
-      savedRecords.push(savedRecord);
-      
-      console.log(`   ✅ Saved: $${savedRecord.actual_weekly_revenue} revenue, ${savedRecord.unique_customers_weekly} customers`);
+      if (savedRecord) {
+        savedRecords.push(savedRecord);
+        console.log(`   ✅ Saved: $${savedRecord.actual_weekly_revenue} revenue, ${savedRecord.unique_customers_weekly} customers`);
+      } else {
+        console.log(`   ⏭️  Skipped: Week had $0 revenue`);
+      }
     }
-    
+
+    const skippedCount = weeklyMetricsArray.length - savedRecords.length;
     console.log(`\n🎉 Successfully imported ${savedRecords.length} weeks to database!`);
+    if (skippedCount > 0) {
+      console.log(`   ⏭️  Skipped ${skippedCount} week(s) with $0 revenue - you can upload correct data for these weeks later`);
+    }
+
+    // Check if any weeks were saved
+    if (savedRecords.length === 0) {
+      console.warn('⚠️  WARNING: No weeks were imported (all had $0 revenue)');
+      console.warn('   Please upload files with actual transaction data for these weeks');
+      return null; // Return null when no data was imported
+    }
 
     // Return summary
     const totalRevenue = savedRecords.reduce((sum, record) => sum + parseFloat(record.actual_weekly_revenue || 0), 0);
