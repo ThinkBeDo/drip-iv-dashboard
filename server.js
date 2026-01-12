@@ -2751,6 +2751,35 @@ app.get('/api/service-mapping', async (req, res) => {
   }
 });
 
+// Manual service mapping reload endpoint
+app.post('/api/service-mapping/reload', async (req, res) => {
+  try {
+    console.log('\n🔄 Manual service mapping reload requested...');
+    const { loadServiceMapping } = require('./database/auto-load-mapping');
+    const success = await loadServiceMapping(pool);
+    
+    if (success) {
+      const status = await getMappingStatus(pool);
+      res.json({
+        success: true,
+        message: 'Service mapping reloaded successfully',
+        status
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to reload service mapping - check server logs'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error reloading service mapping:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // Get dashboard data with optional date filtering
 app.get('/api/dashboard', async (req, res) => {
   try {
