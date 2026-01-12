@@ -162,7 +162,7 @@ function isStandaloneInjection(chargeDesc) {
 
   // Standalone Injections (count separately)
   const standaloneInjections = [
-    'semaglutide', 'tirzepatide', 'b12', 'metabolism boost injection', 'biotin', 'taurine'
+    'semaglutide', 'tirzepatide', 'b12', 'metabolism boost injection', 'biotin', 'taurine', 'xeomin neurotoxin'
   ];
 
   return standaloneInjections.some(service => lowerDesc.includes(service)) ||
@@ -203,7 +203,7 @@ function getServiceCategory(chargeDesc) {
 
   // Weight Management
   if (lowerDesc.includes('contrave')) {
-    return 'consultation';
+    return 'weight_management';
   }
 
   if (

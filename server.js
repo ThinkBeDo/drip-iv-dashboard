@@ -578,7 +578,7 @@ function isStandaloneInjection(chargeDesc) {
   // Standalone Injections (excluding weight management medications)
   const standaloneInjections = [
     'b12 injection', 'metabolism boost injection', 'vitamin d injection', 
-    'glutathione injection', 'biotin injection'
+    'glutathione injection', 'biotin injection', 'xeomin neurotoxin'
   ];
   
   // Weight management medications (tracked separately)
