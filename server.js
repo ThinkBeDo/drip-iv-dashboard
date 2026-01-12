@@ -582,7 +582,7 @@ function isStandaloneInjection(chargeDesc) {
   ];
   
   // Weight management medications (tracked separately)
-  const weightManagementMeds = ['semaglutide', 'tirzepatide'];
+  const weightManagementMeds = ['semaglutide', 'tirzepatide', 'contrave'];
   
   // Return false for weight management medications - these should only appear in Weight Management section
   if (weightManagementMeds.some(med => lowerDesc.includes(med))) {
@@ -2353,17 +2353,21 @@ app.post('/api/migrate', async (req, res) => {
     }
     console.log(`✅ Updated ${updateResult.rowCount} rows with membership data`);
 
-    // Fix popular_injections by removing Tirzepatide and Semaglutide
+    // Fix popular_injections by removing Tirzepatide, Semaglutide, and Contrave
     console.log('Fixing popular_injections to remove weight management medications...');
     const fixPopularInjectionsResult = await pool.query(`
       UPDATE analytics_data
       SET popular_injections = ARRAY(
         SELECT elem FROM unnest(popular_injections) AS elem
-        WHERE elem NOT ILIKE '%tirzepatide%' AND elem NOT ILIKE '%semaglutide%'
+        WHERE elem NOT ILIKE '%tirzepatide%' 
+          AND elem NOT ILIKE '%semaglutide%'
+          AND elem NOT ILIKE '%contrave%'
       )
       WHERE EXISTS (
         SELECT 1 FROM unnest(popular_injections) AS elem
-        WHERE elem ILIKE '%tirzepatide%' OR elem ILIKE '%semaglutide%'
+        WHERE elem ILIKE '%tirzepatide%' 
+          OR elem ILIKE '%semaglutide%'
+          OR elem ILIKE '%contrave%'
       )
     `);
     console.log(`✅ Fixed ${fixPopularInjectionsResult.rowCount} rows - removed weight management meds from popular_injections`);
