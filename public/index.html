@@ -1327,12 +1327,12 @@
                     // Try to get debug info
                     setTimeout(async () => {
                         try {
-                            const debugResponse = await fetch('/api/debug/database');
+                            const debugResponse = await fetch('/api/health');
                             const debug = await debugResponse.json();
                             console.log('Database debug info:', debug);
                             
-                            if (debug.status === 'error') {
-                                showAlert(`Database error: ${debug.error}. Check DATABASE_URL configuration.`, 'error');
+                            if (debug.database === 'error' || debug.database === 'not configured') {
+                                showAlert(`Database error: ${debug.databaseError || 'Not configured'}. Check DATABASE_URL configuration.`, 'error');
                             }
                         } catch (debugError) {
                             console.error('Debug endpoint not available');
@@ -2133,10 +2133,18 @@
                         statusBtn.textContent = 'Check Database Status';
                         statusBtn.className = 'debug-button';
                         statusBtn.onclick = async () => {
-                            const response = await fetch('/api/debug/database');
-                            const debug = await response.json();
-                            console.log('Database Status:', debug);
-                            alert('Database status logged to console. Check browser console for details.');
+                            try {
+                                const response = await fetch('/api/health');
+                                if (!response.ok) {
+                                    throw new Error(`HTTP ${response.status}`);
+                                }
+                                const debug = await response.json();
+                                console.log('Database Status:', debug);
+                                alert('Database status logged to console. Check browser console for details.');
+                            } catch (error) {
+                                console.error('Failed to fetch database status:', error);
+                                alert(`Failed to fetch database status: ${error.message}`);
+                            }
                         };
                         document.querySelector('.header').appendChild(statusBtn);
                     }
