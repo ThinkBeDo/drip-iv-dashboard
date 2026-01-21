@@ -98,3 +98,6 @@ logs
 
 # Runtime files
 *.lock
+
+# GSD planning intel (auto-generated)
+.planning/intel/
