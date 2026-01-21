@@ -147,12 +147,38 @@ function analyzeRevenueDataByWeeks(csvData) {
   
   for (const [weekKey, weekData] of weekGroups.entries()) {
     console.log(`\n🗓️  Processing week ${weekData.weekStart.toDateString()} to ${weekData.weekEnd.toDateString()} (${weekData.rows.length} rows)`);
-    
+
     // Initialize metrics for this week
     const metrics = weekData.metrics;
     metrics.weekStartDate = weekData.weekStart;
     metrics.weekEndDate = weekData.weekEnd;
-    
+
+    // TASK 3.x FIX: Pre-compute patient member status for THIS WEEK (PATIENT-LEVEL, not row-level)
+    // A patient is considered a member if ANY of their services in this week are member-priced
+    const patientMemberStatus = new Map(); // patient -> hasMemberService
+
+    for (const row of weekData.rows) {
+      const patient = (row['Patient'] || '').trim();
+      const chargeDesc = row['Charge Desc'] || '';
+      if (!patient || !chargeDesc) continue;
+
+      const lowerDesc = chargeDesc.toLowerCase();
+
+      // Initialize patient as non-member if not seen before
+      if (!patientMemberStatus.has(patient)) {
+        patientMemberStatus.set(patient, false);
+      }
+
+      // If this service is member-priced (contains "(member)" but not "non-member"), mark patient as member
+      if (lowerDesc.includes('(member)') && !lowerDesc.includes('non-member')) {
+        patientMemberStatus.set(patient, true);
+      }
+    }
+
+    const memberCount = [...patientMemberStatus.values()].filter(v => v).length;
+    const nonMemberCount = [...patientMemberStatus.values()].filter(v => !v).length;
+    console.log(`   👥 Patient member pre-computation: ${patientMemberStatus.size} patients (${memberCount} members, ${nonMemberCount} non-members)`);
+
     // Process each row in this week
     weekData.rows.forEach(row => {
       const date = parseRowDate(row);
@@ -230,13 +256,13 @@ function analyzeRevenueDataByWeeks(csvData) {
         }
       }
 
-      // Track unique customers for this week
+      // Track unique customers for this week using PATIENT-LEVEL member status
       if (patient) {
         metrics.unique_customers_weekly.add(patient);
-        
-        const isMember = chargeDesc.toLowerCase().includes('(member)') || 
-                        chargeDesc.toLowerCase().includes('member');
-        if (isMember) {
+
+        // TASK 3.x FIX: Use pre-computed patient-level member status (not row-level)
+        const isMemberPatient = patientMemberStatus.get(patient) || false;
+        if (isMemberPatient) {
           metrics.member_customers_weekly.add(patient);
         } else {
           metrics.non_member_customers_weekly.add(patient);
