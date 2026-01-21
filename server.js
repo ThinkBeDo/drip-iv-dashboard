@@ -1829,10 +1829,26 @@ function extractFromCSV(csvData) {
     }
   });
 
+  // Log sample charge descriptions for debugging member detection
+  const sampleMemberServices = [];
+  const sampleNonMemberServices = [];
+  filteredData.forEach(row => {
+    const chargeDesc = row['Charge Desc'] || '';
+    const lowerDesc = chargeDesc.toLowerCase();
+    if (lowerDesc.includes('(member)') && !lowerDesc.includes('non-member') && sampleMemberServices.length < 3) {
+      sampleMemberServices.push(chargeDesc);
+    }
+    if (lowerDesc.includes('(non-member)') && sampleNonMemberServices.length < 3) {
+      sampleNonMemberServices.push(chargeDesc);
+    }
+  });
+
   console.log(`👥 Patient Member Status Pre-Computation:`);
   console.log(`   Total patients: ${patientMemberStatus.size}`);
   console.log(`   Members (any member-priced service): ${[...patientMemberStatus.values()].filter(v => v).length}`);
   console.log(`   Non-members (no member-priced services): ${[...patientMemberStatus.values()].filter(v => !v).length}`);
+  console.log(`   Sample member services: ${sampleMemberServices.join(' | ') || 'NONE FOUND'}`);
+  console.log(`   Sample non-member services: ${sampleNonMemberServices.join(' | ') || 'NONE FOUND'}`);
 
   // ROW-LEVEL PROCESSING: Process each service line individually
   filteredData.forEach(row => {
