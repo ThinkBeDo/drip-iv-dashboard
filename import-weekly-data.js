@@ -1298,10 +1298,15 @@ async function analyzeRevenueData(csvData, client) {
     }
   }
 
-  console.log(`👥 Patient Member Status Pre-Computation:`);
-  console.log(`   Total patients: ${patientMemberStatus.size}`);
-  console.log(`   Members (any member-priced service): ${[...patientMemberStatus.values()].filter(v => v).length}`);
-  console.log(`   Non-members (no member-priced services): ${[...patientMemberStatus.values()].filter(v => !v).length}`);
+  console.log('\n' + '='.repeat(60));
+  console.log('👥 PATIENT MEMBER STATUS PRE-COMPUTATION (FIX APPLIED):');
+  console.log('='.repeat(60));
+  console.log(`   Total patients scanned: ${patientMemberStatus.size}`);
+  const memberCount = [...patientMemberStatus.values()].filter(v => v).length;
+  const nonMemberCount = [...patientMemberStatus.values()].filter(v => !v).length;
+  console.log(`   ✅ Members (have "(member)" service): ${memberCount}`);
+  console.log(`   ✅ Non-members (no "(member)" service): ${nonMemberCount}`);
+  console.log('='.repeat(60) + '\n');
 
   // Process each row
   for (const row of csvData) {
@@ -2452,6 +2457,13 @@ async function importWeeklyData(revenueFilePath, membershipFilePath) {
 
       // Check if data already exists for this week
       console.log(`📅 Checking for existing data: ${combinedData.week_start_date} to ${combinedData.week_end_date}`);
+
+      // DEBUG: Log customer counts being saved
+      console.log('👥 CUSTOMER COUNTS TO BE SAVED:');
+      console.log(`   unique_customers_weekly: ${combinedData.unique_customers_weekly}`);
+      console.log(`   member_customers_weekly: ${combinedData.member_customers_weekly}`);
+      console.log(`   non_member_customers_weekly: ${combinedData.non_member_customers_weekly}`);
+      console.log(`   SUM check: ${combinedData.member_customers_weekly} + ${combinedData.non_member_customers_weekly} = ${combinedData.member_customers_weekly + combinedData.non_member_customers_weekly} (should be <= ${combinedData.unique_customers_weekly})`);
 
       const existingCheck = await client.query(
         'SELECT id FROM analytics_data WHERE week_start_date = $1 AND week_end_date = $2',
