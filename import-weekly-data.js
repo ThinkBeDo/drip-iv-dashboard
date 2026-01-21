@@ -1272,6 +1272,34 @@ async function analyzeRevenueData(csvData, client) {
   let rowsWithPayments = 0;
   let totalRevenueTracked = 0;
 
+  // TASK 3.x FIX: Pre-compute patient member status (PATIENT-LEVEL, not row-level)
+  // A patient is considered a member if ANY of their services are member-priced
+  const patientMemberStatus = new Map(); // patient -> hasMemberService
+
+  for (const row of csvData) {
+    const patient = row.Patient || '';
+    const chargeDesc = row['Charge Desc'] || '';
+    if (!patient || !chargeDesc) continue;
+
+    const lowerDesc = chargeDesc.toLowerCase();
+
+    // Initialize patient as non-member if not seen before
+    if (!patientMemberStatus.has(patient)) {
+      patientMemberStatus.set(patient, false);
+    }
+
+    // If this service is member-priced (contains "(member)" but not "non-member"), mark patient as member
+    // Note: We check for "(member)" specifically, not just "member" to avoid matching "non-member"
+    if (lowerDesc.includes('(member)') && !lowerDesc.includes('non-member')) {
+      patientMemberStatus.set(patient, true);
+    }
+  }
+
+  console.log(`👥 Patient Member Status Pre-Computation:`);
+  console.log(`   Total patients: ${patientMemberStatus.size}`);
+  console.log(`   Members (any member-priced service): ${[...patientMemberStatus.values()].filter(v => v).length}`);
+  console.log(`   Non-members (no member-priced services): ${[...patientMemberStatus.values()].filter(v => !v).length}`);
+
   // Process each row
   for (const row of csvData) {
     const { date, rawValue, sourceField } = resolveRowDate(row);
@@ -1689,9 +1717,11 @@ async function analyzeRevenueData(csvData, client) {
       if (isCurrentWeek) {
         metrics.unique_customers_weekly.add(patient);
 
-        if (isMemberService) {
+        // TASK 3.x FIX: Use pre-computed PATIENT-LEVEL member status
+        const isMemberPatient = patientMemberStatus.get(patient) || false;
+        if (isMemberPatient) {
           metrics.member_customers_weekly.add(patient);
-        } else if (isNonMemberService) {
+        } else {
           metrics.non_member_customers_weekly.add(patient);
         }
       }
