@@ -1807,14 +1807,41 @@ function extractFromCSV(csvData) {
   let hormoneFollowupMaleMonthly = 0;
   const hormoneServices = {};
   
+  // TASK 3.x FIX: Pre-compute patient member status (PATIENT-LEVEL, not row-level)
+  // A patient is considered a member if ANY of their services are member-priced
+  const patientMemberStatus = new Map(); // patient -> hasMemberService
+
+  filteredData.forEach(row => {
+    const patient = row['Patient'] || '';
+    const chargeDesc = row['Charge Desc'] || '';
+    if (!patient || !chargeDesc) return;
+
+    const lowerDesc = chargeDesc.toLowerCase();
+
+    // Initialize patient as non-member if not seen before
+    if (!patientMemberStatus.has(patient)) {
+      patientMemberStatus.set(patient, false);
+    }
+
+    // If this service is member-priced (contains "(Member)" but not "non-member"), mark patient as member
+    if (lowerDesc.includes('(member)') && !lowerDesc.includes('non-member')) {
+      patientMemberStatus.set(patient, true);
+    }
+  });
+
+  console.log(`👥 Patient Member Status Pre-Computation:`);
+  console.log(`   Total patients: ${patientMemberStatus.size}`);
+  console.log(`   Members (any member-priced service): ${[...patientMemberStatus.values()].filter(v => v).length}`);
+  console.log(`   Non-members (no member-priced services): ${[...patientMemberStatus.values()].filter(v => !v).length}`);
+
   // ROW-LEVEL PROCESSING: Process each service line individually
   filteredData.forEach(row => {
     const chargeDesc = row['Charge Desc'] || '';
     const patient = row['Patient'] || '';
     const dateStr = row['Date Of Payment'] || row['Date'] || '';
-    
+
     if (!dateStr || !patient || !chargeDesc) return;
-    
+
     // Parse date
     let date = null;
     if (dateStr.includes('-')) {
@@ -1832,32 +1859,33 @@ function extractFromCSV(csvData) {
     } else {
       date = new Date(dateStr);
     }
-    
+
     if (!date || isNaN(date.getTime()) || date.getFullYear() < 2020) return;
     date.setHours(0, 0, 0, 0);
-    
+
     const dateTime = date.getTime();
     const isWithinWeek = dateTime >= weekStartDate.getTime() && dateTime <= weekEndDate.getTime();
     const isWithinMonth = dateTime >= monthStartDate.getTime() && dateTime <= monthEndDate.getTime();
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    
+
     // Parse payment amount
     const paymentValue = row['Calculated Payment (Line)'] || 0;
     const amount = typeof paymentValue === 'number' ? paymentValue : parseFloat((paymentValue || '0').toString().replace(/[\$,()]/g, '')) || 0;
-    
+
     if (amount === 0) return;
-    
+
     // Get Qty multiplier (default to 1 if not present)
     const qtyValue = row['Qty'] || row['Quantity'] || 1;
     const qty = typeof qtyValue === 'number' ? qtyValue : parseInt(qtyValue) || 1;
-    
-    // Member detection
+
+    // TASK 3.x FIX: Use pre-computed PATIENT-LEVEL member status
     const lowerDesc = chargeDesc.toLowerCase();
-    const isMember = lowerDesc.includes('member') && !lowerDesc.includes('non-member');
-    
-    // Track customers (row-level unique patients)
+    const isMember = patientMemberStatus.get(patient) || false;
+
+    // Track customers (patient-level member status, not row-level)
     if (isWithinWeek) {
       weeklyCustomers.add(patient);
+      // Only add to one set per patient (not per row)
       if (isMember) {
         memberCustomers.add(patient);
       } else {
