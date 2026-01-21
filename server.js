@@ -2396,12 +2396,14 @@ app.post('/api/fix-week-dates', async (req, res) => {
 app.get('/api/version', (req, res) => {
   res.json({
     version: '2.0.0',
-    deployment: 'membership-fix-2024',
+    deployment: 'non-member-fix-2026-01-21',
+    commitHash: 'dff7ba8',
     timestamp: new Date().toISOString(),
     features: {
       membershipEndpoint: true,
       priorityScoring: true,
-      separateDataStreams: true
+      separateDataStreams: true,
+      patientLevelMemberDetection: true
     }
   });
 });

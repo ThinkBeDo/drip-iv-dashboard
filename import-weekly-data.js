@@ -9,6 +9,9 @@ const { Console } = require('console');
 const { normalizeServiceName, normalizeServiceType } = require('./parse-drip-csv');
 require('dotenv').config();
 
+// Module load verification - helps diagnose deployment issues
+console.log('📦 import-weekly-data.js loaded (commit: dff7ba8, fix: patient-level member detection)');
+
 // Database pool will be passed from server.js to avoid multiple connections
 let pool = null;
 
