@@ -1936,7 +1936,26 @@ function extractFromCSV(csvData) {
       totalMonthlyRevenue += totalAmount;
     }
     
+    // CRITICAL FIX: Determine if this visit should count toward IV therapy revenue
+    // IV therapy includes: base infusions, add-ons, and standalone injections
+    // EXCLUDES: weight loss, membership, hormone, and lab services
+    let isIVTherapyVisit = hasBaseInfusion || hasStandaloneInjection;
+    
+    // Check if visit has add-ons or other IV-related services (even without base infusion)
+    if (!isIVTherapyVisit) {
+      const hasIVAddon = services.some(s => isInfusionAddon(s));
+      const hasWeightLoss = services.some(s => isWeightManagementService(s));
+      const hasHormone = services.some(s => isHormoneService(s));
+      const hasAdminOnly = services.every(s => isMembershipOrAdminService(s));
+      
+      // Count as IV therapy if it has add-ons and is NOT exclusively admin/weight loss/hormone
+      if (hasIVAddon && !hasWeightLoss && !hasHormone && !hasAdminOnly) {
+        isIVTherapyVisit = true;
+      }
+    }
+    
     // Count IV infusion visits (base infusion + any addons = 1 visit)
+    // NOTE: Revenue is now added at the end in the isIVTherapyVisit block to avoid double-counting
     if (hasBaseInfusion) {
       if (isWeekend) {
         console.log(`🔍 WEEKEND IV INFUSION DETECTED: ${date.toDateString()} | Patient: ${patient} | Services: ${services.length}`);
@@ -1952,9 +1971,6 @@ function extractFromCSV(csvData) {
         if (isWithinWeek) data.iv_infusions_weekday_weekly++;
         if (isWithinMonth) data.iv_infusions_weekday_monthly++;
       }
-      
-      if (isWithinWeek) infusionWeeklyRevenue += totalAmount;
-      if (isWithinMonth) infusionMonthlyRevenue += totalAmount;
       
       // Track popular infusions (base service only)
       const baseService = services.find(s => isBaseInfusionService(s));
@@ -1981,7 +1997,7 @@ function extractFromCSV(csvData) {
         if (isWithinMonth) data.injections_weekday_monthly++;
       }
       
-      // Only count injection revenue if no base infusion
+      // Track injection revenue separately (for reporting purposes)
       if (!hasBaseInfusion) {
         if (isWithinWeek) injectionWeeklyRevenue += totalAmount;
         if (isWithinMonth) injectionMonthlyRevenue += totalAmount;
@@ -1996,8 +2012,14 @@ function extractFromCSV(csvData) {
       })
     }
     
-    // Handle visits with only addons or admin services
-    if (!hasBaseInfusion && !hasStandaloneInjection) {
+    // CRITICAL FIX: Add revenue to IV therapy for ALL IV-related visits
+    // This includes base infusions, standalone injections, and add-on only visits
+    if (isIVTherapyVisit) {
+      if (isWithinWeek) infusionWeeklyRevenue += totalAmount;
+      if (isWithinMonth) infusionMonthlyRevenue += totalAmount;
+    }
+    // Handle visits with only admin/membership services (NOT IV therapy)
+    else {
       const hasAdminService = services.some(s => isMembershipOrAdminService(s));
       if (hasAdminService) {
         if (isWithinWeek) membershipWeeklyRevenue += totalAmount;

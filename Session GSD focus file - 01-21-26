@@ -1,0 +1,211 @@
+# Drip IV Dashboard - Bug Fix Task List
+
+## Priority 1: Revenue Calculation Fixes
+
+### Task 1.1: Review Revenue Filtering Logic
+- [ ] Examine current filtering rules in `extractFromPDF()` and `extractAnalyticsData()` functions
+- [ ] Verify exclusion rules for:
+  - Gift cards (should NOT count as revenue)
+  - Memberships (should NOT count as revenue - money not yet owned)
+  - Tips (should NOT count as revenue)
+- [ ] Identify what's causing the ~$1,000 discrepancy
+- [ ] Document all current filter patterns being used
+
+### Task 1.2: Fix Weight Loss Income Calculation
+- [ ] Verify filtering for Semaglutide weekly/monthly
+- [ ] Verify filtering for Tirzepatide weekly/monthly
+- [ ] Verify filtering for Contrave (if applicable)
+- [ ] Test against known value: Should equal $10,199 for test week
+
+### Task 1.3: Fix IV Therapy Revenue Calculation
+- [ ] Ensure ALL services except memberships, gift cards, tips are included
+- [ ] Test against known value: Should equal $16,560.20 for test week (5th-11th)
+- [ ] Add detailed logging to show what's being included/excluded
+
+## Priority 2: Service Count Fixes
+
+### Task 2.1: Fix Infusion Count Logic
+**CRITICAL**: System must count SERVICES, not PATIENTS
+- [ ] Remove patient-level consolidation logic for infusions
+- [ ] Count each individual IV service (even multiple per patient per day)
+- [ ] Filter by description contains infusion-related keywords
+- [ ] Test cases:
+  - Patient with 4 services in one day = should count as 4
+  - Manual count = 90 infusions → dashboard must show 90
+- [ ] Fix formula error showing 6,000+ (likely adding wrong columns)
+
+### Task 2.2: Fix Injection Count Logic
+**CRITICAL**: System must count SERVICES, not PATIENTS
+- [ ] Remove patient-level consolidation logic for injections
+- [ ] Count each individual injection service
+- [ ] Filter by description contains injection-related keywords
+- [ ] Test case: Lance Beal with 4 injections = should count as 4 separate services
+
+### Task 2.3: Add Service-Level vs Patient-Level Toggle (Future Enhancement)
+- [ ] Document that partners may want BOTH views:
+  - Service count (how many services performed)
+  - Patient count (how many unique patients)
+- [ ] Consider adding both metrics to dashboard
+- [ ] For now: DEFAULT to service-level counting
+
+### Task 2.4: Verify Service Type Identification
+- [ ] Review service type mapping (infusions vs injections vs other)
+- [ ] Ensure all service descriptions are correctly categorized
+- [ ] Reference the service line list that was previously sent
+- [ ] Add logging for any unrecognized service descriptions
+
+## Priority 3: Non-Member Customer Analytics Fix
+
+### Task 3.1: Fix Non-Member Detection
+- [ ] Current issue: Dashboard shows 0 non-member customers
+- [ ] Review filter logic for identifying non-members
+- [ ] Test with known data: Test week had multiple non-member visits
+- [ ] Ensure filter correctly identifies members vs non-members
+
+### Task 3.2: Verify Customer Analytics Calculations
+- [ ] Review "unique customers" calculation (currently showing large numbers)
+- [ ] Validate against manual count (30-40 patients per day mentioned)
+- [ ] Add clear definition of what "unique customers" means in code comments
+
+## Priority 4: File Upload Support
+
+### Task 4.1: Add XLSX Format Support
+- [ ] Current: Only XLS format from Optimatra works
+- [ ] Need: Support XLSX format from Google Sheets
+- [ ] Update file parsing logic to handle both formats
+- [ ] Test with both file types
+
+### Task 4.2: Verify Membership Schema
+- [ ] Review expected column structure for membership uploads
+- [ ] Document required columns and format
+- [ ] Add validation to show helpful errors if schema doesn't match
+
+### Task 4.3: Remove "New" Membership Logic
+- [ ] Current: System may be looking for "new" in membership descriptions
+- [ ] Reality: "new" is just an internal staff note about plan type
+- [ ] Remove any logic filtering by "new" keyword in memberships
+
+## Priority 5: Data Validation & Testing
+
+### Task 5.1: Create Test Data Set
+- [ ] Use the week of July 5-11, 2025 as test case
+- [ ] Expected values:
+  - Weight Loss Income: $10,199
+  - Total Revenue: $16,560.20
+  - Infusions: 90 services
+  - Injections: Multiple (need exact count from manual review)
+  - Non-member customers: >0
+
+### Task 5.2: Add Data Validation Endpoint
+- [ ] Create `/api/validate` endpoint that shows:
+  - What filters were applied
+  - What was included/excluded
+  - Count breakdowns by category
+  - Total calculations with itemization
+
+### Task 5.3: Add Detailed Logging
+- [ ] Log each filtering decision during data processing
+- [ ] Show which services were counted and why
+- [ ] Show which services were excluded and why
+- [ ] Make logs accessible for debugging
+
+## Priority 6: Edge Cases & Data Quality
+
+### Task 6.1: Handle Multiple Services Per Patient
+- [ ] Verify system correctly counts when patient has 4+ services same day
+- [ ] Ensure no deduplication at patient level (only service level)
+- [ ] Test with Nicholas Touchette example (4 services, lines 23-26)
+
+### Task 6.2: Handle Zero-Dollar Services
+- [ ] Document: Free consultations ($0) won't appear in Optimatra reports
+- [ ] Note: This is Optimatra limitation, not fixable in dashboard
+- [ ] Add note in dashboard UI about consultation counts
+
+### Task 6.3: Handle Concierge + Drip Combo Memberships
+- [ ] Document: Some members pay for BOTH concierge and drip
+- [ ] Current: Appears in both categories (14 concierge, 4 overlap with individual)
+- [ ] Decision needed: Count as one member or two memberships?
+- [ ] For now: Count total of 111 members across all types
+
+## Testing & Deployment
+
+### Task 7.1: Local Testing in Windsurf
+- [ ] Spin up local development environment
+- [ ] Load test data (July 5-11, 2025)
+- [ ] Verify all calculations match manual Excel results
+- [ ] Test file uploads (both XLS and XLSX)
+- [ ] Check all dashboard metrics display correctly
+
+### Task 7.2: Create Test Script
+- [ ] Automated test that validates:
+  - Revenue calculations
+  - Service counts
+  - Non-member detection
+  - File upload processing
+- [ ] Use known expected values from test week
+
+### Task 7.3: Pre-Deployment Checklist
+- [ ] All revenue calculations match manual Excel
+- [ ] Service counts match manual counts
+- [ ] Non-member customers display correctly
+- [ ] Both file formats upload successfully
+- [ ] No console errors in browser
+- [ ] Database schema changes documented
+
+### Task 7.4: Deploy to Railway
+- [ ] Run database migrations if needed
+- [ ] Push code to GitHub (auto-deploys to Railway)
+- [ ] Verify deployment health check
+- [ ] Test with production data
+- [ ] Monitor logs for any errors
+
+## Documentation
+
+### Task 8.1: Update Code Comments
+- [ ] Document all filtering rules with examples
+- [ ] Explain service-level vs patient-level counting decision
+- [ ] Note Optimatra limitations (zero-dollar services)
+- [ ] Add inline comments for complex regex patterns
+
+### Task 8.2: Email to Client
+- [ ] Prepare summary of what was fixed
+- [ ] List any questions that need client clarification
+- [ ] Document any edge cases that need business decisions
+- [ ] Request testing/validation from Megan
+
+## Questions to Email Megan (if needed)
+
+1. Should we count services or patients for infusions/injections?
+   - Current fix: Counting services (each individual service)
+   - Alternative: Could provide both metrics
+
+2. How should concierge + drip combo memberships be counted?
+   - As one member with multiple memberships?
+   - Or as separate entries?
+
+3. Can you provide the complete service line list again?
+   - Need to verify all service type mappings are correct
+```
+
+---
+
+## Recommended Windsurf Approach
+
+**Step 1**: Have agents review existing code structure
+```
+Please review:
+- server.js (especially extractFromPDF and extractAnalyticsData functions)
+- Current filtering logic for revenue and service counts
+- File upload handling code
+```
+
+**Step 2**: Start with Priority 1 (Revenue) - highest impact
+```
+Focus on revenue calculation discrepancies first - this is the most critical business metric
+```
+
+**Step 3**: Move to Priority 2 (Service Counts) - core analytics
+```
+Fix service counting logic - must count services not patients
+Step 4: Complete remaining priorities in order
+Step 5: Comprehensive local testing before deploy
