@@ -22,14 +22,14 @@ Keep a lightweight log of work completed or in progress.
 - **Conclusion**: Dashboard is correct. Expected values used wrong column. Service categorization gaps exist but are minor (~$479).
 
 ### 2026-01-31 - DB-ISSUE: Railway database unreachable
-- **Status**: Blocked
-- **Description**: Railway PostgreSQL connection terminated unexpectedly; cannot verify dashboard values or persist membership upload
-- **Notes**: TCP connection to autorack.proxy.rlwy.net:27586 succeeds but psql/Node.js pool fails. Database may be hibernating or credentials rotated. Check Railway dashboard.
+- **Status**: Resolved
+- **Description**: Railway PostgreSQL connection string had changed; old endpoint stale
+- **Resolution**: Updated diagnose-database.js with new URL (yamanote.proxy.rlwy.net:16060). Database verified working, 20 records present, no duplicates for Jan 5-11 week.
 
 ### 2026-01-31 - SERVICE-CATEGORIZATION: Missing services identified
-- **Status**: Pending fix
+- **Status**: Optional enhancement
 - **Description**: 7 services landing in "other" that should be IV therapy (~$479 total)
-- **Notes**: Need to add to server.js categorization functions: Pepcid (addon), Steroid Shot (injection), Tri-Immune (injection), Amino Acids IV add-on (addon), Amino Acids Injection (injection), Normal Saline 500 ML (infusion base). Even with these, $919.90 gap unexplained - verify expected values source.
+- **Notes**: Pepcid (addon), Steroid Shot (injection), Tri-Immune (injection), Amino Acids IV add-on (addon), Amino Acids Injection (injection), Normal Saline 500 ML (infusion base). Gap is minor since main discrepancy was column selection issue (see VALIDATION entry).
 
 ### 2026-01-31 - MEMBERSHIP UPLOAD: Validation vs file schema
 - **Status**: Completed

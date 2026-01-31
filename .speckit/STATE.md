@@ -2,10 +2,18 @@
 
 ## Status
 - Date: 2026-01-31
-- Summary: Ran local validation on Jan 5-11 file; weight loss revenue matches ($10,199). IV therapy revenue and infusion count still below expected. Updated membership upload validation to allow missing email.
+- Summary: **ROOT CAUSE FOUND** - Expected values ($16,459.20 IV, 90 infusions) used 'Charges' column (pre-discount). Dashboard correctly uses 'Calculated Payment' (post-discount $15,060.60, 71 infusions). Database verified, no duplicates. Updated stale Railway connection string.
+
+## What Changed This Session
+- Traced raw Excel data column-by-column to find discrepancy source
+- 'Charges' column IV total = $16,414 (matches expected); 'Calculated Payment' = $15,060.60 (dashboard value)
+- Member discounts on IV services = $879.60 explains most of the gap
+- Updated diagnose-database.js with new Railway URL (yamanote.proxy.rlwy.net:16060)
+- Documented root cause in docs/project_notes/issues.md
 
 ## Next Step
-- Investigate IV therapy revenue and infusion count gaps; verify against expected values and service mappings.
+- Optional: Add 7 missing services to categorization (Pepcid, Steroid Shot, Tri-Immune, Amino Acids, Normal Saline 500 ML) - adds ~$479 to IV total
+- Can now upload memberships (118 members parsed, DB accessible)
 
 ## Blockers
-- DATABASE_URL not available locally, blocking upload endpoints and DB verification.
+- None - Railway DB now accessible with updated connection string
