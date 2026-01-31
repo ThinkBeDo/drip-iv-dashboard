@@ -2,10 +2,10 @@
 
 ## Status
 - Date: 2026-01-31
-- Summary: Initialized Project Ops structure.
+- Summary: Project Ops initialized; plan/tasks now reflect post-fix verification and remaining gaps.
 
 ## Next Step
-- Populate PLAN and TASKS based on current project priorities.
+- Run Jan 5-11, 2026 validation using `/api/validate` and confirm expected metrics.
 
 ## Blockers
 - None recorded.
