@@ -12,6 +12,7 @@
 - Documented root cause in docs/project_notes/issues.md
 
 ## Next Step
+- **NEXT SESSION**: Download fresh Optimantra data, Claude calculates expected values from raw file, user runs dashboard, compare results side-by-side
 - Optional: Add 7 missing services to categorization (Pepcid, Steroid Shot, Tri-Immune, Amino Acids, Normal Saline 500 ML) - adds ~$479 to IV total
 - Can now upload memberships (118 members parsed, DB accessible)
 

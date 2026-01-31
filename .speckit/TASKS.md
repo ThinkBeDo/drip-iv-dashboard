@@ -10,3 +10,11 @@
 - [ ] Add a lightweight test script or checklist for expected values
 - [x] Record any new bugs/decisions in docs/project_notes/*
 - [x] Update stale Railway DATABASE_URL in diagnose-database.js (yamanote.proxy.rlwy.net:16060)
+
+## Next Session
+- [ ] Download latest week's data from Optimantra (Patient Analysis with Charge Details & Payments)
+- [ ] User provides raw files to Claude for independent calculation
+- [ ] Claude calculates expected values from raw data (using 'Calculated Payment' column)
+- [ ] User runs web app upload and shows dashboard results
+- [ ] Compare Claude's calculations vs dashboard - troubleshoot any mismatches
+- [ ] Also download and upload latest Active Memberships file to verify 118 members populate
