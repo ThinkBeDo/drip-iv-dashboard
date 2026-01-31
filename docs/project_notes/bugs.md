@@ -15,3 +15,9 @@ Keep entries brief and chronological. Each entry should include date, issue, sol
 - **Root Cause**: Validation required Email/Email Address despite the real file only having Patient and Title.
 - **Solution**: Made email optional; warn and dedupe by patient name when email is missing.
 - **Prevention**: Validate against real source files before enforcing required columns.
+
+### 2026-01-31 - Services miscategorized as "other" causing revenue undercount
+- **Issue**: ~$376 of IV Therapy revenue was being categorized as "other"; 7 injections not counted.
+- **Root Cause**: Service categorization logic missing patterns for Pepcid, Steroid Shot, Tri-Immune, Amino Acids, Normal Saline 500 ML.
+- **Solution**: Added missing services to `isBaseInfusionService()`, `isInfusionAddon()`, `isStandaloneInjection()` in import-weekly-data.js.
+- **Prevention**: When new services are added to OptiMantra, check if they need categorization rules.

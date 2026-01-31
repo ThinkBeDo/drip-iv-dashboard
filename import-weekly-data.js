@@ -141,7 +141,7 @@ function isBaseInfusionService(chargeDesc) {
 
   // IV Base Services (count as visits)
   const baseInfusionServices = [
-    'saline 1l', 'hydration', 'performance & recovery', 'energy', 'immunity',
+    'saline 1l', 'normal saline 500', 'hydration', 'performance & recovery', 'energy', 'immunity',
     'alleviate', 'all inclusive', 'lux beauty', 'methylene blue infusion'
   ];
 
@@ -154,7 +154,8 @@ function isInfusionAddon(chargeDesc) {
   // IV Add-ons (don't count as separate visits)
   const addonServices = [
     'vitamin d3', 'glutathione', 'nad', 'toradol', 'magnesium', 'vitamin b12',
-    'zofran', 'biotin', 'vitamin c', 'zinc', 'mineral blend', 'vita-complex', 'taurine'
+    'zofran', 'biotin', 'vitamin c', 'zinc', 'mineral blend', 'vita-complex', 'taurine',
+    'pepcid', 'amino acid'
   ];
 
   return addonServices.some(service => lowerDesc.includes(service));
@@ -165,7 +166,8 @@ function isStandaloneInjection(chargeDesc) {
 
   // Standalone Injections (count separately)
   const standaloneInjections = [
-    'semaglutide', 'tirzepatide', 'b12', 'metabolism boost injection', 'biotin', 'taurine', 'xeomin neurotoxin'
+    'semaglutide', 'tirzepatide', 'b12', 'metabolism boost injection', 'biotin', 'taurine', 'xeomin neurotoxin',
+    'steroid shot', 'tri-immune', 'tri immune'
   ];
 
   return standaloneInjections.some(service => lowerDesc.includes(service)) ||
@@ -230,6 +232,15 @@ function getServiceCategory(chargeDesc) {
     ) {
       return 'injection';
     }
+  }
+
+  // Amino Acids - injection vs addon distinction
+  if (lowerDesc.includes('amino acid')) {
+    if (lowerDesc.includes('injection')) {
+      return 'injection';
+    }
+    // Default to addon for IV add-on or unspecified
+    return 'infusion_addon';
   }
 
   // Check for infusion services FIRST (before membership)

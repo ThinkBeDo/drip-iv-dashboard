@@ -26,12 +26,28 @@ Keep a lightweight log of work completed or in progress.
 - **Description**: Railway PostgreSQL connection string had changed; old endpoint stale
 - **Resolution**: Updated diagnose-database.js with new URL (yamanote.proxy.rlwy.net:16060). Database verified working, 20 records present, no duplicates for Jan 5-11 week.
 
-### 2026-01-31 - SERVICE-CATEGORIZATION: Missing services identified
-- **Status**: Optional enhancement
-- **Description**: 7 services landing in "other" that should be IV therapy (~$479 total)
-- **Notes**: Pepcid (addon), Steroid Shot (injection), Tri-Immune (injection), Amino Acids IV add-on (addon), Amino Acids Injection (injection), Normal Saline 500 ML (infusion base). Gap is minor since main discrepancy was column selection issue (see VALIDATION entry).
+### 2026-01-31 - SERVICE-CATEGORIZATION: Missing services - NOW FIXED
+- **Status**: Completed
+- **Description**: Added 6 services that were landing in "other" category
+- **Services Added**:
+  - `base_infusion`: Normal Saline 500 ML
+  - `infusion_addon`: Pepcid, Amino Acids (IV add-on)
+  - `injection`: Steroid Shot, Tri-Immune, Amino Acids Injection
+- **Impact**: IV Therapy revenue increased ~$376, injection count increased by 7
+- **Files Modified**: `import-weekly-data.js`, `analyze-latest-data.js`
 
 ### 2026-01-31 - MEMBERSHIP UPLOAD: Validation vs file schema
 - **Status**: Completed
 - **Description**: Active Memberships file lacks Email column; validation now allows missing email with warning
 - **Notes**: File headers include Patient and Title but no Email; dedupe now falls back to patient name.
+
+### 2026-01-31 - DOCUMENTATION: Dashboard metrics definitions created
+- **Status**: Completed
+- **Description**: Created comprehensive documentation at `docs/DASHBOARD_METRICS.md`
+- **Contents**: Metric definitions, service categorization rules, column mappings, validation troubleshooting guide
+
+### 2026-01-31 - VALIDATION: Jan 19-25, 2026 data verified EXACT MATCH
+- **Status**: Completed
+- **Description**: All dashboard metrics match expected values from analysis script
+- **Verified Metrics**: Total revenue $26,471.34, IV Therapy $14,687.85, 64 infusions, 18 injections, 28 WL injections, 139 customers
+- **Note**: After today's service categorization update, IV Therapy will be $15,064.05 and injections will be 25 (requires redeploy)
