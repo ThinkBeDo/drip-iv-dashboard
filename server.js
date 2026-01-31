@@ -1027,12 +1027,6 @@ async function parseExcelData(filePath) {
       h.toLowerCase() === 'patient'
     );
     
-    // Check for email column (Email/Email Address)
-    const hasEmailColumn = headers.some(h => 
-      h.toLowerCase() === 'email' || 
-      h.toLowerCase() === 'email address'
-    );
-    
     // Check for type column (Title/Membership Type/Type/Plan/Membership)
     const hasTypeColumn = headers.some(h => 
       h.toLowerCase() === 'title' || 
@@ -1042,13 +1036,21 @@ async function parseExcelData(filePath) {
       h.toLowerCase() === 'membership'
     );
     
-    if (!hasNameColumn || !hasEmailColumn || !hasTypeColumn) {
+    if (!hasNameColumn || !hasTypeColumn) {
       const missing = [];
       if (!hasNameColumn) missing.push('name (Customer/Name/Patient)');
-      if (!hasEmailColumn) missing.push('email (Email/Email Address)');
       if (!hasTypeColumn) missing.push('type (Title/Membership Type/Type/Plan/Membership)');
       
       throw new Error(`Missing required columns: ${missing.join(', ')}. Found columns: ${headers.join(', ')}`);
+    }
+    
+    const hasEmailColumn = headers.some(h => 
+      h.toLowerCase() === 'email' || 
+      h.toLowerCase() === 'email address'
+    );
+    
+    if (!hasEmailColumn) {
+      console.warn('⚠️ Membership file has no email column. Deduplication will fall back to patient name only.');
     }
     
     console.log('✅ Membership file validation passed');
