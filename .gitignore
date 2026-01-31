@@ -101,3 +101,6 @@ logs
 
 # GSD planning intel (auto-generated)
 .planning/intel/
+
+# Windsurf personal settings
+.claude/settings.local.json

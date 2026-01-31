@@ -6,7 +6,7 @@ const path = require('path');
 require('dotenv').config();
 
 // Try environment variable first, then fall back to the known Railway URL
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:tXnJczJrBENdRQcxMzWLMnJPCQaXNLIu@autorack.proxy.rlwy.net:27586/railway';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:vryvVqvnCGxQrqUvtXlbuuCgwPkjjqRk@yamanote.proxy.rlwy.net:16060/railway';
 
 if (!DATABASE_URL) {
   console.error('❌ DATABASE_URL not found in environment variables');
