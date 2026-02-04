@@ -667,9 +667,9 @@ const revenueCategoryMapping = {
     'Amino Acid IM', 'Magnesium IM', 'Zinc IM', 'Vitamin C IM'
   ],
   semaglutide_revenue: [
-    'Semaglutide Monthly', 'Semaglutide Weekly', 'Tirzepatide Monthly', 
+    'Semaglutide Monthly', 'Semaglutide Weekly', 'Tirzepatide Monthly',
     'Tirzepatide Weekly', 'Partner Tirzepatide', 'Weight Loss Program Lab Bundle',
-    'Weight Management', 'GLP-1', 'Ozempic', 'Wegovy'
+    'Weight Management', 'GLP-1', 'Ozempic', 'Wegovy', 'Contrave Office Visit'
   ],
   ketamine_revenue: [
     'Ketamine', 'Ketamine Therapy', 'Spravato'
@@ -682,7 +682,7 @@ const revenueCategoryMapping = {
     'Hormones - Follow Up MALES', 'Hormone Therapy', 'HRT', 'Testosterone',
     'Estrogen', 'Progesterone', 'DHEA', 'Thyroid'
   ],
-  other_revenue: ['Lab Draw Fee', 'TOTAL_TIPS', 'Contrave Office Visit']
+  other_revenue: ['TOTAL_TIPS']  // Only tips go to other_revenue; Lab Draw Fee goes to IV Therapy per client rule
 };
 
 // Revenue categorization patterns for substring matching
@@ -723,8 +723,14 @@ function categorizeRevenue(chargeDesc) {
       return category;
     }
   }
-  
-  return 'other_revenue'; // Default category
+
+  // Client rule: IV Therapy (Drip Revenue) = EVERYTHING except memberships, semaglutide, tirzepatide, contrave
+  // Only tips should go to other_revenue
+  if (cleanDesc.includes('tip')) {
+    return 'other_revenue';
+  }
+
+  return 'drip_iv_revenue'; // Default to IV Therapy per client rule
 }
 
 function extractFromPDF(pdfText) {

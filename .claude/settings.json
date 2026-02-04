@@ -1,0 +1,54 @@
+{
+  "cascade": {
+    "hooks": [
+      {
+        "name": "Auto-Commit & Push After Code Changes",
+        "description": "Automatically commit and push code changes to trigger Railway deployment",
+        "trigger": "PostToolUse",
+        "matchers": ["Write", "Edit", "MultiEdit"],
+        "command": "git add -A && git commit -m 'Auto-commit: AI code changes' && git push origin main 2>&1 | tee -a ~/.claude/hook-debug.log",
+        "timeout": 30000,
+        "enabled": true
+      },
+      {
+        "name": "Session Context Injection",
+        "description": "Inject git status, recent commits, and TODOs at session start",
+        "trigger": "SessionStart",
+        "command": "echo '=== SESSION CONTEXT ===' && echo '\n📍 Branch:' && git branch --show-current && echo '\n📝 Status:' && git status --short && echo '\n📜 Recent commits:' && git log --oneline -5 && echo '\n🔍 TODOs:' && (grep -r 'TODO\\|FIXME' --include='*.js' --include='*.md' . 2>/dev/null | head -10 || echo 'No TODOs found') && echo '\n=== END CONTEXT ===' 2>&1",
+        "timeout": 10000,
+        "enabled": true
+      },
+      {
+        "name": "Auto-Approve Safe Commands",
+        "description": "Auto-approve read-only git commands and diagnostic scripts",
+        "trigger": "PermissionRequest",
+        "matchers": [
+          "git status",
+          "git log",
+          "git branch",
+          "git diff",
+          "node check-*.js",
+          "node test-*.js",
+          "node diagnose-*.js",
+          "node validate-*.js",
+          "node analyze-*.js",
+          "npm install",
+          "npm run",
+          "ls",
+          "cat",
+          "grep"
+        ],
+        "autoApprove": true,
+        "enabled": true
+      },
+      {
+        "name": "Syntax Validation After AI Completion",
+        "description": "Run syntax check on server.js after AI finishes responding",
+        "trigger": "Stop",
+        "command": "echo '🔍 Running validation...' && node -c server.js 2>&1 && echo '✅ Syntax check passed' || echo '❌ Syntax errors detected' 2>&1 | tee -a ~/.claude/hook-debug.log",
+        "timeout": 15000,
+        "enabled": true
+      }
+    ]
+  }
+}
