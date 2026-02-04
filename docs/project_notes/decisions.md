@@ -74,3 +74,41 @@ Use ADRs to record significant architectural choices.
 - Easy to add new services by adding keywords
 - Must maintain pattern lists when new services added
 - Documentation needed (see docs/DASHBOARD_METRICS.md)
+
+### ADR-004: Use MAX() for Customer Count Aggregation (2026-02-04)
+
+**Context:**
+- When viewing aggregated date ranges (multiple weeks), customer counts were inflated
+- SUM() was adding per-week unique customer counts, counting same customer multiple times
+
+**Decision:**
+- Use MAX() instead of SUM() for customer count fields in aggregation queries
+- Display a warning when viewing aggregated data that counts are approximate
+
+**Alternatives Considered:**
+- Re-query raw transaction data for true unique count -> Rejected: requires storing patient names, expensive query
+- Show "N/A" for aggregated views -> Rejected: some data better than none
+
+**Consequences:**
+- Customer counts in aggregated views show peak weekly value, not true unique count
+- Warning displayed to users so they understand approximation
+- Trade-off: slightly less accurate but much simpler implementation
+
+### ADR-005: IV Therapy Revenue Excludes Standalone Injections (2026-02-04)
+
+**Context:**
+- Documentation incorrectly stated IV Therapy includes injections
+- Client expected higher IV Therapy revenue based on this
+
+**Decision:**
+- IV Therapy Revenue = base_infusion + infusion_addon categories ONLY
+- Standalone injections (B12, Xeomin, etc.) tracked separately in Injections metric
+- This matches actual code behavior since implementation
+
+**Alternatives Considered:**
+- Include injections in IV Therapy -> Rejected: would require code change and reprocessing all historical data
+
+**Consequences:**
+- Clear separation: IV bags vs standalone shots
+- Documentation updated to match code
+- Client education needed on what each metric represents

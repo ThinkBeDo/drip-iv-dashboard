@@ -32,9 +32,20 @@ Store non-sensitive configuration facts and references. Do NOT store secrets, pa
 ### Service Categories
 - base_infusion: Saline 1L, Normal Saline 500 ML, Hydration, Energy, Immunity, etc.
 - infusion_addon: Glutathione, Toradol, Zofran, Pepcid, Amino Acids IV, etc.
-- injection: B12, Metabolism Boost, Steroid Shot, Tri-Immune, Xeomin, etc.
+- injection: B12, Metabolism Boost, Steroid Shot, Tri-Immune, Xeomin, etc. (tracked separately, NOT in IV Therapy)
 - weight_management: Semaglutide, Tirzepatide, Contrave
 - membership: Membership fees (NOT services with "(member)" pricing suffix)
+
+### Revenue Metric Definitions (2026-02-04)
+- **IV Therapy Revenue**: base_infusion + infusion_addon ONLY (excludes standalone injections)
+- **Weight Loss Revenue**: weight_management category
+- **Column Used**: `Calculated Payment (Line)` = post-discount actual revenue
+- **NOT Used**: `Charges` column = pre-discount list price
+
+### Common Discrepancy Causes
+- Manual Excel totals using "Charges" column vs dashboard using "Calculated Payment"
+- Member discounts typically account for 5-10% difference
+- Aggregated customer counts use MAX() not true unique count
 
 ### Membership Types
 - Individual: 85 (as of Jan 2026)
