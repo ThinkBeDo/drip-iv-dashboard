@@ -199,51 +199,22 @@ function analyzeRevenueDataByWeeks(csvData) {
       
       // Categorize service
       const serviceCategory = getServiceCategory(chargeDesc);
-      
-      // Map categories from getServiceCategory to revenue buckets
-      // getServiceCategory returns: base_infusion, injection, infusion_addon, weight_management, consultation, membership, other
-      if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
-        metrics.drip_iv_revenue_weekly += chargeAmount;
-        
-        // Count service instances for base infusions only
-        if (serviceCategory === 'base_infusion') {
-          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          if (isWeekend) {
-            metrics.iv_infusions_weekend_weekly++;
-          } else {
-            metrics.iv_infusions_weekday_weekly++;
-          }
-        }
-      } else if (serviceCategory === 'injection') {
-        // Regular injections (B12, etc.) go to IV revenue
-        metrics.drip_iv_revenue_weekly += chargeAmount;
-        
-        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-        if (isWeekend) {
-          metrics.injections_weekend_weekly++;
-        } else {
-          metrics.injections_weekday_weekly++;
-        }
-      } else if (serviceCategory === 'weight_management') {
-        metrics.semaglutide_revenue_weekly += chargeAmount;
-        
-        if (chargeDesc.toLowerCase().includes('semaglutide') || 
-            chargeDesc.toLowerCase().includes('tirzepatide')) {
-          metrics.semaglutide_injections_weekly++;
-          metrics.weight_loss_injections_weekly++;
-        }
-      } else if (serviceCategory === 'consultation') {
-        // Consultations go to other revenue
-        metrics.other_revenue_weekly += chargeAmount;
-      } else if (serviceCategory === 'membership') {
+      const lowerChargeDesc = chargeDesc.toLowerCase();
+
+      // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+      const isWeightLoss = lowerChargeDesc.includes('semaglutide') || lowerChargeDesc.includes('tirzepatide') ||
+                          lowerChargeDesc.includes('contrave') || lowerChargeDesc.includes('weight loss');
+      const isMembership = serviceCategory === 'membership';
+      const isTip = lowerChargeDesc.includes('tip');
+
+      if (isMembership) {
+        // Memberships tracked separately (not in revenue breakdown)
         metrics.membership_revenue_weekly += chargeAmount;
 
         // Track new membership signups - ONLY count those marked with "NEW" flag
-        // Use regex with word boundaries for reliable detection (case-insensitive)
         const isNewMembership = /\bnew\b/i.test(chargeDesc);
 
         if (isNewMembership) {
-          const lowerChargeDesc = chargeDesc.toLowerCase();
           if (lowerChargeDesc.includes('individual')) {
             metrics.new_individual_members_weekly++;
           } else if (lowerChargeDesc.includes('family')) {
@@ -252,6 +223,37 @@ function analyzeRevenueDataByWeeks(csvData) {
             metrics.new_concierge_members_weekly++;
           } else if (lowerChargeDesc.includes('corporate')) {
             metrics.new_corporate_members_weekly++;
+          }
+        }
+      } else if (isWeightLoss || serviceCategory === 'weight_management') {
+        // Weight Loss: semaglutide, tirzepatide, contrave
+        metrics.semaglutide_revenue_weekly += chargeAmount;
+
+        if (lowerChargeDesc.includes('semaglutide') || lowerChargeDesc.includes('tirzepatide')) {
+          metrics.semaglutide_injections_weekly++;
+          metrics.weight_loss_injections_weekly++;
+        }
+      } else if (isTip) {
+        // Tips go to other (not IV Therapy)
+        metrics.other_revenue_weekly += chargeAmount;
+      } else {
+        // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)
+        metrics.drip_iv_revenue_weekly += chargeAmount;
+
+        // Track service counts for base infusions and injections
+        if (serviceCategory === 'base_infusion') {
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+          if (isWeekend) {
+            metrics.iv_infusions_weekend_weekly++;
+          } else {
+            metrics.iv_infusions_weekday_weekly++;
+          }
+        } else if (serviceCategory === 'injection') {
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+          if (isWeekend) {
+            metrics.injections_weekend_weekly++;
+          } else {
+            metrics.injections_weekday_weekly++;
           }
         }
       }

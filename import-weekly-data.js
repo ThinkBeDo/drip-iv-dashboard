@@ -1898,33 +1898,20 @@ async function analyzeRevenueData(csvData, client) {
         metrics.actual_weekly_revenue += chargeAmount;
         debugInfo.includedTotal += chargeAmount;
 
-        if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
-          metrics.infusion_revenue_weekly += chargeAmount;
-          // IV Therapy revenue is ONLY infusions, not injections
-          metrics.drip_iv_revenue_weekly += chargeAmount;
-          debugInfo.categoryTotals.iv_therapy += chargeAmount;
-        } else if (serviceCategory === 'injection') {
-          // IMPORTANT FIX: Don't count Tirzepatide/Semaglutide revenue in general injection revenue
-          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || chargeDesc.toLowerCase().includes('contrave');
+        // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+        const lowerDesc = chargeDesc.toLowerCase();
+        const isWeightLoss = lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || lowerDesc.includes('contrave') || lowerDesc.includes('weight loss');
+        const isMembership = serviceCategory === 'membership';
+        const isTip = lowerDesc.includes('tip');
 
-          if (!isWeightLossInjection) {
-            // Only add to general injection revenue if it's NOT a weight loss injection
-            metrics.injection_revenue_weekly += chargeAmount;
-          }
-
-          // Weight Loss (Semaglutide/Tirzepatide) revenue goes to Weight Management only
-          if (isWeightLossInjection) {
-            metrics.semaglutide_revenue_weekly += chargeAmount;
-            debugInfo.categoryTotals.weight_loss += chargeAmount;
-          }
-        } else if (serviceCategory === 'membership') {
+        if (isMembership) {
+          // Memberships tracked separately (not in revenue breakdown)
           metrics.membership_revenue_weekly += chargeAmount;
           debugInfo.categoryTotals.memberships += chargeAmount;
 
           // Track new membership signups - ONLY count those marked with a "NEW" flag
-          const lowerDesc = chargeDesc.toLowerCase();
           const isNewMembership = /\bnew\b/.test(lowerDesc);
-          
+
           if (isNewMembership) {
             if (lowerDesc.includes('individual')) {
               metrics.new_individual_members_weekly++;
@@ -1936,15 +1923,24 @@ async function analyzeRevenueData(csvData, client) {
               metrics.new_corporate_members_weekly++;
             }
           }
-        } else if (serviceCategory === 'consultation') {
-          // Track consultation revenue separately
-          if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') ||
-            chargeDesc.toLowerCase().includes('weight loss')) {
-            metrics.semaglutide_revenue_weekly += chargeAmount;
-            debugInfo.categoryTotals.weight_loss += chargeAmount;
-          }
-        } else {
+        } else if (isWeightLoss) {
+          // Weight Loss: semaglutide, tirzepatide, contrave
+          metrics.semaglutide_revenue_weekly += chargeAmount;
+          debugInfo.categoryTotals.weight_loss += chargeAmount;
+        } else if (isTip) {
+          // Tips go to other (not IV Therapy)
           debugInfo.categoryTotals.other += chargeAmount;
+        } else {
+          // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)
+          metrics.drip_iv_revenue_weekly += chargeAmount;
+          debugInfo.categoryTotals.iv_therapy += chargeAmount;
+
+          // Track subcategories for reporting
+          if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
+            metrics.infusion_revenue_weekly += chargeAmount;
+          } else if (serviceCategory === 'injection') {
+            metrics.injection_revenue_weekly += chargeAmount;
+          }
         }
       }
 
@@ -1952,30 +1948,15 @@ async function analyzeRevenueData(csvData, client) {
       if (isCurrentMonth) {
         metrics.actual_monthly_revenue += chargeAmount;
 
-        if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
-          metrics.infusion_revenue_monthly += chargeAmount;
-          // IV Therapy revenue is ONLY infusions, not injections
-          metrics.drip_iv_revenue_monthly += chargeAmount;
-        } else if (serviceCategory === 'injection') {
-          // IMPORTANT FIX: Don't count Tirzepatide/Semaglutide revenue in general injection revenue
-          const isWeightLossInjection = chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') || chargeDesc.toLowerCase().includes('contrave');
-
-          if (!isWeightLossInjection) {
-            // Only add to general injection revenue if it's NOT a weight loss injection
-            metrics.injection_revenue_monthly += chargeAmount;
-          }
-
-          // Weight Loss (Semaglutide/Tirzepatide) revenue goes to Weight Management only
-          if (isWeightLossInjection) {
-            metrics.semaglutide_revenue_monthly += chargeAmount;
-          }
-        } else if (serviceCategory === 'membership') {
+        // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+        // Use same logic as weekly (lowerDesc already defined above)
+        if (isMembership) {
+          // Memberships tracked separately (not in revenue breakdown)
           metrics.membership_revenue_monthly += chargeAmount;
 
           // Track new membership signups (monthly) - ONLY count those marked with a "NEW" flag
-          const lowerDesc = chargeDesc.toLowerCase();
           const isNewMembership = /\bnew\b/.test(lowerDesc);
-          
+
           if (isNewMembership) {
             if (lowerDesc.includes('individual')) {
               metrics.new_individual_members_monthly++;
@@ -1987,11 +1968,20 @@ async function analyzeRevenueData(csvData, client) {
               metrics.new_corporate_members_monthly++;
             }
           }
-        } else if (serviceCategory === 'consultation') {
-          // Track consultation revenue separately
-          if (chargeDesc.toLowerCase().includes('semaglutide') || chargeDesc.toLowerCase().includes('tirzepatide') ||
-            chargeDesc.toLowerCase().includes('weight loss')) {
-            metrics.semaglutide_revenue_monthly += chargeAmount;
+        } else if (isWeightLoss) {
+          // Weight Loss: semaglutide, tirzepatide, contrave
+          metrics.semaglutide_revenue_monthly += chargeAmount;
+        } else if (isTip) {
+          // Tips - don't add to IV Therapy
+        } else {
+          // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)
+          metrics.drip_iv_revenue_monthly += chargeAmount;
+
+          // Track subcategories for reporting
+          if (serviceCategory === 'base_infusion' || serviceCategory === 'infusion_addon') {
+            metrics.infusion_revenue_monthly += chargeAmount;
+          } else if (serviceCategory === 'injection') {
+            metrics.injection_revenue_monthly += chargeAmount;
           }
         }
       }
