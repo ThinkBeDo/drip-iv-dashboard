@@ -72,3 +72,20 @@ Keep a lightweight log of work completed or in progress.
 - **Description**: Weekly/Monthly totals include all services while UI only showed IV Therapy + Weight Loss, causing apparent mismatch.
 - **Fix**: Compute `other_revenue_weekly/monthly` as Total - IV - Weight Loss and display it in the revenue cards.
 - **Impact**: IV + Weight Loss + Other now equals Total Weekly/Monthly Actual for all weeks.
+
+### 2026-02-04 - CATEGORIZATION: IV Therapy default rule implementation
+- **Status**: Pending Verification
+- **Description**: Client clarified "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave". Previous logic defaulted unknown services to "Other".
+- **Changes Made**:
+  1. Changed `categorizeRevenue()` default from `other_revenue` to `drip_iv_revenue`
+  2. Moved 'Contrave Office Visit' to semaglutide_revenue (weight loss)
+  3. Only TOTAL_TIPS remains in other_revenue
+- **Files Modified**: `server.js` (lines 669-735)
+- **Expected Result**: IV Therapy should show $15,812.80 (up from $15,064.05), Other Revenue ~$0
+- **Pending**: Redeploy and re-upload data to verify
+
+### 2026-02-04 - DEPLOY: Railway deployment sync issue
+- **Status**: Resolved
+- **Description**: Railway was running commit `98d278ee` (not in git history) instead of latest commits. Triggered force redeploy.
+- **Resolution**: Pushed empty commit to trigger webhook: `git commit --allow-empty -m "trigger: force Railway redeploy"`
+- **Notes**: Always verify Railway deployment hash matches latest commit when debugging "changes not appearing" issues.

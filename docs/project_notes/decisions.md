@@ -112,3 +112,28 @@ Use ADRs to record significant architectural choices.
 - Clear separation: IV bags vs standalone shots
 - Documentation updated to match code
 - Client education needed on what each metric represents
+
+### ADR-006: IV Therapy as Default Revenue Category (2026-02-04)
+
+**Context:**
+- Client clarified: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+- Previous implementation defaulted unmatched services to "other_revenue"
+- This caused ~$748 to show as "Other Revenue" instead of "IV Therapy"
+
+**Decision:**
+- Change default category from `other_revenue` to `drip_iv_revenue`
+- Only explicit exclusions go elsewhere:
+  - Memberships → membership_revenue (not shown in revenue breakdown)
+  - Semaglutide/Tirzepatide/Contrave → semaglutide_revenue (Weight Loss)
+  - Tips only → other_revenue
+- Lab Draw Fee, hormones, ketamine, etc. → all default to IV Therapy
+
+**Alternatives Considered:**
+- Explicit whitelist for IV Therapy → Rejected: maintenance burden, new services would default to "other"
+- Keep "Other Revenue" category prominent → Rejected: client wants simplicity (IV vs Weight Loss)
+
+**Consequences:**
+- Simpler mental model: everything is IV Therapy unless explicitly excluded
+- "Other Revenue" will typically be $0 or minimal (just tips)
+- New services automatically categorized as IV Therapy (usually correct)
+- Must explicitly add weight loss drugs to exclusion list when new ones come out

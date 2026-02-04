@@ -39,3 +39,18 @@ Keep entries brief and chronological. Each entry should include date, issue, sol
 - **Root Cause**: 2026-01-31 fix added missing services to import-weekly-data.js but NOT to server.js. The /api/dashboard endpoint uses server.js categorization functions.
 - **Solution**: Added missing services to server.js: 'pepcid', 'amino acid' in isInfusionAddon(); 'steroid shot', 'tri-immune', 'tri immune' in isStandaloneInjection().
 - **Prevention**: When fixing service categorization, ensure ALL files with categorization logic are updated (server.js, import-weekly-data.js, analyze-latest-data.js).
+
+### 2026-02-04 - Revenue categorization defaulting to "Other" instead of "IV Therapy"
+- **Issue**: IV Therapy revenue still $748 short ($15,064.05 vs expected $15,812.80). "Other Revenue" showing $4,548.54.
+- **Root Cause**: The `categorizeRevenue()` function in server.js defaulted unmatched services to `other_revenue`. Client rule: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave."
+- **Solution**:
+  1. Changed default return from `other_revenue` to `drip_iv_revenue` in categorizeRevenue()
+  2. Moved 'Contrave Office Visit' from other_revenue to semaglutide_revenue (it's weight loss)
+  3. Only TOTAL_TIPS remains in other_revenue category
+- **Prevention**: Client's business rules should be documented upfront. Default should be the most common category (IV Therapy), not "other".
+
+### 2026-02-04 - Railway not deploying latest commits
+- **Issue**: After pushing commits, dashboard not reflecting changes. User saw old behavior.
+- **Root Cause**: Railway showing commit `98d278ee` (not in git history) instead of latest `acd2998`. Possible stale deployment or GitHub webhook issue.
+- **Solution**: Pushed empty commit to trigger redeploy: `git commit --allow-empty -m "trigger: force Railway redeploy"`
+- **Prevention**: Always verify Railway deployment commit hash matches latest push before debugging code issues.
