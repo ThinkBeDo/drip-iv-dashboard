@@ -14,10 +14,12 @@ This document provides clear definitions for all metrics displayed on the Drip I
 - **Note**: This is the **post-discount** amount, not the pre-discount charge amount
 
 ### IV Therapy Revenue
-- **Definition**: Revenue from IV infusions, injections, and add-ons
+- **Definition**: Revenue from IV infusions and add-ons (base infusions + add-on services)
+- **Note**: Standalone injections are tracked separately and are NOT included in IV Therapy revenue
 - **Categories Included**:
   - `base_infusion`: Saline 1L, Normal Saline 500 ML, Hydration, Performance & Recovery, Energy, Immunity, Alleviate, All Inclusive, Lux Beauty, Methylene Blue Infusion, NAD 250mg/500mg
   - `infusion_addon`: Vitamin D3, Glutathione, NAD (lower doses), Toradol, Magnesium, Vitamin B12, Zofran, Biotin, Vitamin C, Zinc, Mineral Blend, Vita-Complex, Taurine, Pepcid, Amino Acids (IV add-on)
+- **Categories NOT Included** (tracked separately):
   - `injection`: B12 Injection, Metabolism Boost Injection, Biotin, Taurine, Xeomin Neurotoxin, Steroid Shot, Tri-Immune, Amino Acids Injection, NAD 50-200mg
 
 ### Weight Loss Revenue

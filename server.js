@@ -2953,10 +2953,12 @@ app.get('/api/dashboard', async (req, res) => {
             SUM(semaglutide_injections_monthly) as semaglutide_injections_monthly,
             SUM(hormone_followup_female_monthly) as hormone_followup_female_monthly,
             SUM(hormone_initial_male_monthly) as hormone_initial_male_monthly,
-            SUM(unique_customers_weekly) as unique_customers_weekly,
-            SUM(unique_customers_monthly) as unique_customers_monthly,
-            SUM(member_customers_weekly) as member_customers_weekly,
-            SUM(non_member_customers_weekly) as non_member_customers_weekly,
+            -- FIXED: Use MAX instead of SUM for customer counts to avoid inflated numbers
+            -- SUM would incorrectly add customers appearing in multiple weeks
+            MAX(unique_customers_weekly) as unique_customers_weekly,
+            MAX(unique_customers_monthly) as unique_customers_monthly,
+            MAX(member_customers_weekly) as member_customers_weekly,
+            MAX(non_member_customers_weekly) as non_member_customers_weekly,
             SUM(actual_weekly_revenue) as actual_weekly_revenue,
             SUM(weekly_revenue_goal) as weekly_revenue_goal,
             SUM(actual_monthly_revenue) as actual_monthly_revenue,
@@ -3025,14 +3027,21 @@ app.get('/api/dashboard', async (req, res) => {
         
         // Round the averaged values
         if (result.rows.length > 0) {
-          const avgFields = ['total_drip_iv_members', 'individual_memberships', 'family_memberships', 
-                            'family_concierge_memberships', 'drip_concierge_memberships', 
+          const avgFields = ['total_drip_iv_members', 'individual_memberships', 'family_memberships',
+                            'family_concierge_memberships', 'drip_concierge_memberships',
                             'marketing_initiatives', 'concierge_memberships', 'corporate_memberships'];
           avgFields.forEach(field => {
             if (result.rows[0][field]) {
               result.rows[0][field] = Math.round(result.rows[0][field]);
             }
           });
+
+          // Add flag indicating customer counts are approximate for aggregated views
+          // Since we use MAX() instead of true unique counting across weeks
+          if (result.rows[0].weeks_included > 1) {
+            result.rows[0].customer_counts_approximate = true;
+            result.rows[0].customer_counts_note = `Customer counts show peak weekly values. True unique count across ${result.rows[0].weeks_included} weeks may differ.`;
+          }
         }
       } else {
         // Get single record for the date range (most recent)

@@ -1006,10 +1006,13 @@
                             <div class="progress-fill monthly-progress-fill" style="width: 0%"></div>
                         </div>
                         <div class="goal-comparison monthly-progress-text">Loading...</div>
+                        <div class="monthly-data-note" style="font-size: 0.8em; color: #666; margin-top: 8px; font-style: italic;">
+                            <span class="monthly-weeks-info">Based on uploaded weekly data</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Service Volume Analytics -->
             <div class="section">
                 <h2 class="section-title">Service Volume Analytics</h2>
@@ -1090,8 +1093,11 @@
                         <div class="service-item" style="font-size: 0.85em; color: #666; margin-top: -5px;">
                             <span style="font-style: italic;">*Unique individuals served</span>
                         </div>
+                        <div class="customer-counts-warning" style="display: none; font-size: 0.8em; color: #f5a623; background: #fff8e1; padding: 5px 8px; border-radius: 4px; margin-top: 8px;">
+                            <span class="customer-counts-note">⚠️ Counts are approximate for multi-week views</span>
+                        </div>
                     </div>
-                    
+
                     <div class="service-card">
                         <h4>
                             <div class="service-icon weight-icon">⚖️</div>
@@ -1716,6 +1722,18 @@
             // Update progress text
             updateElement('.weekly-progress-text', `${weeklyPercent}% of weekly goal achieved`);
             updateElement('.monthly-progress-text', `${monthlyPercent}% of monthly goal achieved (${data.days_left_in_month || 0} days remaining)`);
+
+            // Update monthly data source note
+            const monthlyWeeksInfo = document.querySelector('.monthly-weeks-info');
+            if (monthlyWeeksInfo) {
+                if (data.monthly_weeks_count && data.monthly_weeks_count > 0) {
+                    monthlyWeeksInfo.textContent = `Based on ${data.monthly_weeks_count} week(s) of uploaded data`;
+                } else if (data.monthly_calculation_note) {
+                    monthlyWeeksInfo.textContent = data.monthly_calculation_note;
+                } else {
+                    monthlyWeeksInfo.textContent = 'Based on uploaded weekly data';
+                }
+            }
             
             // Update membership counts - active totals
             // Handle individual memberships (might need calculation if not provided)
@@ -1761,7 +1779,21 @@
             updateElement('.unique-customers-monthly', data.unique_customers_monthly || 0);
             updateElement('.member-customers-weekly', data.member_customers_weekly || 0);
             updateElement('.non-member-customers-weekly', data.non_member_customers_weekly || 0);
-            
+
+            // Show/hide customer counts approximation warning for aggregated views
+            const customerWarning = document.querySelector('.customer-counts-warning');
+            if (customerWarning) {
+                if (data.customer_counts_approximate) {
+                    customerWarning.style.display = 'block';
+                    const noteEl = customerWarning.querySelector('.customer-counts-note');
+                    if (noteEl && data.customer_counts_note) {
+                        noteEl.textContent = '⚠️ ' + data.customer_counts_note;
+                    }
+                } else {
+                    customerWarning.style.display = 'none';
+                }
+            }
+
             // Calculate average services per customer
             const totalServices = (data.iv_infusions_weekday_weekly || 0) + (data.iv_infusions_weekend_weekly || 0) + 
                                 (data.injections_weekday_weekly || 0) + (data.injections_weekend_weekly || 0);

@@ -51,3 +51,18 @@ Keep a lightweight log of work completed or in progress.
 - **Description**: All dashboard metrics match expected values from analysis script
 - **Verified Metrics**: Total revenue $26,471.34, IV Therapy $14,687.85, 64 infusions, 18 injections, 28 WL injections, 139 customers
 - **Note**: After today's service categorization update, IV Therapy will be $15,064.05 and injections will be 25 (requires redeploy)
+
+### 2026-02-04 - BUG-FIX: Dashboard discrepancy investigation and fixes
+- **Status**: Completed
+- **Description**: Client reported dashboard values not matching her calculations. Investigated and fixed multiple issues.
+- **Root Cause Analysis**:
+  - **IV Revenue ($15,872.80 expected vs $14,687.85 shown)**: Client calculating from 'Charges' column (pre-discount). Dashboard correctly uses 'Calculated Payment' (post-discount). Client's $15,872.80 matches Charges total of $15,897.00.
+  - **Customer Analytics bug**: Aggregation query used SUM() for unique customer counts, causing inflated numbers when viewing multi-week ranges. Fixed to use MAX().
+  - **Documentation mismatch**: DASHBOARD_METRICS.md incorrectly stated IV Therapy includes injections. Fixed to match actual code behavior (IV Therapy = base_infusion + infusion_addon only).
+- **Fixes Applied**:
+  1. Changed customer count aggregation from SUM() to MAX() in server.js lines 2956-2959
+  2. Added warning message when viewing aggregated customer counts
+  3. Added "Based on X week(s) of data" note to Monthly Revenue section
+  4. Updated DASHBOARD_METRICS.md to clarify IV Therapy does NOT include injections
+- **Files Modified**: `server.js`, `public/index.html`, `docs/DASHBOARD_METRICS.md`
+- **Pending**: Client to confirm which column she wants for revenue (Charges vs Calculated Payment), and verify 5K infusion issue (couldn't reproduce)
