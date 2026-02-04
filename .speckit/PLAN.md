@@ -2,6 +2,9 @@
 
 ## Current Focus: Verification + Remaining Gaps
 
+### 0) Reconcile Revenue Breakdown (Completed)
+- Add "Other Revenue" line so IV + Weight Loss + Other = Total Weekly/Monthly Actual
+
 ### 1) Validate Recent Fixes (Jan 5-11, 2026 test week)
 - Verify revenue and counts match expected values after row-level changes
 - Use `/api/validate` to inspect included/excluded rows and rollups

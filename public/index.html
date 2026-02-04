@@ -971,6 +971,10 @@
                             <span class="revenue-amount actual sema-revenue-weekly">--</span>
                         </div>
                         <div class="revenue-item">
+                            <span class="revenue-label">Other Revenue</span>
+                            <span class="revenue-amount actual other-revenue-weekly">--</span>
+                        </div>
+                        <div class="revenue-item">
                             <span class="revenue-label"><strong>Total Weekly Actual</strong></span>
                             <span class="revenue-amount actual weekly-actual"><strong>--</strong></span>
                         </div>
@@ -993,6 +997,10 @@
                         <div class="revenue-item">
                             <span class="revenue-label">Weight Loss</span>
                             <span class="revenue-amount actual sema-revenue-monthly">--</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="revenue-label">Other Revenue</span>
+                            <span class="revenue-amount actual other-revenue-monthly">--</span>
                         </div>
                         <div class="revenue-item">
                             <span class="revenue-label"><strong>Total Monthly Actual</strong></span>
@@ -1702,8 +1710,10 @@
             
             updateElement('.iv-revenue-weekly', `$${formatCurrency(data.drip_iv_revenue_weekly || 0)}`);
             updateElement('.sema-revenue-weekly', `$${formatCurrency(data.semaglutide_revenue_weekly || 0)}`);
+            updateElement('.other-revenue-weekly', `$${formatCurrency(data.other_revenue_weekly || 0)}`);
             updateElement('.iv-revenue-monthly', `$${formatCurrency(data.drip_iv_revenue_monthly || 0)}`);
             updateElement('.sema-revenue-monthly', `$${formatCurrency(data.semaglutide_revenue_monthly || 0)}`);
+            updateElement('.other-revenue-monthly', `$${formatCurrency(data.other_revenue_monthly || 0)}`);
             
             // Update progress bars - now correctly calculated
             const weeklyPercent = calculatePercentage(data.actual_weekly_revenue, data.weekly_revenue_goal);

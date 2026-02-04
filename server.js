@@ -3322,6 +3322,37 @@ app.get('/api/dashboard', async (req, res) => {
       }
     }
 
+    // Compute other revenue to reconcile totals (Total - IV Therapy - Weight Loss)
+    if (result.rows[0]) {
+      const toNumber = (value) => {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
+      const weeklyTotal = toNumber(result.rows[0].actual_weekly_revenue);
+      const weeklyIv = toNumber(result.rows[0].drip_iv_revenue_weekly);
+      const weeklyWeightLoss = toNumber(result.rows[0].semaglutide_revenue_weekly);
+      let otherWeekly = weeklyTotal - weeklyIv - weeklyWeightLoss;
+      if (otherWeekly < 0 && Math.abs(otherWeekly) < 0.01) {
+        otherWeekly = 0;
+      }
+      result.rows[0].other_revenue_weekly = otherWeekly;
+
+      const monthlyTotal = toNumber(result.rows[0].actual_monthly_revenue);
+      const monthlyIv = toNumber(result.rows[0].drip_iv_revenue_monthly);
+      const monthlyWeightLoss = toNumber(result.rows[0].semaglutide_revenue_monthly);
+      let otherMonthly = monthlyTotal - monthlyIv - monthlyWeightLoss;
+      if (otherMonthly < 0 && Math.abs(otherMonthly) < 0.01) {
+        otherMonthly = 0;
+      }
+      result.rows[0].other_revenue_monthly = otherMonthly;
+
+      console.log('🧮 Other revenue calculated:', {
+        weekly: `$${otherWeekly.toFixed(2)}`,
+        monthly: `$${otherMonthly.toFixed(2)}`
+      });
+    }
+
     // Return the data
     res.json({
       success: true,

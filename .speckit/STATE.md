@@ -1,20 +1,18 @@
 # STATE
 
 ## Status
-- Date: 2026-01-31
-- Summary: **ROOT CAUSE FOUND** - Expected values ($16,459.20 IV, 90 infusions) used 'Charges' column (pre-discount). Dashboard correctly uses 'Calculated Payment' (post-discount $15,060.60, 71 infusions). Database verified, no duplicates. Updated stale Railway connection string.
+- Date: 2026-02-04
+- Summary: Added "Other Revenue" to reconcile Total Weekly/Monthly Actual with IV Therapy + Weight Loss. Clarified metrics documentation to match code behavior.
 
 ## What Changed This Session
-- Traced raw Excel data column-by-column to find discrepancy source
-- 'Charges' column IV total = $16,414 (matches expected); 'Calculated Payment' = $15,060.60 (dashboard value)
-- Member discounts on IV services = $879.60 explains most of the gap
-- Updated diagnose-database.js with new Railway URL (yamanote.proxy.rlwy.net:16060)
-- Documented root cause in docs/project_notes/issues.md
+- Computed `other_revenue_weekly/monthly` in `/api/dashboard` to reconcile totals
+- Added "Other Revenue" rows to weekly/monthly revenue cards in `public/index.html`
+- Updated `docs/DASHBOARD_METRICS.md` to define Other Revenue and clarify totals
+- Logged the change in `docs/project_notes/issues.md`
 
 ## Next Step
-- **NEXT SESSION**: Download fresh Optimantra data, Claude calculates expected values from raw file, user runs dashboard, compare results side-by-side
-- Optional: Add 7 missing services to categorization (Pepcid, Steroid Shot, Tri-Immune, Amino Acids, Normal Saline 500 ML) - adds ~$479 to IV total
-- Can now upload memberships (118 members parsed, DB accessible)
+- Verify Jan 19–25, 2026 week: IV + Weight Loss + Other = Total Weekly Actual
+- Optional: Provide DATABASE_URL for read-only verification against Railway
 
 ## Blockers
 - None - Railway DB now accessible with updated connection string

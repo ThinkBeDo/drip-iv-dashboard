@@ -66,3 +66,9 @@ Keep a lightweight log of work completed or in progress.
   4. Updated DASHBOARD_METRICS.md to clarify IV Therapy does NOT include injections
 - **Files Modified**: `server.js`, `public/index.html`, `docs/DASHBOARD_METRICS.md`
 - **Pending**: Client to confirm which column she wants for revenue (Charges vs Calculated Payment), and verify 5K infusion issue (couldn't reproduce)
+
+### 2026-02-04 - RECONCILE: Add "Other Revenue" to match totals
+- **Status**: Completed
+- **Description**: Weekly/Monthly totals include all services while UI only showed IV Therapy + Weight Loss, causing apparent mismatch.
+- **Fix**: Compute `other_revenue_weekly/monthly` as Total - IV - Weight Loss and display it in the revenue cards.
+- **Impact**: IV + Weight Loss + Other now equals Total Weekly/Monthly Actual for all weeks.

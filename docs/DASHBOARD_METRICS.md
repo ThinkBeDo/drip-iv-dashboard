@@ -12,6 +12,7 @@ This document provides clear definitions for all metrics displayed on the Drip I
 - **Includes**: All positive payment values after discounts
 - **Excludes**: Refunds (negative values), $0 transactions
 - **Note**: This is the **post-discount** amount, not the pre-discount charge amount
+- **Important**: Total Weekly/Monthly Actual includes **all** services, so it can exceed IV Therapy + Weight Loss
 
 ### IV Therapy Revenue
 - **Definition**: Revenue from IV infusions and add-ons (base infusions + add-on services)
@@ -25,6 +26,11 @@ This document provides clear definitions for all metrics displayed on the Drip I
 ### Weight Loss Revenue
 - **Definition**: Revenue from weight management services
 - **Services Included**: Semaglutide, Tirzepatide, Contrave, anything with "weight loss" in description
+
+### Other Revenue
+- **Definition**: Total revenue **minus** IV Therapy and Weight Loss
+- **Includes**: Standalone injections, membership fees, hormone services, consultations, and uncategorized services
+- **Note**: Derived value to reconcile the total; if negative beyond rounding, investigate categorization
 
 ### Membership Revenue
 - **Definition**: Revenue from membership fees
@@ -192,7 +198,7 @@ Revenue → IV Therapy | Counts → (none, doesn't add to visit count)
 - NAD (lower doses when part of infusion)
 
 ### Category: `injection`
-Revenue → IV Therapy | Counts → Injections
+Revenue → Other Revenue (NOT IV Therapy) | Counts → Injections
 - B12 Injection, Metabolism Boost Injection
 - Biotin Injection, Taurine Injection
 - Xeomin Neurotoxin, Steroid Shot
