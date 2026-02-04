@@ -1894,15 +1894,16 @@ async function analyzeRevenueData(csvData, client) {
         console.log(`   Row ${csvData.indexOf(row) + 1} revenue: $${chargeAmount}, Date: ${row[ 'Date' ]}, In week: ${isCurrentWeek}`);
       }
 
+      // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+      // Define these OUTSIDE both weekly/monthly blocks so they're available for both
+      const lowerDesc = chargeDesc.toLowerCase();
+      const isWeightLoss = lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || lowerDesc.includes('contrave') || lowerDesc.includes('weight loss');
+      const isMembership = serviceCategory === 'membership';
+      const isTip = lowerDesc.includes('tip');
+
       if (isCurrentWeek) {
         metrics.actual_weekly_revenue += chargeAmount;
         debugInfo.includedTotal += chargeAmount;
-
-        // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
-        const lowerDesc = chargeDesc.toLowerCase();
-        const isWeightLoss = lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || lowerDesc.includes('contrave') || lowerDesc.includes('weight loss');
-        const isMembership = serviceCategory === 'membership';
-        const isTip = lowerDesc.includes('tip');
 
         if (isMembership) {
           // Memberships tracked separately (not in revenue breakdown)
@@ -1948,8 +1949,7 @@ async function analyzeRevenueData(csvData, client) {
       if (isCurrentMonth) {
         metrics.actual_monthly_revenue += chargeAmount;
 
-        // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
-        // Use same logic as weekly (lowerDesc already defined above)
+        // Uses same variables defined above (lowerDesc, isWeightLoss, isMembership, isTip)
         if (isMembership) {
           // Memberships tracked separately (not in revenue breakdown)
           metrics.membership_revenue_monthly += chargeAmount;
