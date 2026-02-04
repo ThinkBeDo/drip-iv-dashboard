@@ -33,3 +33,9 @@ Keep entries brief and chronological. Each entry should include date, issue, sol
 - **Root Cause**: Documentation was written incorrectly; code has always excluded standalone injections from IV Therapy revenue.
 - **Solution**: Updated DASHBOARD_METRICS.md to clarify IV Therapy = base_infusion + infusion_addon only. Injections tracked separately.
 - **Prevention**: When documenting metrics, verify against actual code behavior, not assumptions.
+
+### 2026-02-04 - Service categorization fix not applied to server.js (revenue ~$748 short)
+- **Issue**: Dashboard IV Therapy revenue showing $15,064 instead of client's calculated $15,812 (~$748 difference).
+- **Root Cause**: 2026-01-31 fix added missing services to import-weekly-data.js but NOT to server.js. The /api/dashboard endpoint uses server.js categorization functions.
+- **Solution**: Added missing services to server.js: 'pepcid', 'amino acid' in isInfusionAddon(); 'steroid shot', 'tri-immune', 'tri immune' in isStandaloneInjection().
+- **Prevention**: When fixing service categorization, ensure ALL files with categorization logic are updated (server.js, import-weekly-data.js, analyze-latest-data.js).

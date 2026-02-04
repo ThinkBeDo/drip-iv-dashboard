@@ -566,7 +566,8 @@ function isInfusionAddon(chargeDesc) {
   // IV Add-ons (don't count as separate visits)
   const addonServices = [
     'vitamin d3', 'glutathione', 'nad', 'toradol', 'magnesium', 'vitamin b12',
-    'zofran', 'biotin', 'vitamin c', 'zinc', 'mineral blend', 'vita-complex', 'taurine'
+    'zofran', 'biotin', 'vitamin c', 'zinc', 'mineral blend', 'vita-complex', 'taurine',
+    'pepcid', 'amino acid'
   ];
   
   return addonServices.some(service => lowerDesc.includes(service));
@@ -577,8 +578,9 @@ function isStandaloneInjection(chargeDesc) {
   
   // Standalone Injections (excluding weight management medications)
   const standaloneInjections = [
-    'b12 injection', 'metabolism boost injection', 'vitamin d injection', 
-    'glutathione injection', 'biotin injection', 'xeomin neurotoxin'
+    'b12 injection', 'metabolism boost injection', 'vitamin d injection',
+    'glutathione injection', 'biotin injection', 'xeomin neurotoxin',
+    'steroid shot', 'tri-immune', 'tri immune'
   ];
   
   // Weight management medications (tracked separately)
