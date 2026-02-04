@@ -36,11 +36,21 @@ Store non-sensitive configuration facts and references. Do NOT store secrets, pa
 - weight_management: Semaglutide, Tirzepatide, Contrave
 - membership: Membership fees (NOT services with "(member)" pricing suffix)
 
-### Revenue Metric Definitions (2026-02-04)
-- **IV Therapy Revenue**: base_infusion + infusion_addon ONLY (excludes standalone injections)
-- **Weight Loss Revenue**: weight_management category
+### Revenue Metric Definitions (2026-02-04 UPDATED)
+- **IV Therapy Revenue**: EVERYTHING except memberships, weight loss, and tips
+- **Weight Loss Revenue**: Semaglutide, Tirzepatide, Contrave only
+- **Other Revenue**: Tips only (should be ~$0 most weeks)
 - **Column Used**: `Calculated Payment (Line)` = post-discount actual revenue
 - **NOT Used**: `Charges` column = pre-discount list price
+
+### Client Rule (2026-02-04)
+> "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+
+### CRITICAL: Data Flow for Debugging
+- **Import files** (`import-weekly-data.js`, `import-multi-week-data.js`): Calculate and STORE revenue values
+- **Server.js**: READS stored values, calculates `other_revenue` at runtime
+- **If frontend shows wrong numbers after re-upload**: Bug is in IMPORT, not display
+- **Full guide**: See `docs/DATA_FLOW_DEBUG.md`
 
 ### Common Discrepancy Causes
 - Manual Excel totals using "Charges" column vs dashboard using "Calculated Payment"

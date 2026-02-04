@@ -89,3 +89,21 @@ Keep a lightweight log of work completed or in progress.
 - **Description**: Railway was running commit `98d278ee` (not in git history) instead of latest commits. Triggered force redeploy.
 - **Resolution**: Pushed empty commit to trigger webhook: `git commit --allow-empty -m "trigger: force Railway redeploy"`
 - **Notes**: Always verify Railway deployment hash matches latest commit when debugging "changes not appearing" issues.
+
+### 2026-02-04 - IMPORT LOGIC FIX: IV Therapy calculation was wrong
+- **Status**: Completed (pending verification after user re-upload)
+- **Description**: After fixing server.js display logic, values STILL wrong because import logic was never fixed.
+- **Root Cause**:
+  - `drip_iv_revenue_weekly` is STORED in database during import
+  - Import code only added `base_infusion` + `infusion_addon` to IV Therapy
+  - All other services (injections, consultations, hormones, lab fees) went to "other" or nowhere
+- **Fix Applied**:
+  1. `import-weekly-data.js` lines 1897-1945: Changed revenue calculation to add EVERYTHING to IV Therapy except memberships/weight-loss/tips
+  2. `import-multi-week-data.js` lines 200-260: Same fix
+- **Expected Result**: After re-upload, IV Therapy should show ~$15,812.80 (was $15,064.05)
+- **Lesson Learned**: When debugging data issues, ALWAYS trace the full data flow:
+  1. Import logic (where data is CALCULATED)
+  2. Database (where data is STORED)
+  3. API/Query logic (where data is READ)
+  4. Frontend (where data is DISPLAYED)
+- **Documentation Added**: Created `docs/DATA_FLOW_DEBUG.md` with full debugging checklist

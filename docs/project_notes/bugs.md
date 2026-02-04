@@ -54,3 +54,13 @@ Keep entries brief and chronological. Each entry should include date, issue, sol
 - **Root Cause**: Railway showing commit `98d278ee` (not in git history) instead of latest `acd2998`. Possible stale deployment or GitHub webhook issue.
 - **Solution**: Pushed empty commit to trigger redeploy: `git commit --allow-empty -m "trigger: force Railway redeploy"`
 - **Prevention**: Always verify Railway deployment commit hash matches latest push before debugging code issues.
+
+### 2026-02-04 - CRITICAL: Fixed display logic but not import logic (wasted 30+ min)
+- **Issue**: IV Therapy still showing $15,064.05 after "fixing" categorization in server.js. User re-uploaded data but values didn't change.
+- **Root Cause**: **IMPORT LOGIC WAS NEVER FIXED.** The `categorizeRevenue()` function in server.js is only used for display/query. The actual revenue values (`drip_iv_revenue_weekly`) are calculated and STORED in the database during IMPORT by `import-weekly-data.js` and `import-multi-week-data.js`.
+- **What was missed**: When asked to "trace the data", only traced:
+  - ❌ Query logic (server.js `/api/dashboard`)
+  - ❌ Display logic (public/index.html)
+  - ✅ Should have traced: Import logic where values are CALCULATED and STORED
+- **Solution**: Fixed both `import-weekly-data.js` (lines 1897-1945) and `import-multi-week-data.js` (lines 200-260) to apply client rule during import.
+- **Prevention**: See DATA_FLOW_DEBUG.md for complete debugging checklist.
