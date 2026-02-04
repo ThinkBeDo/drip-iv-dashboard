@@ -64,3 +64,10 @@ Keep entries brief and chronological. Each entry should include date, issue, sol
   - ✅ Should have traced: Import logic where values are CALCULATED and STORED
 - **Solution**: Fixed both `import-weekly-data.js` (lines 1897-1945) and `import-multi-week-data.js` (lines 200-260) to apply client rule during import.
 - **Prevention**: See DATA_FLOW_DEBUG.md for complete debugging checklist.
+
+### 2026-02-04 - "DO NOT USE" placeholder entries counted as IV Therapy revenue
+- **Issue**: IV Therapy showing $16,041.35 instead of client's expected $15,812.80 ($228.55 difference)
+- **Root Cause**: Entry "DO NOT USE -fmly" worth $229.00 was being included in IV Therapy. This is an internal placeholder, not actual revenue.
+- **Solution**: Added `isExcluded = lowerDesc.includes('do not use')` check in both `import-weekly-data.js` and `import-multi-week-data.js`. Excluded entries go to "other" category.
+- **Verification**: $16,041.35 - $229.00 = $15,812.35 (within $0.45 of expected)
+- **Prevention**: When client reports revenue mismatch, analyze raw Excel file to find unexpected entries like placeholders, test data, or credits.

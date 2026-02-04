@@ -37,9 +37,10 @@ Store non-sensitive configuration facts and references. Do NOT store secrets, pa
 - membership: Membership fees (NOT services with "(member)" pricing suffix)
 
 ### Revenue Metric Definitions (2026-02-04 UPDATED)
-- **IV Therapy Revenue**: EVERYTHING except memberships, weight loss, and tips
+- **IV Therapy Revenue**: EVERYTHING except memberships, weight loss, tips, and excluded items
 - **Weight Loss Revenue**: Semaglutide, Tirzepatide, Contrave only
-- **Other Revenue**: Tips only (should be ~$0 most weeks)
+- **Other Revenue**: Tips + excluded items (like "DO NOT USE" placeholders)
+- **Excluded Items**: Entries containing "do not use" (internal placeholders, test data)
 - **Column Used**: `Calculated Payment (Line)` = post-discount actual revenue
 - **NOT Used**: `Charges` column = pre-discount list price
 

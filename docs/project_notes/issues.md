@@ -107,3 +107,12 @@ Keep a lightweight log of work completed or in progress.
   3. API/Query logic (where data is READ)
   4. Frontend (where data is DISPLAYED)
 - **Documentation Added**: Created `docs/DATA_FLOW_DEBUG.md` with full debugging checklist
+
+### 2026-02-04 - FINAL FIX: IV Therapy revenue $228.55 discrepancy resolved
+- **Status**: Completed (pending user re-upload)
+- **Description**: Client expected IV Therapy = $15,812.80, dashboard showed $16,041.35
+- **Root Cause**: "DO NOT USE -fmly" entry ($229.00) was internal placeholder being counted as IV Therapy
+- **Debug Method**: Created analyze-week.js script to parse raw Excel and categorize all services. Found exact $229 entry.
+- **Fix Applied**: Added `isExcluded = lowerDesc.includes('do not use')` to both import scripts
+- **Files Modified**: `import-weekly-data.js`, `import-multi-week-data.js`
+- **Expected Result**: IV Therapy should show $15,812.35 after re-upload ($16,041.35 - $229.00)
