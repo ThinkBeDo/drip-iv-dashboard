@@ -202,10 +202,12 @@ function analyzeRevenueDataByWeeks(csvData) {
       const lowerChargeDesc = chargeDesc.toLowerCase();
 
       // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+      // Also exclude: tips, "DO NOT USE" placeholder entries
       const isWeightLoss = lowerChargeDesc.includes('semaglutide') || lowerChargeDesc.includes('tirzepatide') ||
                           lowerChargeDesc.includes('contrave') || lowerChargeDesc.includes('weight loss');
       const isMembership = serviceCategory === 'membership';
       const isTip = lowerChargeDesc.includes('tip');
+      const isExcluded = lowerChargeDesc.includes('do not use'); // Internal placeholders should not count as revenue
 
       if (isMembership) {
         // Memberships tracked separately (not in revenue breakdown)
@@ -233,8 +235,8 @@ function analyzeRevenueDataByWeeks(csvData) {
           metrics.semaglutide_injections_weekly++;
           metrics.weight_loss_injections_weekly++;
         }
-      } else if (isTip) {
-        // Tips go to other (not IV Therapy)
+      } else if (isTip || isExcluded) {
+        // Tips and "DO NOT USE" placeholders go to other (not IV Therapy)
         metrics.other_revenue_weekly += chargeAmount;
       } else {
         // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)

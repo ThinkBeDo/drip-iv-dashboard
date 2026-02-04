@@ -1895,11 +1895,13 @@ async function analyzeRevenueData(csvData, client) {
       }
 
       // CLIENT RULE: "Drip is everything EXCLUDING memberships, semaglutide, tirzepatide, contrave"
+      // Also exclude: tips, "DO NOT USE" placeholder entries
       // Define these OUTSIDE both weekly/monthly blocks so they're available for both
       const lowerDesc = chargeDesc.toLowerCase();
       const isWeightLoss = lowerDesc.includes('semaglutide') || lowerDesc.includes('tirzepatide') || lowerDesc.includes('contrave') || lowerDesc.includes('weight loss');
       const isMembership = serviceCategory === 'membership';
       const isTip = lowerDesc.includes('tip');
+      const isExcluded = lowerDesc.includes('do not use'); // Internal placeholders should not count as revenue
 
       if (isCurrentWeek) {
         metrics.actual_weekly_revenue += chargeAmount;
@@ -1928,8 +1930,8 @@ async function analyzeRevenueData(csvData, client) {
           // Weight Loss: semaglutide, tirzepatide, contrave
           metrics.semaglutide_revenue_weekly += chargeAmount;
           debugInfo.categoryTotals.weight_loss += chargeAmount;
-        } else if (isTip) {
-          // Tips go to other (not IV Therapy)
+        } else if (isTip || isExcluded) {
+          // Tips and "DO NOT USE" placeholders go to other (not IV Therapy)
           debugInfo.categoryTotals.other += chargeAmount;
         } else {
           // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)
@@ -1971,8 +1973,8 @@ async function analyzeRevenueData(csvData, client) {
         } else if (isWeightLoss) {
           // Weight Loss: semaglutide, tirzepatide, contrave
           metrics.semaglutide_revenue_monthly += chargeAmount;
-        } else if (isTip) {
-          // Tips - don't add to IV Therapy
+        } else if (isTip || isExcluded) {
+          // Tips and "DO NOT USE" placeholders - don't add to IV Therapy
         } else {
           // EVERYTHING ELSE goes to IV Therapy (Drip Revenue)
           metrics.drip_iv_revenue_monthly += chargeAmount;
