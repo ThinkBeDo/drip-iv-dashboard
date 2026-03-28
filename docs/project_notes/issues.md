@@ -116,3 +116,13 @@ Keep a lightweight log of work completed or in progress.
 - **Fix Applied**: Added `isExcluded = lowerDesc.includes('do not use')` to both import scripts
 - **Files Modified**: `import-weekly-data.js`, `import-multi-week-data.js`
 - **Expected Result**: IV Therapy should show $15,812.35 after re-upload ($16,041.35 - $229.00)
+
+### 2026-03-28 - HP3-122: Audit package date import status (R5-02)
+- **Status**: Blocked
+- **Description**: Reviewed project memory, codebase, and git history to verify whether `dateOfService` / `packageLaidDate` import for ~1,610 packages had already been completed.
+- **Findings**:
+  - No code paths, schema fields, or migration files in this repo currently reference `dateOfService` or `packageLaidDate`.
+  - No commit messages indicate prior Airtable package-date import work.
+  - Existing dashboard analytics schema is weekly aggregate-focused and does not include package-level date columns.
+- **Blocked On**: Ryan confirmation of Airtable source field mapping and export payload before implementation can begin.
+- **URL**: https://linear.app (HP3-122)
